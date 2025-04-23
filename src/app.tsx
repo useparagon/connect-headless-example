@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { paragon } from '@useparagon/connect';
 
 import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { IntegrationCard } from '@/components/feature/integration-card';
 
 export function App() {
   const user = paragon.getUser();
@@ -27,21 +26,13 @@ export function App() {
 
             return (
               <li key={integration.type}>
-                <Card className="min-w-[300px] hover:shadow-sm transition-shadow">
-                  <CardContent>
-                    <CardTitle>
-                      <div className="flex gap-2 items-center justify-between">
-                        <div className="flex gap-2 items-center">
-                          <img src={integration.icon} width={30} />
-                          {integration.name}
-                        </div>
-                        <Button onClick={() => {}} className="cursor-pointer">
-                          {integrationEnabled ? 'Manage' : 'Enable'}
-                        </Button>
-                      </div>
-                    </CardTitle>
-                  </CardContent>
-                </Card>
+                <IntegrationCard
+                  key={integration.type}
+                  type={integration.type}
+                  name={integration.name}
+                  icon={integration.icon}
+                  enabled={integrationEnabled ?? false}
+                />
               </li>
             );
           })}
