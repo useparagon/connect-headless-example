@@ -9,8 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
-import { paragon } from '@useparagon/connect';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useIntegrationConfig } from '@/lib/hooks';
 
 type Props = {
   type: string;
@@ -66,11 +66,11 @@ function IntegrationModal(
 
   return (
     <Dialog onOpenChange={props.onOpenChange} open>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px]">
         <DialogHeader>
           <div className="flex gap-4 items-center">
             <img src={props.icon} width={45} />
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col items-start gap-1">
               <DialogTitle>{props.name}</DialogTitle>
               <DialogDescription>
                 {integrationConfig.shortDescription}
@@ -78,17 +78,25 @@ function IntegrationModal(
             </div>
           </div>
         </DialogHeader>
-        <div className="py-4">Content for {props.name}...</div>
+        <div className="mt-8">
+          <Tabs defaultValue="overview">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="configuration">Configuration</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <div className="p-6">
+                <pre className="text-sm text-wrap text-black/70 font-sans">
+                  {integrationConfig.longDescription}
+                </pre>
+              </div>
+            </TabsContent>
+            <TabsContent value="configuration">
+              <div className="p-6">WIP</div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
-}
-
-function useIntegrationConfig(type: string) {
-  return useQuery({
-    queryKey: ['integrationConfig', type],
-    queryFn: () => {
-      return paragon.getIntegrationConfig(type);
-    },
-  });
 }

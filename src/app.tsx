@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
 import { paragon } from '@useparagon/connect';
 
 import { Header } from '@/components/layout/header';
 import { IntegrationCard } from '@/components/feature/integration-card';
+import { useIntegrationMetadata } from '@/lib/hooks';
 
 export function App() {
   return (
@@ -20,6 +20,7 @@ export function App() {
 function IntegrationList() {
   const user = paragon.getUser();
   const { data: integrations, isLoading } = useIntegrationMetadata();
+
   if (isLoading || !integrations) {
     return <div>Loading...</div>;
   }
@@ -46,13 +47,4 @@ function IntegrationList() {
       </ul>
     </>
   );
-}
-
-function useIntegrationMetadata() {
-  return useQuery({
-    queryKey: ['integrations'],
-    queryFn: () => {
-      return paragon.getIntegrationMetadata();
-    },
-  });
 }
