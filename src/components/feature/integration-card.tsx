@@ -90,7 +90,7 @@ function IntegrationModal(
             <TabsContent value="overview">
               <div className="p-6">
                 <pre className="text-sm text-wrap text-black/70 font-sans">
-                  {integrationConfig.longDescription}
+                  {integrationConfig.longDescription?.replaceAll('\n\n', '\n')}
                 </pre>
               </div>
             </TabsContent>
