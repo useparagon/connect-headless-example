@@ -68,14 +68,17 @@ function IntegrationModal(
     <Dialog onOpenChange={props.onOpenChange} open>
       <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px]">
         <DialogHeader>
-          <div className="flex gap-4 items-center">
-            <img src={props.icon} width={45} />
-            <div className="flex flex-col items-start gap-1">
-              <DialogTitle>{props.name}</DialogTitle>
-              <DialogDescription>
-                {integrationConfig.shortDescription}
-              </DialogDescription>
+          <div className="flex gap-2 justify-between items-center">
+            <div className="flex gap-4 items-center">
+              <img src={props.icon} width={45} />
+              <div className="flex flex-col items-start gap-1">
+                <DialogTitle>{props.name}</DialogTitle>
+                <DialogDescription>
+                  {integrationConfig.shortDescription}
+                </DialogDescription>
+              </div>
             </div>
+            <Button onClick={() => {}}>Connect</Button>
           </div>
         </DialogHeader>
         <div className="mt-8">
