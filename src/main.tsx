@@ -1,14 +1,19 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { paragon } from '@useparagon/connect';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { z } from 'zod';
 
 import { App } from '@/app';
 
 const queryClient = new QueryClient();
 
-const projectId = import.meta.env.VITE_PARAGON_PROJECT_ID;
-const jwtToken = import.meta.env.VITE_PARAGON_JWT_TOKEN;
+const config = z
+  .object({
+    VITE_PARAGON_PROJECT_ID: z.string(),
+    VITE_PARAGON_JWT_TOKEN: z.string(),
+  })
+  .parse(import.meta.env);
 
 async function main() {
   window.paragon = paragon;
@@ -20,7 +25,10 @@ async function main() {
   }
 
   try {
-    await paragon.authenticate(projectId, jwtToken);
+    await paragon.authenticate(
+      config.VITE_PARAGON_PROJECT_ID,
+      config.VITE_PARAGON_JWT_TOKEN
+    );
     console.log('Successfully authenticated!');
   } catch (error) {
     throw new Error(`Failed to authenticate with Paragon: ${error}`);
