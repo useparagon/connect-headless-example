@@ -1,14 +1,12 @@
+import { paragon } from '@useparagon/connect';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { paragon } from '@useparagon/connect';
 
-import { App } from './app';
-
-if (typeof window !== 'undefined') {
-  window.paragon = paragon;
-}
+import { App } from '@/app';
 
 function main() {
+  window.paragon = paragon;
+
   const rootElement = document.getElementById('root');
 
   if (!rootElement) {
@@ -20,7 +18,7 @@ function main() {
   root.render(
     <StrictMode>
       <App />
-    </StrictMode>,
+    </StrictMode>
   );
 }
 
