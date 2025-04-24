@@ -73,7 +73,7 @@ function IntegrationModal(
               <img src={props.icon} width={45} />
               <div className="flex flex-col items-start gap-1">
                 <DialogTitle>{props.name}</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-left">
                   {integrationConfig.shortDescription}
                 </DialogDescription>
               </div>
