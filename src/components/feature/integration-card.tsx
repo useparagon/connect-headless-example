@@ -78,13 +78,16 @@ function IntegrationModal(
                 </DialogDescription>
               </div>
             </div>
-            <Button className="cursor-pointer" onClick={() => {}}>
-              Connect
+            <Button
+              className="cursor-pointer"
+              variant={props.enabled ? 'destructive' : 'default'}
+              onClick={() => {}}
+            >
+              {props.enabled ? 'Disconnect' : 'Connect'}
             </Button>
           </div>
-          <div className="w-full h-[1px] border-b border-border my-4" />
         </DialogHeader>
-        <div>
+        <div className="pt-6">
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="w-[250px] grid grid-cols-2">
               <TabsTrigger className="cursor-pointer" value="overview">
