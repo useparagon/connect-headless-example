@@ -78,18 +78,26 @@ function IntegrationModal(
                 </DialogDescription>
               </div>
             </div>
-            <Button onClick={() => {}}>Connect</Button>
+            <Button className="cursor-pointer" onClick={() => {}}>
+              Connect
+            </Button>
           </div>
+          <div className="w-full h-[1px] border-b border-border my-4" />
         </DialogHeader>
-        <div className="mt-8">
-          <Tabs defaultValue="overview">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="configuration">Configuration</TabsTrigger>
+        <div>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="w-[250px] grid grid-cols-2">
+              <TabsTrigger className="cursor-pointer" value="overview">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger className="cursor-pointer" value="configuration">
+                Configuration
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="overview">
+            <TabsContent value="overview" className="w-full">
               <div className="p-6">
                 <pre className="text-sm text-wrap text-black/70 font-sans">
+                  {/* oi */}
                   {integrationConfig.longDescription?.replaceAll('\n\n', '\n')}
                 </pre>
               </div>
