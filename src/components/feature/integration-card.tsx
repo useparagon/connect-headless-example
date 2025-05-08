@@ -353,7 +353,12 @@ function FieldLabel(props: {
   return (
     <Label htmlFor={props.id}>
       {props.children}
-      {props.required ? <span className="text-red-600"> *</span> : null}
+      {props.required ? (
+        <Tooltip>
+          <TooltipTrigger> 🚩</TooltipTrigger>
+          <TooltipContent>This field is required</TooltipContent>
+        </Tooltip>
+      ) : null}
       {props.tooltip ? (
         <Tooltip>
           <TooltipTrigger> ℹ️</TooltipTrigger>
