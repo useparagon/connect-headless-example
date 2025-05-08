@@ -255,7 +255,7 @@ function IntegrationConfiguration(props: { type: string }) {
           }
 
           return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+            <div key={setting.id} className="text-orange-600">
               <div>
                 <span className="font-semibold">Title:</span>{' '}
                 <span className="font-mono">{setting.title}</span>
@@ -279,7 +279,6 @@ function IntegrationConfiguration(props: { type: string }) {
                   {setting.currentValue?.toString()}
                 </span>
               </div>
-              <div className="h-[1px] w-full bg-black/10" />
             </div>
           );
         })}
