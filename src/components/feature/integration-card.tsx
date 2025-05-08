@@ -19,8 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIntegrationConfig } from '@/lib/hooks';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 type Props = {
   type: string;
@@ -154,15 +158,15 @@ function IntegrationConfiguration(props: { type: string }) {
 
   const sharedSettings = integration.sharedSettings ?? {};
 
-  const userSettings = settings.map((s) => {
+  const userSettings = settings.map((setting) => {
     return {
-      ...s,
-      id: s.id as string,
-      title: s.title as string,
-      required: s.required as boolean,
-      tooltip: s.tooltip as string | undefined,
-      type: s.type as SupportedConnectInputType,
-      currentValue: sharedSettings[s.id],
+      ...setting,
+      id: setting.id as string,
+      title: setting.title as string,
+      required: setting.required as boolean,
+      tooltip: setting.tooltip,
+      type: setting.type as SupportedConnectInputType,
+      currentValue: sharedSettings[setting.id],
     };
   });
 
