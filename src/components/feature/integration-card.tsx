@@ -186,6 +186,21 @@ function IntegrationConfiguration(props: { type: string }) {
           return (
             <div key={setting.id} className="py-2 border-b border-black/10">
               <IntegrationConfigurationTextInputField
+                type="text"
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as string) ?? ''}
+              />
+            </div>
+          );
+        }
+
+        if (setting.type === SidebarInputType.Number) {
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <IntegrationConfigurationTextInputField
+                type="number"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
@@ -256,6 +271,7 @@ function IntegrationConfigurationTextInputField(props: {
   title: string;
   required: boolean;
   value: string;
+  type: 'text' | 'number' | 'email' | 'password' | 'url';
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -265,7 +281,7 @@ function IntegrationConfigurationTextInputField(props: {
       </Label>
       <Input
         id={props.id}
-        type="text"
+        type={props.type}
         value={props.value}
         // WIP: add onChange handler
         onChange={() => {}}
