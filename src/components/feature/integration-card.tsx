@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
+import { paragon, SupportedConnectInputType } from '@useparagon/connect';
 
 type Props = {
   type: string;
@@ -66,7 +67,7 @@ function IntegrationModal(
 
   return (
     <Dialog onOpenChange={props.onOpenChange} open>
-      <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px]">
+      <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px] max-h-[90dvh]">
         <DialogHeader>
           <div className="flex gap-2 justify-between items-center">
             <div className="flex gap-4 items-center">
@@ -97,20 +98,87 @@ function IntegrationModal(
                 Configuration
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="overview" className="w-full">
+            <TabsContent
+              value="overview"
+              className="w-full overflow-y-auto max-h-[70dvh]"
+            >
               <div className="p-6">
                 <pre className="text-sm text-wrap text-black/70 font-sans">
-                  {/* oi */}
                   {integrationConfig.longDescription?.replaceAll('\n\n', '\n')}
                 </pre>
               </div>
             </TabsContent>
-            <TabsContent value="configuration">
-              <div className="p-6">WIP</div>
+            <TabsContent
+              value="configuration"
+              className="w-full overflow-y-auto max-h-[70dvh]"
+            >
+              <div className="p-6">
+                <IntegrationConfiguration type={props.type} />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function IntegrationConfiguration(props: { type: string }) {
+  const settings = paragon
+    .getIntegrationConfig(props.type)
+    .availableUserSettings?.map((s) => {
+      return {
+        ...s,
+        id: s.id as string,
+        title: s.title as string,
+        required: s.required as boolean,
+        type: s.type as SupportedConnectInputType,
+      };
+    });
+
+  if (!settings || settings.length === 0) {
+    return null;
+  }
+
+  const user = paragon.getUser();
+
+  if (!user.authenticated) {
+    throw new Error('User is not authenticated');
+  }
+
+  const integration = user.integrations[props.type];
+
+  if (!integration) {
+    throw new Error('Integration not found');
+  }
+
+  const sharedSettings = integration.sharedSettings ?? {};
+
+  return (
+    <div>
+      <p className="text-lg font-bold mb-4">User integration settings:</p>
+      {settings?.map((s) => {
+        return (
+          <Fragment key={s.id}>
+            <div key={s.id}>
+              <span className="font-semibold">Title:</span>{' '}
+              <span className="font-mono">{s.title}</span>
+              {s.required ? <span className="text-red-600"> *</span> : null}
+            </div>
+            <div>
+              <span className="font-semibold">Field type:</span>{' '}
+              <span className="font-mono">{s.type}</span>
+            </div>
+            <div>
+              <span className="font-semibold">Current value:</span>{' '}
+              <span className="font-mono">
+                {sharedSettings[s.id]?.toString()}
+              </span>
+            </div>
+            <div className="h-[1px] w-full bg-black/10" />
+          </Fragment>
+        );
+      })}
+    </div>
   );
 }
