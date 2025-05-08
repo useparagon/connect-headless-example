@@ -210,6 +210,48 @@ function IntegrationConfiguration(props: { type: string }) {
           );
         }
 
+        if (setting.type === SidebarInputType.Email) {
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <IntegrationConfigurationTextInputField
+                type="email"
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as string) ?? ''}
+              />
+            </div>
+          );
+        }
+
+        if (setting.type === SidebarInputType.Password) {
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <IntegrationConfigurationTextInputField
+                type="password"
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as string) ?? ''}
+              />
+            </div>
+          );
+        }
+
+        if (setting.type === SidebarInputType.URL) {
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <IntegrationConfigurationTextInputField
+                type="url"
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as string) ?? ''}
+              />
+            </div>
+          );
+        }
+
         return (
           <div key={setting.id} className="py-2 border-b border-black/10">
             <div>
