@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import {
   paragon,
@@ -168,119 +168,115 @@ function IntegrationConfiguration(props: { type: string }) {
   return (
     <div>
       <p className="text-lg font-bold mb-4">User integration settings:</p>
-      {userSettings?.map((setting) => {
-        if (setting.type === SidebarInputType.BooleanInput) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+      <div className="flex flex-col gap-6">
+        {userSettings?.map((setting) => {
+          if (setting.type === SidebarInputType.BooleanInput) {
+            return (
               <IntegrationConfigurationBooleanField
+                key={setting.id}
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as boolean) ?? false}
               />
-            </div>
-          );
-        }
+            );
+          }
 
-        if (setting.type === SidebarInputType.ValueText) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+          if (setting.type === SidebarInputType.ValueText) {
+            return (
               <IntegrationConfigurationTextInputField
+                key={setting.id}
                 type="text"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
               />
-            </div>
-          );
-        }
+            );
+          }
 
-        if (setting.type === SidebarInputType.Number) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+          if (setting.type === SidebarInputType.Number) {
+            return (
               <IntegrationConfigurationTextInputField
+                key={setting.id}
                 type="number"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
               />
-            </div>
-          );
-        }
+            );
+          }
 
-        if (setting.type === SidebarInputType.Email) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+          if (setting.type === SidebarInputType.Email) {
+            return (
               <IntegrationConfigurationTextInputField
+                key={setting.id}
                 type="email"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
               />
-            </div>
-          );
-        }
+            );
+          }
 
-        if (setting.type === SidebarInputType.Password) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+          if (setting.type === SidebarInputType.Password) {
+            return (
               <IntegrationConfigurationTextInputField
+                key={setting.id}
                 type="password"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
               />
-            </div>
-          );
-        }
+            );
+          }
 
-        if (setting.type === SidebarInputType.URL) {
-          return (
-            <div key={setting.id} className="py-2 border-b border-black/10">
+          if (setting.type === SidebarInputType.URL) {
+            return (
               <IntegrationConfigurationTextInputField
+                key={setting.id}
                 type="url"
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
               />
+            );
+          }
+
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <div>
+                <span className="font-semibold">Title:</span>{' '}
+                <span className="font-mono">{setting.title}</span>
+                {setting.required ? (
+                  <span className="text-red-600"> *</span>
+                ) : null}
+              </div>
+              {setting.tooltip ? (
+                <div>
+                  <span className="font-semibold">Tooltip:</span>{' '}
+                  <span className="font-mono">{setting.tooltip}</span>
+                </div>
+              ) : null}
+              <div>
+                <span className="font-semibold">Field type:</span>{' '}
+                <span className="font-mono">{setting.type}</span>
+              </div>
+              <div>
+                <span className="font-semibold">Current value:</span>{' '}
+                <span className="font-mono">
+                  {setting.currentValue?.toString()}
+                </span>
+              </div>
+              <div className="h-[1px] w-full bg-black/10" />
             </div>
           );
-        }
-
-        return (
-          <div key={setting.id} className="py-2 border-b border-black/10">
-            <div>
-              <span className="font-semibold">Title:</span>{' '}
-              <span className="font-mono">{setting.title}</span>
-              {setting.required ? (
-                <span className="text-red-600"> *</span>
-              ) : null}
-            </div>
-            {setting.tooltip ? (
-              <div>
-                <span className="font-semibold">Tooltip:</span>{' '}
-                <span className="font-mono">{setting.tooltip}</span>
-              </div>
-            ) : null}
-            <div>
-              <span className="font-semibold">Field type:</span>{' '}
-              <span className="font-mono">{setting.type}</span>
-            </div>
-            <div>
-              <span className="font-semibold">Current value:</span>{' '}
-              <span className="font-mono">
-                {setting.currentValue?.toString()}
-              </span>
-            </div>
-            <div className="h-[1px] w-full bg-black/10" />
-          </div>
-        );
-      })}
+        })}
+      </div>
     </div>
   );
 }
@@ -293,10 +289,9 @@ function IntegrationConfigurationBooleanField(props: {
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={props.id}>
+      <FieldLabel id={props.id} required={props.required}>
         {props.title}
-        {props.required ? <span className="text-red-600"> *</span> : null}
-      </Label>
+      </FieldLabel>
       <Switch
         id={props.id}
         checked={props.value}
@@ -317,10 +312,9 @@ function IntegrationConfigurationTextInputField(props: {
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={props.id}>
+      <FieldLabel id={props.id} required={props.required}>
         {props.title}
-        {props.required ? <span className="text-red-600"> *</span> : null}
-      </Label>
+      </FieldLabel>
       <Input
         id={props.id}
         type={props.type}
@@ -330,5 +324,18 @@ function IntegrationConfigurationTextInputField(props: {
         disabled
       />
     </div>
+  );
+}
+
+function FieldLabel(props: {
+  id: string;
+  children: ReactNode;
+  required: boolean;
+}) {
+  return (
+    <Label htmlFor={props.id}>
+      {props.children}
+      {props.required ? <span className="text-red-600"> *</span> : null}
+    </Label>
   );
 }
