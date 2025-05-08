@@ -1,5 +1,11 @@
 import { Fragment, useState } from 'react';
 
+import {
+  paragon,
+  SidebarInputType,
+  SupportedConnectInputType,
+} from '@useparagon/connect';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import {
@@ -9,9 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
-import { paragon, SupportedConnectInputType } from '@useparagon/connect';
 
 type Props = {
   type: string;
@@ -160,32 +166,73 @@ function IntegrationConfiguration(props: { type: string }) {
   return (
     <div>
       <p className="text-lg font-bold mb-4">User integration settings:</p>
-      {userSettings?.map((s) => {
+      {userSettings?.map((setting) => {
+        if (setting.type === SidebarInputType.BooleanInput) {
+          return (
+            <Fragment key={setting.id}>
+              <IntegrationConfigurationBooleanField
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as boolean) ?? false}
+              />
+              <div className="h-[1px] w-full bg-black/10" />
+            </Fragment>
+          );
+        }
+
         return (
-          <Fragment key={s.id}>
-            <div key={s.id}>
+          <Fragment key={setting.id}>
+            <div key={setting.id}>
               <span className="font-semibold">Title:</span>{' '}
-              <span className="font-mono">{s.title}</span>
-              {s.required ? <span className="text-red-600"> *</span> : null}
+              <span className="font-mono">{setting.title}</span>
+              {setting.required ? (
+                <span className="text-red-600"> *</span>
+              ) : null}
             </div>
-            {s.tooltip ? (
+            {setting.tooltip ? (
               <div>
                 <span className="font-semibold">Tooltip:</span>{' '}
-                <span className="font-mono">{s.tooltip}</span>
+                <span className="font-mono">{setting.tooltip}</span>
               </div>
             ) : null}
             <div>
               <span className="font-semibold">Field type:</span>{' '}
-              <span className="font-mono">{s.type}</span>
+              <span className="font-mono">{setting.type}</span>
             </div>
             <div>
               <span className="font-semibold">Current value:</span>{' '}
-              <span className="font-mono">{s.currentValue?.toString()}</span>
+              <span className="font-mono">
+                {setting.currentValue?.toString()}
+              </span>
             </div>
             <div className="h-[1px] w-full bg-black/10" />
           </Fragment>
         );
       })}
+    </div>
+  );
+}
+
+function IntegrationConfigurationBooleanField(props: {
+  id: string;
+  title: string;
+  required: boolean;
+  value: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={props.id}>
+        {props.title}
+        {props.required ? <span className="text-red-600"> *</span> : null}
+      </label>
+      <Switch
+        id={props.id}
+        checked={props.value}
+        // WIP: add onChange handler
+        onCheckedChange={() => {}}
+        disabled
+      />
     </div>
   );
 }
