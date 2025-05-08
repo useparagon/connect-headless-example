@@ -125,8 +125,9 @@ function IntegrationModal(
               value="configuration"
               className="w-full overflow-y-auto max-h-[70dvh]"
             >
-              <div className="p-6">
+              <div className="p-6 flex flex-col gap-6">
                 <IntegrationConfiguration type={props.type} />
+                <IntegrationWorkflow />
               </div>
             </TabsContent>
           </Tabs>
@@ -172,121 +173,125 @@ function IntegrationConfiguration(props: { type: string }) {
 
   return (
     <div>
-      <p className="text-lg font-bold mb-4">User integration settings:</p>
-      <div className="flex flex-col gap-6">
-        {userSettings?.map((setting) => {
-          if (setting.type === SidebarInputType.BooleanInput) {
-            return (
-              <IntegrationConfigurationBooleanField
-                key={setting.id}
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as boolean) ?? false}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+      <fieldset className="border border-gray-200 rounded-md p-4">
+        <legend className="text-lg font-bold px-2">
+          User integration settings:
+        </legend>
+        <div className="flex flex-col gap-6">
+          {userSettings?.map((setting) => {
+            if (setting.type === SidebarInputType.BooleanInput) {
+              return (
+                <IntegrationConfigurationBooleanField
+                  key={setting.id}
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as boolean) ?? false}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          if (setting.type === SidebarInputType.ValueText) {
-            return (
-              <IntegrationConfigurationTextInputField
-                key={setting.id}
-                type="text"
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as string) ?? ''}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+            if (setting.type === SidebarInputType.ValueText) {
+              return (
+                <IntegrationConfigurationTextInputField
+                  key={setting.id}
+                  type="text"
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as string) ?? ''}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          if (setting.type === SidebarInputType.Number) {
-            return (
-              <IntegrationConfigurationTextInputField
-                key={setting.id}
-                type="number"
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as string) ?? ''}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+            if (setting.type === SidebarInputType.Number) {
+              return (
+                <IntegrationConfigurationTextInputField
+                  key={setting.id}
+                  type="number"
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as string) ?? ''}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          if (setting.type === SidebarInputType.Email) {
-            return (
-              <IntegrationConfigurationTextInputField
-                key={setting.id}
-                type="email"
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as string) ?? ''}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+            if (setting.type === SidebarInputType.Email) {
+              return (
+                <IntegrationConfigurationTextInputField
+                  key={setting.id}
+                  type="email"
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as string) ?? ''}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          if (setting.type === SidebarInputType.Password) {
-            return (
-              <IntegrationConfigurationTextInputField
-                key={setting.id}
-                type="password"
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as string) ?? ''}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+            if (setting.type === SidebarInputType.Password) {
+              return (
+                <IntegrationConfigurationTextInputField
+                  key={setting.id}
+                  type="password"
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as string) ?? ''}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          if (setting.type === SidebarInputType.URL) {
-            return (
-              <IntegrationConfigurationTextInputField
-                key={setting.id}
-                type="url"
-                id={setting.id}
-                title={setting.title}
-                required={setting.required}
-                value={(setting.currentValue as string) ?? ''}
-                tooltip={setting.tooltip}
-              />
-            );
-          }
+            if (setting.type === SidebarInputType.URL) {
+              return (
+                <IntegrationConfigurationTextInputField
+                  key={setting.id}
+                  type="url"
+                  id={setting.id}
+                  title={setting.title}
+                  required={setting.required}
+                  value={(setting.currentValue as string) ?? ''}
+                  tooltip={setting.tooltip}
+                />
+              );
+            }
 
-          return (
-            <div key={setting.id} className="text-orange-600">
-              <div>
-                <span className="font-semibold">Title:</span>{' '}
-                <span className="font-mono">{setting.title}</span>
-                {setting.required ? (
-                  <span className="text-red-600"> *</span>
-                ) : null}
-              </div>
-              {setting.tooltip ? (
+            return (
+              <div key={setting.id} className="text-orange-600">
                 <div>
-                  <span className="font-semibold">Tooltip:</span>{' '}
-                  <span className="font-mono">{setting.tooltip}</span>
+                  <span className="font-semibold">Title:</span>{' '}
+                  <span className="font-mono">{setting.title}</span>
+                  {setting.required ? (
+                    <span className="text-red-600"> *</span>
+                  ) : null}
                 </div>
-              ) : null}
-              <div>
-                <span className="font-semibold">Field type:</span>{' '}
-                <span className="font-mono">{setting.type}</span>
+                {setting.tooltip ? (
+                  <div>
+                    <span className="font-semibold">Tooltip:</span>{' '}
+                    <span className="font-mono">{setting.tooltip}</span>
+                  </div>
+                ) : null}
+                <div>
+                  <span className="font-semibold">Field type:</span>{' '}
+                  <span className="font-mono">{setting.type}</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Current value:</span>{' '}
+                  <span className="font-mono">
+                    {setting.currentValue?.toString()}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Current value:</span>{' '}
-                <span className="font-mono">
-                  {setting.currentValue?.toString()}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </fieldset>
     </div>
   );
 }
@@ -369,5 +374,18 @@ function FieldLabel(props: {
         </Tooltip>
       ) : null}
     </Label>
+  );
+}
+
+function IntegrationWorkflow() {
+  return (
+    <div>
+      <fieldset className="border border-gray-200 rounded-md p-4">
+        <legend className="text-lg font-bold px-2">
+          User workflow settings:
+        </legend>
+        <p>WIP</p>
+      </fieldset>
+    </div>
   );
 }
