@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 type Props = {
   type: string;
@@ -178,6 +179,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as boolean) ?? false}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -191,6 +193,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -204,6 +207,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -217,6 +221,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -230,6 +235,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -243,6 +249,7 @@ function IntegrationConfiguration(props: { type: string }) {
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as string) ?? ''}
+                tooltip={setting.tooltip}
               />
             );
           }
@@ -286,10 +293,15 @@ function IntegrationConfigurationBooleanField(props: {
   title: string;
   required: boolean;
   value: boolean;
+  tooltip?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel id={props.id} required={props.required}>
+      <FieldLabel
+        id={props.id}
+        required={props.required}
+        tooltip={props.tooltip}
+      >
         {props.title}
       </FieldLabel>
       <Switch
@@ -309,10 +321,15 @@ function IntegrationConfigurationTextInputField(props: {
   required: boolean;
   value: string;
   type: 'text' | 'number' | 'email' | 'password' | 'url';
+  tooltip?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel id={props.id} required={props.required}>
+      <FieldLabel
+        id={props.id}
+        required={props.required}
+        tooltip={props.tooltip}
+      >
         {props.title}
       </FieldLabel>
       <Input
@@ -331,11 +348,18 @@ function FieldLabel(props: {
   id: string;
   children: ReactNode;
   required: boolean;
+  tooltip?: ReactNode;
 }) {
   return (
     <Label htmlFor={props.id}>
       {props.children}
       {props.required ? <span className="text-red-600"> *</span> : null}
+      {props.tooltip ? (
+        <Tooltip>
+          <TooltipTrigger> ℹ️</TooltipTrigger>
+          <TooltipContent>{props.tooltip}</TooltipContent>
+        </Tooltip>
+      ) : null}
     </Label>
   );
 }
