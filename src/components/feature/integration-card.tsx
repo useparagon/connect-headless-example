@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 
 import {
   paragon,
@@ -15,6 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
@@ -169,21 +171,33 @@ function IntegrationConfiguration(props: { type: string }) {
       {userSettings?.map((setting) => {
         if (setting.type === SidebarInputType.BooleanInput) {
           return (
-            <Fragment key={setting.id}>
+            <div key={setting.id} className="py-2 border-b border-black/10">
               <IntegrationConfigurationBooleanField
                 id={setting.id}
                 title={setting.title}
                 required={setting.required}
                 value={(setting.currentValue as boolean) ?? false}
               />
-              <div className="h-[1px] w-full bg-black/10" />
-            </Fragment>
+            </div>
+          );
+        }
+
+        if (setting.type === SidebarInputType.ValueText) {
+          return (
+            <div key={setting.id} className="py-2 border-b border-black/10">
+              <IntegrationConfigurationTextInputField
+                id={setting.id}
+                title={setting.title}
+                required={setting.required}
+                value={(setting.currentValue as string) ?? ''}
+              />
+            </div>
           );
         }
 
         return (
-          <Fragment key={setting.id}>
-            <div key={setting.id}>
+          <div key={setting.id} className="py-2 border-b border-black/10">
+            <div>
               <span className="font-semibold">Title:</span>{' '}
               <span className="font-mono">{setting.title}</span>
               {setting.required ? (
@@ -207,7 +221,7 @@ function IntegrationConfiguration(props: { type: string }) {
               </span>
             </div>
             <div className="h-[1px] w-full bg-black/10" />
-          </Fragment>
+          </div>
         );
       })}
     </div>
@@ -222,15 +236,39 @@ function IntegrationConfigurationBooleanField(props: {
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={props.id}>
+      <Label htmlFor={props.id}>
         {props.title}
         {props.required ? <span className="text-red-600"> *</span> : null}
-      </label>
+      </Label>
       <Switch
         id={props.id}
         checked={props.value}
         // WIP: add onChange handler
         onCheckedChange={() => {}}
+        disabled
+      />
+    </div>
+  );
+}
+
+function IntegrationConfigurationTextInputField(props: {
+  id: string;
+  title: string;
+  required: boolean;
+  value: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={props.id}>
+        {props.title}
+        {props.required ? <span className="text-red-600"> *</span> : null}
+      </Label>
+      <Input
+        id={props.id}
+        type="text"
+        value={props.value}
+        // WIP: add onChange handler
+        onChange={() => {}}
         disabled
       />
     </div>
