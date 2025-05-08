@@ -132,6 +132,7 @@ function IntegrationConfiguration(props: { type: string }) {
         id: s.id as string,
         title: s.title as string,
         required: s.required as boolean,
+        tooltip: s.tooltip as string | undefined,
         type: s.type as SupportedConnectInputType,
       };
     });
@@ -165,6 +166,12 @@ function IntegrationConfiguration(props: { type: string }) {
               <span className="font-mono">{s.title}</span>
               {s.required ? <span className="text-red-600"> *</span> : null}
             </div>
+            {s.tooltip ? (
+              <div>
+                <span className="font-semibold">Tooltip:</span>{' '}
+                <span className="font-mono">{s.tooltip}</span>
+              </div>
+            ) : null}
             <div>
               <span className="font-semibold">Field type:</span>{' '}
               <span className="font-mono">{s.type}</span>
