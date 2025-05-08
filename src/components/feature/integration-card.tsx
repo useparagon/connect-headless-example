@@ -124,18 +124,8 @@ function IntegrationModal(
 }
 
 function IntegrationConfiguration(props: { type: string }) {
-  const settings = paragon
-    .getIntegrationConfig(props.type)
-    .availableUserSettings?.map((s) => {
-      return {
-        ...s,
-        id: s.id as string,
-        title: s.title as string,
-        required: s.required as boolean,
-        tooltip: s.tooltip as string | undefined,
-        type: s.type as SupportedConnectInputType,
-      };
-    });
+  const settings =
+    paragon.getIntegrationConfig(props.type).availableUserSettings ?? [];
 
   if (!settings || settings.length === 0) {
     return null;
@@ -155,10 +145,22 @@ function IntegrationConfiguration(props: { type: string }) {
 
   const sharedSettings = integration.sharedSettings ?? {};
 
+  const userSettings = settings.map((s) => {
+    return {
+      ...s,
+      id: s.id as string,
+      title: s.title as string,
+      required: s.required as boolean,
+      tooltip: s.tooltip as string | undefined,
+      type: s.type as SupportedConnectInputType,
+      currentValue: sharedSettings[s.id],
+    };
+  });
+
   return (
     <div>
       <p className="text-lg font-bold mb-4">User integration settings:</p>
-      {settings?.map((s) => {
+      {userSettings?.map((s) => {
         return (
           <Fragment key={s.id}>
             <div key={s.id}>
@@ -178,9 +180,7 @@ function IntegrationConfiguration(props: { type: string }) {
             </div>
             <div>
               <span className="font-semibold">Current value:</span>{' '}
-              <span className="font-mono">
-                {sharedSettings[s.id]?.toString()}
-              </span>
+              <span className="font-mono">{s.currentValue?.toString()}</span>
             </div>
             <div className="h-[1px] w-full bg-black/10" />
           </Fragment>
