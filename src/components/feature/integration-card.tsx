@@ -407,51 +407,74 @@ function IntegrationWorkflow(props: { type: string }) {
         </legend>
         <div className="flex flex-col gap-6">
           {workflows.map((workflow) => {
+            const hasInputs = workflow.inputs.length > 0;
+            const isEnabled = workflowSettings[workflow.id]?.enabled;
+
             return (
-              <div key={workflow.id} className="text-orange-600">
-                <div>
-                  <span className="font-semibold">Title:</span>{' '}
-                  <span className="font-mono">{workflow.description}</span>
-                </div>
-                {workflow.infoText ? (
+              <div key={workflow.id}>
+                <div className="flex justify-between items-center mb-4">
                   <div>
-                    <span className="font-semibold">Info text:</span>{' '}
-                    <span className="font-mono">{workflow.infoText}</span>
+                    <div className="font-medium">{workflow.description}</div>
+                    {workflow.infoText ? (
+                      <div className="text-sm text-gray-500">
+                        {workflow.infoText}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
-                {workflow.inputs.length > 0 ? (
+                  <Switch
+                    id={workflow.id}
+                    checked={isEnabled}
+                    // WIP: add onChange handler
+                    onCheckedChange={() => {}}
+                    disabled
+                  />
+                </div>
+
+                {isEnabled && hasInputs ? (
                   <div>
-                    <span className="font-semibold">
-                      Fields ({workflow.inputs.length}):
-                    </span>{' '}
-                    <span className="font-mono">
-                      {workflow.inputs.map((input) => {
+                    {workflow.inputs.map((input) => {
+                      const currentValue =
+                        workflowSettings[workflow.id]?.settings[input.id];
+
+                      if (input.type === SidebarInputType.ValueText) {
                         return (
-                          <div key={input.id}>
-                            <div className="font-mono">
-                              Title: {input.title}
-                              {input.required ? (
-                                <span className="text-red-600"> *</span>
-                              ) : null}
-                            </div>
-                            {input.tooltip ? (
-                              <div className="font-mono">
-                                Tooltip: {input.tooltip}
-                              </div>
-                            ) : null}
-                            <div className="font-mono">Type: {input.type}</div>
-                            <div className="font-mono">
-                              Current value:{' '}
-                              {String(
-                                workflowSettings[workflow.id]?.settings[
-                                  input.id
-                                ] ?? ''
-                              )}
-                            </div>
-                          </div>
+                          <IntegrationConfigurationTextInputField
+                            key={input.id}
+                            id={input.id}
+                            type={input.type}
+                            title={input.title}
+                            tooltip={input.tooltip}
+                            required={input.required}
+                            value={String(currentValue ?? '')}
+                          />
                         );
-                      })}
-                    </span>
+                      }
+
+                      return (
+                        <div key={input.id} className="text-orange-600">
+                          <div className="font-mono">
+                            Title: {input.title}
+                            {input.required ? (
+                              <span className="text-red-600"> *</span>
+                            ) : null}
+                          </div>
+                          {input.tooltip ? (
+                            <div className="font-mono">
+                              Tooltip: {input.tooltip}
+                            </div>
+                          ) : null}
+                          <div className="font-mono">Type: {input.type}</div>
+                          <div className="font-mono">
+                            Current value:{' '}
+                            {String(
+                              workflowSettings[workflow.id]?.settings[
+                                input.id
+                              ] ?? ''
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>
