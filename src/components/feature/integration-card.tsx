@@ -175,7 +175,7 @@ function IntegrationConfiguration(props: { type: string }) {
     <div>
       <fieldset className="border border-gray-200 rounded-md p-4">
         <legend className="text-lg font-bold px-2">
-          User integration settings:
+          User integration settings
         </legend>
         <div className="flex flex-col gap-6">
           {userSettings?.map((setting) => {
@@ -403,7 +403,7 @@ function IntegrationWorkflow(props: { type: string }) {
     <div>
       <fieldset className="border border-gray-200 rounded-md p-4">
         <legend className="text-lg font-bold px-2">
-          User workflow settings:
+          User workflow settings
         </legend>
         <div className="flex flex-col gap-6">
           {workflows.map((workflow) => {
