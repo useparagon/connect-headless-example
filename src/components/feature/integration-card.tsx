@@ -340,42 +340,81 @@ function IntegrationWorkflow(props: { type: string }) {
           User workflow settings
         </legend>
         <div className="flex flex-col gap-6">
-          {workflows.map((workflow) => {
-            const hasInputs = workflow.inputs.length > 0;
-            const isEnabled = workflowSettings[workflow.id]?.enabled ?? false;
-
-            return (
-              <div key={workflow.id}>
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <div className="font-medium">{workflow.description}</div>
-                    {workflow.infoText ? (
-                      <div className="text-sm text-gray-500">
-                        {workflow.infoText}
-                      </div>
-                    ) : null}
-                  </div>
-                  <Switch
-                    id={workflow.id}
-                    checked={isEnabled}
-                    // WIP: add onChange handler
-                    onCheckedChange={() => {}}
-                    disabled
-                  />
-                </div>
-                <WorkflowFields
-                  workflow={workflow}
-                  workflowSettings={workflowSettings}
-                  isEnabled={isEnabled}
-                  hasInputs={hasInputs}
-                />
-              </div>
-            );
-          })}
+          <Workflows
+            workflows={workflows}
+            workflowSettings={workflowSettings}
+          />
         </div>
       </fieldset>
     </div>
   );
+}
+
+function Workflows(props: {
+  workflows: Omit<IntegrationWorkflowMeta, 'order' | 'permissions'>[];
+  workflowSettings: IntegrationWorkflowStateMap;
+}) {
+  const { workflowSettings, workflows } = props;
+  const [isSaving, setIsSaving] = useState(false);
+  const [workflowsState, setWorkflowsState] = useState<Record<string, boolean>>(
+    Object.fromEntries(
+      Object.entries(workflowSettings).map(([key, value]) => [
+        key,
+        value?.enabled ?? false,
+      ])
+    )
+  );
+  const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
+    setWorkflowsState({
+      ...workflowsState,
+      [workflowId]: enabled,
+    });
+  };
+
+  const updateWorkflowState = (workflowId: string, enabled: boolean) => {
+    setIsSaving(true);
+    localUpdateWorkflowState(workflowId, enabled);
+    paragon
+      .updateWorkflowState({
+        [workflowId]: enabled,
+      })
+      .catch((error) => {
+        console.error('Failed to update workflow', error);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
+  };
+
+  return workflows.map((workflow) => {
+    const hasInputs = workflow.inputs.length > 0;
+    const isEnabled = workflowsState[workflow.id] ?? false;
+
+    return (
+      <div key={workflow.id}>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="font-medium">{workflow.description}</div>
+            {workflow.infoText ? (
+              <div className="text-sm text-gray-500">{workflow.infoText}</div>
+            ) : null}
+          </div>
+          <Switch
+            id={workflow.id}
+            checked={isEnabled}
+            disabled={isSaving}
+            onCheckedChange={(value) => updateWorkflowState(workflow.id, value)}
+          />
+        </div>
+        <WorkflowFields
+          workflow={workflow}
+          workflowSettings={workflowSettings}
+          isEnabled={isEnabled}
+          hasInputs={hasInputs}
+        />
+      </div>
+    );
+  });
 }
 
 function WorkflowFields(props: {
