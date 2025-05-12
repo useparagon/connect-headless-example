@@ -1,18 +1,19 @@
 import { ReactNode } from 'react';
 
-import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { FieldLabel } from './field-label';
 
 type Props = {
   id: string;
   title: string;
-  required: boolean;
-  value: string;
-  type: 'text' | 'number' | 'email' | 'password' | 'url';
   tooltip?: ReactNode;
+  required: boolean;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
 };
 
-export function IntegrationTextInputField(props: Props) {
+export function BooleanField(props: Props) {
   return (
     <div className="flex flex-col gap-1.5">
       <FieldLabel
@@ -22,13 +23,11 @@ export function IntegrationTextInputField(props: Props) {
       >
         {props.title}
       </FieldLabel>
-      <Input
+      <Switch
         id={props.id}
-        type={props.type}
-        value={props.value}
-        // WIP: add onChange handler
-        onChange={() => {}}
-        disabled
+        checked={props.value}
+        onCheckedChange={props.onChange}
+        disabled={props.disabled}
       />
     </div>
   );

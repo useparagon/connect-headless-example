@@ -8,6 +8,8 @@ import {
   SupportedConnectInputType,
 } from '@useparagon/connect';
 
+import { TextInputField } from '@/components/form/text-input-field';
+import { BooleanField } from '@/components/form/boolean-field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import {
@@ -20,9 +22,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
-
-import { IntegrationTextInputField } from './integration-fields/text-input-field';
-import { IntegrationBooleanField } from './integration-fields/boolean-field';
 
 type Props = {
   type: string;
@@ -179,34 +178,40 @@ function IntegrationConfiguration(props: { type: string }) {
           {userSettings?.map((setting) => {
             if (setting.type === SidebarInputType.BooleanInput) {
               return (
-                <IntegrationBooleanField
+                <BooleanField
                   key={setting.id}
                   id={setting.id}
                   title={setting.title}
                   required={setting.required}
                   value={(setting.currentValue as boolean) ?? false}
                   tooltip={setting.tooltip}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
 
             if (setting.type === SidebarInputType.ValueText) {
               return (
-                <IntegrationTextInputField
+                <TextInputField
                   key={setting.id}
                   type="text"
                   id={setting.id}
                   title={setting.title}
                   required={setting.required}
-                  value={(setting.currentValue as string) ?? ''}
                   tooltip={setting.tooltip}
+                  value={(setting.currentValue as string) ?? ''}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
 
             if (setting.type === SidebarInputType.Number) {
               return (
-                <IntegrationTextInputField
+                <TextInputField
                   key={setting.id}
                   type="number"
                   id={setting.id}
@@ -214,13 +219,16 @@ function IntegrationConfiguration(props: { type: string }) {
                   required={setting.required}
                   value={(setting.currentValue as string) ?? ''}
                   tooltip={setting.tooltip}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
 
             if (setting.type === SidebarInputType.Email) {
               return (
-                <IntegrationTextInputField
+                <TextInputField
                   key={setting.id}
                   type="email"
                   id={setting.id}
@@ -228,13 +236,16 @@ function IntegrationConfiguration(props: { type: string }) {
                   required={setting.required}
                   value={(setting.currentValue as string) ?? ''}
                   tooltip={setting.tooltip}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
 
             if (setting.type === SidebarInputType.Password) {
               return (
-                <IntegrationTextInputField
+                <TextInputField
                   key={setting.id}
                   type="password"
                   id={setting.id}
@@ -242,13 +253,16 @@ function IntegrationConfiguration(props: { type: string }) {
                   required={setting.required}
                   value={(setting.currentValue as string) ?? ''}
                   tooltip={setting.tooltip}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
 
             if (setting.type === SidebarInputType.URL) {
               return (
-                <IntegrationTextInputField
+                <TextInputField
                   key={setting.id}
                   type="url"
                   id={setting.id}
@@ -256,6 +270,9 @@ function IntegrationConfiguration(props: { type: string }) {
                   required={setting.required}
                   value={(setting.currentValue as string) ?? ''}
                   tooltip={setting.tooltip}
+                  // WIP: add onChange handler
+                  onChange={() => {}}
+                  disabled
                 />
               );
             }
@@ -378,7 +395,7 @@ function WorkflowFields(props: {
 
     if (input.type === SidebarInputType.ValueText) {
       return (
-        <IntegrationTextInputField
+        <TextInputField
           key={input.id}
           id={input.id}
           type={input.type}
@@ -386,6 +403,9 @@ function WorkflowFields(props: {
           tooltip={input.tooltip}
           required={input.required}
           value={String(currentValue ?? '')}
+          // WIP: add onChange handler
+          onChange={() => {}}
+          disabled
         />
       );
     }
