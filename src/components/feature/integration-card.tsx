@@ -1,6 +1,8 @@
 import { ReactNode, useState } from 'react';
 
 import {
+  IntegrationWorkflowMeta,
+  IntegrationWorkflowStateMap,
   paragon,
   SidebarInputType,
   SupportedConnectInputType,
@@ -408,7 +410,7 @@ function IntegrationWorkflow(props: { type: string }) {
         <div className="flex flex-col gap-6">
           {workflows.map((workflow) => {
             const hasInputs = workflow.inputs.length > 0;
-            const isEnabled = workflowSettings[workflow.id]?.enabled;
+            const isEnabled = workflowSettings[workflow.id]?.enabled ?? false;
 
             return (
               <div key={workflow.id}>
@@ -429,54 +431,12 @@ function IntegrationWorkflow(props: { type: string }) {
                     disabled
                   />
                 </div>
-
-                {isEnabled && hasInputs ? (
-                  <div>
-                    {workflow.inputs.map((input) => {
-                      const currentValue =
-                        workflowSettings[workflow.id]?.settings[input.id];
-
-                      if (input.type === SidebarInputType.ValueText) {
-                        return (
-                          <IntegrationConfigurationTextInputField
-                            key={input.id}
-                            id={input.id}
-                            type={input.type}
-                            title={input.title}
-                            tooltip={input.tooltip}
-                            required={input.required}
-                            value={String(currentValue ?? '')}
-                          />
-                        );
-                      }
-
-                      return (
-                        <div key={input.id} className="text-orange-600">
-                          <div className="font-mono">
-                            Title: {input.title}
-                            {input.required ? (
-                              <span className="text-red-600"> *</span>
-                            ) : null}
-                          </div>
-                          {input.tooltip ? (
-                            <div className="font-mono">
-                              Tooltip: {input.tooltip}
-                            </div>
-                          ) : null}
-                          <div className="font-mono">Type: {input.type}</div>
-                          <div className="font-mono">
-                            Current value:{' '}
-                            {String(
-                              workflowSettings[workflow.id]?.settings[
-                                input.id
-                              ] ?? ''
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
+                <WorkflowFields
+                  workflow={workflow}
+                  workflowSettings={workflowSettings}
+                  isEnabled={isEnabled}
+                  hasInputs={hasInputs}
+                />
               </div>
             );
           })}
@@ -484,4 +444,49 @@ function IntegrationWorkflow(props: { type: string }) {
       </fieldset>
     </div>
   );
+}
+
+function WorkflowFields(props: {
+  workflow: IntegrationWorkflowMeta;
+  workflowSettings: IntegrationWorkflowStateMap;
+  isEnabled: boolean;
+  hasInputs: boolean;
+}) {
+  const { workflow, isEnabled, hasInputs, workflowSettings } = props;
+
+  if (!isEnabled || !hasInputs) {
+    return null;
+  }
+
+  return workflow.inputs.map((input) => {
+    const currentValue = workflowSettings[workflow.id]?.settings[input.id];
+
+    if (input.type === SidebarInputType.ValueText) {
+      return (
+        <IntegrationConfigurationTextInputField
+          key={input.id}
+          id={input.id}
+          type={input.type}
+          title={input.title}
+          tooltip={input.tooltip}
+          required={input.required}
+          value={String(currentValue ?? '')}
+        />
+      );
+    }
+
+    return (
+      <div key={input.id} className="text-orange-600">
+        <div className="font-mono">
+          Title: {input.title}
+          {input.required ? <span className="text-red-600"> *</span> : null}
+        </div>
+        {input.tooltip ? (
+          <div className="font-mono">Tooltip: {input.tooltip}</div>
+        ) : null}
+        <div className="font-mono">Type: {input.type}</div>
+        <div className="font-mono">Current value: {String(currentValue)}</div>
+      </div>
+    );
+  });
 }
