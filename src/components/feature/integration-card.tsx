@@ -127,7 +127,7 @@ function IntegrationModal(
             >
               <div className="p-6 flex flex-col gap-6">
                 <IntegrationConfiguration type={props.type} />
-                <IntegrationWorkflow />
+                <IntegrationWorkflow type={props.type} />
               </div>
             </TabsContent>
           </Tabs>
@@ -377,14 +377,87 @@ function FieldLabel(props: {
   );
 }
 
-function IntegrationWorkflow() {
+function IntegrationWorkflow(props: { type: string }) {
+  const workflows =
+    paragon.getIntegrationConfig(props.type).availableWorkflows ?? [];
+
+  if (!workflows || workflows.length === 0) {
+    return null;
+  }
+
+  const user = paragon.getUser();
+
+  if (!user.authenticated) {
+    throw new Error('User is not authenticated');
+  }
+
+  const integration = user.integrations[props.type];
+
+  if (!integration) {
+    throw new Error('Integration not found');
+  }
+
+  const workflowSettings = integration.workflowSettings ?? {};
+
   return (
     <div>
       <fieldset className="border border-gray-200 rounded-md p-4">
         <legend className="text-lg font-bold px-2">
           User workflow settings:
         </legend>
-        <p>WIP</p>
+        <div className="flex flex-col gap-6">
+          {workflows.map((workflow) => {
+            return (
+              <div key={workflow.id} className="text-orange-600">
+                <div>
+                  <span className="font-semibold">Title:</span>{' '}
+                  <span className="font-mono">{workflow.description}</span>
+                </div>
+                {workflow.infoText ? (
+                  <div>
+                    <span className="font-semibold">Info text:</span>{' '}
+                    <span className="font-mono">{workflow.infoText}</span>
+                  </div>
+                ) : null}
+                {workflow.inputs.length > 0 ? (
+                  <div>
+                    <span className="font-semibold">
+                      Fields ({workflow.inputs.length}):
+                    </span>{' '}
+                    <span className="font-mono">
+                      {workflow.inputs.map((input) => {
+                        return (
+                          <div key={input.id}>
+                            <div className="font-mono">
+                              Title: {input.title}
+                              {input.required ? (
+                                <span className="text-red-600"> *</span>
+                              ) : null}
+                            </div>
+                            {input.tooltip ? (
+                              <div className="font-mono">
+                                Tooltip: {input.tooltip}
+                              </div>
+                            ) : null}
+                            <div className="font-mono">Type: {input.type}</div>
+                            <div className="font-mono">
+                              Current value:{' '}
+                              {String(
+                                workflowSettings[workflow.id]?.settings[
+                                  input.id
+                                ] ?? ''
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </fieldset>
     </div>
   );
