@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 
 import {
   IntegrationWorkflowMeta,
@@ -17,16 +17,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIntegrationConfig } from '@/lib/hooks';
+
+import { IntegrationTextInputField } from './integration-fields/text-input-field';
+import { IntegrationBooleanField } from './integration-fields/boolean-field';
 
 type Props = {
   type: string;
@@ -183,7 +179,7 @@ function IntegrationConfiguration(props: { type: string }) {
           {userSettings?.map((setting) => {
             if (setting.type === SidebarInputType.BooleanInput) {
               return (
-                <IntegrationConfigurationBooleanField
+                <IntegrationBooleanField
                   key={setting.id}
                   id={setting.id}
                   title={setting.title}
@@ -196,7 +192,7 @@ function IntegrationConfiguration(props: { type: string }) {
 
             if (setting.type === SidebarInputType.ValueText) {
               return (
-                <IntegrationConfigurationTextInputField
+                <IntegrationTextInputField
                   key={setting.id}
                   type="text"
                   id={setting.id}
@@ -210,7 +206,7 @@ function IntegrationConfiguration(props: { type: string }) {
 
             if (setting.type === SidebarInputType.Number) {
               return (
-                <IntegrationConfigurationTextInputField
+                <IntegrationTextInputField
                   key={setting.id}
                   type="number"
                   id={setting.id}
@@ -224,7 +220,7 @@ function IntegrationConfiguration(props: { type: string }) {
 
             if (setting.type === SidebarInputType.Email) {
               return (
-                <IntegrationConfigurationTextInputField
+                <IntegrationTextInputField
                   key={setting.id}
                   type="email"
                   id={setting.id}
@@ -238,7 +234,7 @@ function IntegrationConfiguration(props: { type: string }) {
 
             if (setting.type === SidebarInputType.Password) {
               return (
-                <IntegrationConfigurationTextInputField
+                <IntegrationTextInputField
                   key={setting.id}
                   type="password"
                   id={setting.id}
@@ -252,7 +248,7 @@ function IntegrationConfiguration(props: { type: string }) {
 
             if (setting.type === SidebarInputType.URL) {
               return (
-                <IntegrationConfigurationTextInputField
+                <IntegrationTextInputField
                   key={setting.id}
                   type="url"
                   id={setting.id}
@@ -295,87 +291,6 @@ function IntegrationConfiguration(props: { type: string }) {
         </div>
       </fieldset>
     </div>
-  );
-}
-
-function IntegrationConfigurationBooleanField(props: {
-  id: string;
-  title: string;
-  required: boolean;
-  value: boolean;
-  tooltip?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel
-        id={props.id}
-        required={props.required}
-        tooltip={props.tooltip}
-      >
-        {props.title}
-      </FieldLabel>
-      <Switch
-        id={props.id}
-        checked={props.value}
-        // WIP: add onChange handler
-        onCheckedChange={() => {}}
-        disabled
-      />
-    </div>
-  );
-}
-
-function IntegrationConfigurationTextInputField(props: {
-  id: string;
-  title: string;
-  required: boolean;
-  value: string;
-  type: 'text' | 'number' | 'email' | 'password' | 'url';
-  tooltip?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel
-        id={props.id}
-        required={props.required}
-        tooltip={props.tooltip}
-      >
-        {props.title}
-      </FieldLabel>
-      <Input
-        id={props.id}
-        type={props.type}
-        value={props.value}
-        // WIP: add onChange handler
-        onChange={() => {}}
-        disabled
-      />
-    </div>
-  );
-}
-
-function FieldLabel(props: {
-  id: string;
-  children: ReactNode;
-  required: boolean;
-  tooltip?: ReactNode;
-}) {
-  return (
-    <Label htmlFor={props.id}>
-      {props.children}
-      {props.required ? (
-        <Tooltip>
-          <TooltipTrigger> 🚩</TooltipTrigger>
-          <TooltipContent>This field is required</TooltipContent>
-        </Tooltip>
-      ) : null}
-      {props.tooltip ? (
-        <Tooltip>
-          <TooltipTrigger> ℹ️</TooltipTrigger>
-          <TooltipContent>{props.tooltip}</TooltipContent>
-        </Tooltip>
-      ) : null}
-    </Label>
   );
 }
 
@@ -463,7 +378,7 @@ function WorkflowFields(props: {
 
     if (input.type === SidebarInputType.ValueText) {
       return (
-        <IntegrationConfigurationTextInputField
+        <IntegrationTextInputField
           key={input.id}
           id={input.id}
           type={input.type}
