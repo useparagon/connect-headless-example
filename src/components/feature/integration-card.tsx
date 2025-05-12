@@ -1,11 +1,13 @@
 import { useState } from 'react';
 
 import {
+  ConnectInputValue,
+  IntegrationSharedInputStateMap,
   IntegrationWorkflowMeta,
   IntegrationWorkflowStateMap,
   paragon,
+  SerializedConnectInput,
   SidebarInputType,
-  SupportedConnectInputType,
 } from '@useparagon/connect';
 
 import { TextInputField } from '@/components/form/text-input-field';
@@ -156,157 +158,188 @@ function IntegrationConfiguration(props: { type: string }) {
 
   const sharedSettings = integration.sharedSettings ?? {};
 
-  const userSettings = settings.map((setting) => {
-    return {
-      ...setting,
-      id: setting.id as string,
-      title: setting.title as string,
-      required: setting.required as boolean,
-      tooltip: setting.tooltip,
-      type: setting.type as SupportedConnectInputType,
-      currentValue: sharedSettings[setting.id],
-    };
-  });
-
   return (
     <div>
       <fieldset className="border border-gray-200 rounded-md p-4">
         <legend className="text-lg font-bold px-2">
           User integration settings
         </legend>
-        <div className="flex flex-col gap-6">
-          {userSettings?.map((setting) => {
-            if (setting.type === SidebarInputType.BooleanInput) {
-              return (
-                <BooleanField
-                  key={setting.id}
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  value={(setting.currentValue as boolean) ?? false}
-                  tooltip={setting.tooltip}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            if (setting.type === SidebarInputType.ValueText) {
-              return (
-                <TextInputField
-                  key={setting.id}
-                  type="text"
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  tooltip={setting.tooltip}
-                  value={(setting.currentValue as string) ?? ''}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            if (setting.type === SidebarInputType.Number) {
-              return (
-                <TextInputField
-                  key={setting.id}
-                  type="number"
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  value={(setting.currentValue as string) ?? ''}
-                  tooltip={setting.tooltip}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            if (setting.type === SidebarInputType.Email) {
-              return (
-                <TextInputField
-                  key={setting.id}
-                  type="email"
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  value={(setting.currentValue as string) ?? ''}
-                  tooltip={setting.tooltip}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            if (setting.type === SidebarInputType.Password) {
-              return (
-                <TextInputField
-                  key={setting.id}
-                  type="password"
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  value={(setting.currentValue as string) ?? ''}
-                  tooltip={setting.tooltip}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            if (setting.type === SidebarInputType.URL) {
-              return (
-                <TextInputField
-                  key={setting.id}
-                  type="url"
-                  id={setting.id}
-                  title={setting.title}
-                  required={setting.required}
-                  value={(setting.currentValue as string) ?? ''}
-                  tooltip={setting.tooltip}
-                  // WIP: add onChange handler
-                  onChange={() => {}}
-                  disabled
-                />
-              );
-            }
-
-            return (
-              <div key={setting.id} className="text-orange-600">
-                <div>
-                  <span className="font-semibold">Title:</span>{' '}
-                  <span className="font-mono">{setting.title}</span>
-                  {setting.required ? (
-                    <span className="text-red-600"> *</span>
-                  ) : null}
-                </div>
-                {setting.tooltip ? (
-                  <div>
-                    <span className="font-semibold">Tooltip:</span>{' '}
-                    <span className="font-mono">{setting.tooltip}</span>
-                  </div>
-                ) : null}
-                <div>
-                  <span className="font-semibold">Field type:</span>{' '}
-                  <span className="font-mono">{setting.type}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Current value:</span>{' '}
-                  <span className="font-mono">
-                    {setting.currentValue?.toString()}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <IntegrationSettings
+          type={props.type}
+          settings={settings}
+          settingsState={sharedSettings}
+        />
       </fieldset>
+    </div>
+  );
+}
+
+function IntegrationSettings(props: {
+  type: string;
+  settings: SerializedConnectInput[];
+  settingsState: IntegrationSharedInputStateMap;
+}) {
+  const { settings, settingsState } = props;
+  const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
+    Object.fromEntries(
+      settings.map((setting) => [setting.id, settingsState[setting.id]])
+    )
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  const updateField = (id: string, value: ConnectInputValue) => {
+    setFormState((current) => ({
+      ...current,
+      [id]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    setIsSaving(true);
+    paragon
+      .updateIntegrationUserSettings({
+        integration: props.type,
+        userSettingsUpdate: {
+          ...formState,
+        },
+      })
+      .catch((error) => {
+        console.error('Failed to update integration user settings', error);
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {settings?.map((setting) => {
+        if (setting.type === SidebarInputType.BooleanInput) {
+          return (
+            <BooleanField
+              key={setting.id}
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              value={Boolean(formState[setting.id] ?? false)}
+              tooltip={setting.tooltip}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        if (setting.type === SidebarInputType.ValueText) {
+          return (
+            <TextInputField
+              key={setting.id}
+              type="text"
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              tooltip={setting.tooltip}
+              value={String(formState[setting.id] ?? '')}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        if (setting.type === SidebarInputType.Number) {
+          return (
+            <TextInputField
+              key={setting.id}
+              type="number"
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              tooltip={setting.tooltip}
+              value={String(formState[setting.id] ?? '')}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        if (setting.type === SidebarInputType.Email) {
+          return (
+            <TextInputField
+              key={setting.id}
+              type="email"
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              tooltip={setting.tooltip}
+              value={String(formState[setting.id] ?? '')}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        if (setting.type === SidebarInputType.Password) {
+          return (
+            <TextInputField
+              key={setting.id}
+              type="password"
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              value={String(formState[setting.id] ?? '')}
+              tooltip={setting.tooltip}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        if (setting.type === SidebarInputType.URL) {
+          return (
+            <TextInputField
+              key={setting.id}
+              type="url"
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              value={String(formState[setting.id] ?? '')}
+              tooltip={setting.tooltip}
+              onChange={(value) => updateField(setting.id, value)}
+              disabled={isSaving}
+            />
+          );
+        }
+
+        return (
+          <div key={setting.id} className="text-orange-600">
+            <div>
+              <span className="font-semibold">Title:</span>{' '}
+              <span className="font-mono">{setting.title}</span>
+              {setting.required ? (
+                <span className="text-red-600"> *</span>
+              ) : null}
+            </div>
+            {setting.tooltip ? (
+              <div>
+                <span className="font-semibold">Tooltip:</span>{' '}
+                <span className="font-mono">{setting.tooltip}</span>
+              </div>
+            ) : null}
+            <div>
+              <span className="font-semibold">Field type:</span>{' '}
+              <span className="font-mono">{setting.type}</span>
+            </div>
+            <div>
+              <span className="font-semibold">Current value:</span>{' '}
+              <span className="font-mono">{String(setting.currentValue)}</span>
+            </div>
+          </div>
+        );
+      })}
+      <div>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -365,10 +398,10 @@ function Workflows(props: {
     )
   );
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
-    setWorkflowsState({
-      ...workflowsState,
+    setWorkflowsState((current) => ({
+      ...current,
       [workflowId]: enabled,
-    });
+    }));
   };
 
   const updateWorkflowState = (workflowId: string, enabled: boolean) => {
