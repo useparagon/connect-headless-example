@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   ConnectInputValue,
+  CustomDropdownField,
   IntegrationSharedInputStateMap,
   IntegrationWorkflowMeta,
   IntegrationWorkflowStateMap,
@@ -21,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { SelectField } from '@/components/form/select-field';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
@@ -306,6 +308,28 @@ function IntegrationSettings(props: {
               onChange={(value) => updateField(setting.id, value)}
               disabled={isSaving}
             />
+          );
+        }
+
+        if (setting.type === SidebarInputType.CustomDropdown) {
+          const options: CustomDropdownField[] =
+            setting.customDropdownOptions ?? [];
+
+          return (
+            <SelectField
+              id={setting.id}
+              title={setting.title}
+              required={setting.required}
+              value={(formState[setting.id] as string) ?? null}
+              onChange={(value) => updateField(setting.id, value ?? undefined)}
+              allowClear
+            >
+              {options.map((option) => (
+                <SelectField.Item key={option.value} value={option.value}>
+                  {option.label}
+                </SelectField.Item>
+              ))}
+            </SelectField>
           );
         }
 
