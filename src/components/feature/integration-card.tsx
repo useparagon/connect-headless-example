@@ -330,7 +330,7 @@ function IntegrationSettings(props: {
             </div>
             <div>
               <span className="font-semibold">Current value:</span>{' '}
-              <span className="font-mono">{String(setting.currentValue)}</span>
+              <span className="font-mono">{String(formState[setting.id])}</span>
             </div>
           </div>
         );
