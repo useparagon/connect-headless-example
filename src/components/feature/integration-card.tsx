@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import {
   ConnectInputValue,
-  CustomDropdownField,
   IntegrationSharedInputStateMap,
   IntegrationWorkflowMeta,
   IntegrationWorkflowStateMap,
@@ -216,13 +215,15 @@ function IntegrationSettings(props: {
   return (
     <div className="flex flex-col gap-6">
       {settings?.map((setting) => {
+        const required = setting.required ?? true;
+
         if (setting.type === SidebarInputType.BooleanInput) {
           return (
             <BooleanField
               key={setting.id}
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               value={Boolean(formState[setting.id] ?? false)}
               tooltip={setting.tooltip}
               onChange={(value) => updateField(setting.id, value)}
@@ -238,7 +239,7 @@ function IntegrationSettings(props: {
               type="text"
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               tooltip={setting.tooltip}
               value={String(formState[setting.id] ?? '')}
               onChange={(value) => updateField(setting.id, value)}
@@ -254,7 +255,7 @@ function IntegrationSettings(props: {
               type="number"
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               tooltip={setting.tooltip}
               value={String(formState[setting.id] ?? '')}
               onChange={(value) => updateField(setting.id, value)}
@@ -270,7 +271,7 @@ function IntegrationSettings(props: {
               type="email"
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               tooltip={setting.tooltip}
               value={String(formState[setting.id] ?? '')}
               onChange={(value) => updateField(setting.id, value)}
@@ -286,7 +287,7 @@ function IntegrationSettings(props: {
               type="password"
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               value={String(formState[setting.id] ?? '')}
               tooltip={setting.tooltip}
               onChange={(value) => updateField(setting.id, value)}
@@ -302,7 +303,7 @@ function IntegrationSettings(props: {
               type="url"
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               value={String(formState[setting.id] ?? '')}
               tooltip={setting.tooltip}
               onChange={(value) => updateField(setting.id, value)}
@@ -312,14 +313,13 @@ function IntegrationSettings(props: {
         }
 
         if (setting.type === SidebarInputType.CustomDropdown) {
-          const options: CustomDropdownField[] =
-            setting.customDropdownOptions ?? [];
+          const options = setting.customDropdownOptions ?? [];
 
           return (
             <SelectField
               id={setting.id}
               title={setting.title}
-              required={setting.required}
+              required={required}
               value={(formState[setting.id] as string) ?? null}
               onChange={(value) => updateField(setting.id, value ?? undefined)}
               allowClear
@@ -338,9 +338,7 @@ function IntegrationSettings(props: {
             <div>
               <span className="font-semibold">Title:</span>{' '}
               <span className="font-mono">{setting.title}</span>
-              {setting.required ? (
-                <span className="text-red-600"> *</span>
-              ) : null}
+              {required ? <span className="text-red-600"> *</span> : null}
             </div>
             {setting.tooltip ? (
               <div>
@@ -488,16 +486,17 @@ function WorkflowFields(props: {
 
   return workflow.inputs.map((input) => {
     const currentValue = workflowSettings[workflow.id]?.settings[input.id];
+    const required = input.required ?? true;
 
     if (input.type === SidebarInputType.ValueText) {
       return (
         <TextInputField
           key={input.id}
           id={input.id}
-          type={input.type}
+          type="text"
           title={input.title}
           tooltip={input.tooltip}
-          required={input.required}
+          required={required}
           value={String(currentValue ?? '')}
           // WIP: add onChange handler
           onChange={() => {}}
