@@ -25,6 +25,7 @@ import { SelectField } from '@/components/form/select-field';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
 
 type Props = {
   type: string;
@@ -37,7 +38,12 @@ export function IntegrationCard(props: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <Card className="min-w-[300px] hover:shadow-sm transition-shadow">
+    <Card
+      className={cn(
+        'min-w-[300px] hover:shadow-xs transition-shadow',
+        !props.enabled && 'border-dashed shadow-none'
+      )}
+    >
       <CardContent>
         <CardTitle>
           <div className="flex gap-2 items-center justify-between">
@@ -46,13 +52,20 @@ export function IntegrationCard(props: Props) {
               {props.name}
             </div>
             <Button
+              variant="outline"
               className="cursor-pointer"
               onClick={() => setIsModalOpen(true)}
             >
-              {props.enabled ? 'Manage' : 'Enable'}
+              Manage
             </Button>
             {isModalOpen && (
-              <IntegrationModal onOpenChange={setIsModalOpen} {...props} />
+              <IntegrationModal
+                onOpenChange={setIsModalOpen}
+                type={props.type}
+                name={props.name}
+                icon={props.icon}
+                enabled={props.enabled}
+              />
             )}
           </div>
         </CardTitle>

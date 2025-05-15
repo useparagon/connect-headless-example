@@ -1,8 +1,7 @@
-import { paragon } from '@useparagon/connect';
-
 import { Header } from '@/components/layout/header';
 import { IntegrationCard } from '@/components/feature/integration-card';
-import { useIntegrationMetadata } from '@/lib/hooks';
+import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
+import { IIntegrationMetadata } from 'node_modules/@useparagon/connect/dist/src/entities/integration.interface';
 
 export function App() {
   return (
@@ -10,7 +9,6 @@ export function App() {
       <Header />
 
       <div className="py-4 px-8">
-        <h1 className="text-2xl font-medium mb-4">Integrations</h1>
         <IntegrationList />
       </div>
     </div>
@@ -18,33 +16,79 @@ export function App() {
 }
 
 function IntegrationList() {
-  const user = paragon.getUser();
-  const { data: integrations, isLoading } = useIntegrationMetadata();
+  const { data: user } = useAuthenticatedUser();
+  const { data: integrations, isLoading: isLoadingIntegrations } =
+    useIntegrationMetadata();
 
-  if (isLoading || !integrations) {
+  if (!user || isLoadingIntegrations || !integrations) {
     return <div>Loading...</div>;
   }
 
-  return (
-    <>
-      <ul className="flex flex-wrap gap-4">
-        {integrations.map((integration) => {
-          const integrationEnabled =
-            user.authenticated && user.integrations[integration.type]?.enabled;
+  const [connectedIntegrations, notConnectedIntegrations] = integrations.reduce(
+    (acc, integration) => {
+      const integrationInfo = user.integrations[integration.type];
+      if (integrationInfo?.enabled) {
+        acc[0].push(integration);
+      } else {
+        acc[1].push(integration);
+      }
 
-          return (
-            <li key={integration.type}>
-              <IntegrationCard
-                key={integration.type}
-                type={integration.type}
-                name={integration.name}
-                icon={integration.icon}
-                enabled={integrationEnabled ?? false}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </>
+      return acc;
+    },
+    [[], []] as [IIntegrationMetadata[], IIntegrationMetadata[]]
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-xl font-medium mb-4">Connected Integrations</h2>
+        <ul className="flex flex-wrap gap-4">
+          {connectedIntegrations.map((integration) => {
+            const integrationInfo = user.integrations[integration.type];
+
+            if (!integrationInfo) {
+              return null;
+            }
+
+            return (
+              <li key={integration.type}>
+                <IntegrationCard
+                  key={integration.type}
+                  type={integration.type}
+                  name={integration.name}
+                  icon={integration.icon}
+                  enabled={integrationInfo.enabled}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-medium mb-4">Disconnected Integrations</h2>
+        <ul className="flex flex-wrap gap-4">
+          {notConnectedIntegrations.map((integration) => {
+            const integrationInfo = user.integrations[integration.type];
+
+            if (!integrationInfo) {
+              return null;
+            }
+
+            return (
+              <li key={integration.type}>
+                <IntegrationCard
+                  key={integration.type}
+                  type={integration.type}
+                  name={integration.name}
+                  icon={integration.icon}
+                  enabled={integrationInfo.enabled}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
   );
 }

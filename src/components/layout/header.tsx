@@ -1,6 +1,6 @@
 export function Header() {
   return (
-    <header className="flex items-center py-4 px-8 border-b border-border">
+    <header className="flex items-center py-4 px-8 border-b border-border border-dashed">
       <img
         src="https://dashboard.useparagon.com/images/icons/paragon-no-text.svg"
         className="w-7 h-7 mr-2"
