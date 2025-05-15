@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import debounce from 'lodash/debounce';
 
 import {
   ConnectInputValue,
@@ -211,12 +212,7 @@ function IntegrationSettings(props: {
   const handleSave = () => {
     setIsSaving(true);
     paragon
-      .updateIntegrationUserSettings({
-        integration: props.type,
-        userSettingsUpdate: {
-          ...formState,
-        },
-      })
+      .updateIntegrationUserSettings(props.type, formState)
       .catch((error) => {
         console.error('Failed to update integration user settings', error);
       })
@@ -409,6 +405,7 @@ function IntegrationWorkflow(props: { type: string }) {
         </legend>
         <div className="flex flex-col gap-6">
           <Workflows
+            type={props.type}
             workflows={workflows}
             workflowSettings={workflowSettings}
           />
@@ -419,6 +416,7 @@ function IntegrationWorkflow(props: { type: string }) {
 }
 
 function Workflows(props: {
+  type: string;
   workflows: Omit<IntegrationWorkflowMeta, 'order' | 'permissions'>[];
   workflowSettings: IntegrationWorkflowStateMap;
 }) {
@@ -475,6 +473,7 @@ function Workflows(props: {
           />
         </div>
         <WorkflowFields
+          type={props.type}
           workflow={workflow}
           workflowSettings={workflowSettings}
           isEnabled={isEnabled}
@@ -486,50 +485,107 @@ function Workflows(props: {
 }
 
 function WorkflowFields(props: {
+  type: string;
   workflow: IntegrationWorkflowMeta;
   workflowSettings: IntegrationWorkflowStateMap;
   isEnabled: boolean;
   hasInputs: boolean;
 }) {
   const { workflow, isEnabled, hasInputs, workflowSettings } = props;
+  const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
+    Object.fromEntries(
+      workflow.inputs.map((input) => [
+        input.id,
+        workflowSettings[workflow.id]?.settings[input.id],
+      ])
+    )
+  );
+
+  // Create a debounced save function
+  const debouncedSave = useCallback(
+    debounce(async (id: string, value: ConnectInputValue) => {
+      try {
+        await paragon.updateWorkflowUserSettings(props.type, workflow.id, {
+          [id]: value,
+        });
+      } catch (error) {
+        console.error('Failed to update workflow settings', error);
+      }
+    }, 500),
+    [props.type, workflow.id]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
+
+  const updateField = (id: string, value: ConnectInputValue) => {
+    setFormState((current) => ({
+      ...current,
+      [id]: value,
+    }));
+
+    debouncedSave(id, value);
+  };
 
   if (!isEnabled || !hasInputs) {
     return null;
   }
 
-  return workflow.inputs.map((input) => {
-    const currentValue = workflowSettings[workflow.id]?.settings[input.id];
-    const required = input.required ?? true;
+  return (
+    <div className="flex flex-col gap-6">
+      {workflow.inputs.map((input) => {
+        const currentValue = formState[input.id];
+        const required = input.required ?? true;
 
-    if (input.type === SidebarInputType.ValueText) {
-      return (
-        <TextInputField
-          key={input.id}
-          id={input.id}
-          type="text"
-          title={input.title}
-          tooltip={input.tooltip}
-          required={required}
-          value={String(currentValue ?? '')}
-          // WIP: add onChange handler
-          onChange={() => {}}
-          disabled
-        />
-      );
-    }
+        if (input.type === SidebarInputType.ValueText) {
+          return (
+            <TextInputField
+              key={input.id}
+              id={input.id}
+              type="text"
+              title={input.title}
+              tooltip={input.tooltip}
+              required={required}
+              value={String(currentValue ?? '')}
+              onChange={(value) => updateField(input.id, value)}
+            />
+          );
+        }
 
-    return (
-      <div key={input.id} className="text-orange-600">
-        <div className="font-mono">
-          Title: {input.title}
-          {input.required ? <span className="text-red-600"> *</span> : null}
-        </div>
-        {input.tooltip ? (
-          <div className="font-mono">Tooltip: {input.tooltip}</div>
-        ) : null}
-        <div className="font-mono">Type: {input.type}</div>
-        <div className="font-mono">Current value: {String(currentValue)}</div>
-      </div>
-    );
-  });
+        if (input.type === SidebarInputType.Number) {
+          return (
+            <TextInputField
+              key={input.id}
+              id={input.id}
+              type="number"
+              title={input.title}
+              tooltip={input.tooltip}
+              required={required}
+              value={String(currentValue ?? '')}
+              onChange={(value) => updateField(input.id, value)}
+            />
+          );
+        }
+
+        return (
+          <div key={input.id} className="text-orange-600">
+            <div className="font-mono">
+              Title: {input.title}
+              {input.required ? <span className="text-red-600"> *</span> : null}
+            </div>
+            {input.tooltip ? (
+              <div className="font-mono">Tooltip: {input.tooltip}</div>
+            ) : null}
+            <div className="font-mono">Type: {input.type}</div>
+            <div className="font-mono">
+              Current value: {String(currentValue)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
