@@ -29,7 +29,7 @@ import { useIntegrationConfig } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 
 type Props = {
-  type: string;
+  integration: string;
   name: string;
   icon: string;
   enabled: boolean;
@@ -62,7 +62,7 @@ export function IntegrationCard(props: Props) {
             {isModalOpen && (
               <IntegrationModal
                 onOpenChange={setIsModalOpen}
-                type={props.type}
+                integration={props.integration}
                 name={props.name}
                 icon={props.icon}
                 enabled={props.enabled}
@@ -81,7 +81,7 @@ function IntegrationModal(
   }
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
-    props.type
+    props.integration
   );
 
   if (isLoading) {
@@ -89,7 +89,7 @@ function IntegrationModal(
   }
 
   if (!integrationConfig) {
-    throw new Error(`Integration config not found for ${props.type}`);
+    throw new Error(`Integration config not found for ${props.integration}`);
   }
 
   return (
@@ -140,8 +140,8 @@ function IntegrationModal(
               className="w-full overflow-y-auto max-h-[70dvh]"
             >
               <div className="p-6 flex flex-col gap-6">
-                <IntegrationConfiguration type={props.type} />
-                <IntegrationWorkflow type={props.type} />
+                <IntegrationConfiguration integration={props.integration} />
+                <IntegrationWorkflow integration={props.integration} />
               </div>
             </TabsContent>
           </Tabs>
@@ -151,9 +151,9 @@ function IntegrationModal(
   );
 }
 
-function IntegrationConfiguration(props: { type: string }) {
+function IntegrationConfiguration(props: { integration: string }) {
   const settings =
-    paragon.getIntegrationConfig(props.type).availableUserSettings ?? [];
+    paragon.getIntegrationConfig(props.integration).availableUserSettings ?? [];
 
   if (!settings || settings.length === 0) {
     return null;
@@ -165,7 +165,7 @@ function IntegrationConfiguration(props: { type: string }) {
     throw new Error('User is not authenticated');
   }
 
-  const integration = user.integrations[props.type];
+  const integration = user.integrations[props.integration];
 
   if (!integration) {
     throw new Error('Integration not found');
@@ -180,7 +180,7 @@ function IntegrationConfiguration(props: { type: string }) {
           User integration settings
         </legend>
         <IntegrationSettings
-          type={props.type}
+          integration={props.integration}
           settings={settings}
           settingsState={sharedSettings}
         />
@@ -190,7 +190,7 @@ function IntegrationConfiguration(props: { type: string }) {
 }
 
 function IntegrationSettings(props: {
-  type: string;
+  integration: string;
   settings: SerializedConnectInput[];
   settingsState: IntegrationSharedInputStateMap;
 }) {
@@ -212,7 +212,7 @@ function IntegrationSettings(props: {
   const handleSave = () => {
     setIsSaving(true);
     paragon
-      .updateIntegrationUserSettings(props.type, formState)
+      .updateIntegrationUserSettings(props.integration, formState)
       .catch((error) => {
         console.error('Failed to update integration user settings', error);
       })
@@ -326,6 +326,7 @@ function IntegrationSettings(props: {
 
           return (
             <SelectField
+              key={setting.id}
               id={setting.id}
               title={setting.title}
               required={required}
@@ -375,9 +376,9 @@ function IntegrationSettings(props: {
   );
 }
 
-function IntegrationWorkflow(props: { type: string }) {
+function IntegrationWorkflow(props: { integration: string }) {
   const workflows =
-    paragon.getIntegrationConfig(props.type).availableWorkflows ?? [];
+    paragon.getIntegrationConfig(props.integration).availableWorkflows ?? [];
 
   if (!workflows || workflows.length === 0) {
     return null;
@@ -389,7 +390,7 @@ function IntegrationWorkflow(props: { type: string }) {
     throw new Error('User is not authenticated');
   }
 
-  const integration = user.integrations[props.type];
+  const integration = user.integrations[props.integration];
 
   if (!integration) {
     throw new Error('Integration not found');
@@ -405,7 +406,7 @@ function IntegrationWorkflow(props: { type: string }) {
         </legend>
         <div className="flex flex-col gap-6">
           <Workflows
-            type={props.type}
+            integration={props.integration}
             workflows={workflows}
             workflowSettings={workflowSettings}
           />
@@ -416,7 +417,7 @@ function IntegrationWorkflow(props: { type: string }) {
 }
 
 function Workflows(props: {
-  type: string;
+  integration: string;
   workflows: Omit<IntegrationWorkflowMeta, 'order' | 'permissions'>[];
   workflowSettings: IntegrationWorkflowStateMap;
 }) {
@@ -473,7 +474,7 @@ function Workflows(props: {
           />
         </div>
         <WorkflowFields
-          type={props.type}
+          integration={props.integration}
           workflow={workflow}
           workflowSettings={workflowSettings}
           isEnabled={isEnabled}
@@ -485,7 +486,7 @@ function Workflows(props: {
 }
 
 function WorkflowFields(props: {
-  type: string;
+  integration: string;
   workflow: IntegrationWorkflowMeta;
   workflowSettings: IntegrationWorkflowStateMap;
   isEnabled: boolean;
@@ -505,14 +506,18 @@ function WorkflowFields(props: {
   const debouncedSave = useCallback(
     debounce(async (id: string, value: ConnectInputValue) => {
       try {
-        await paragon.updateWorkflowUserSettings(props.type, workflow.id, {
-          [id]: value,
-        });
+        await paragon.updateWorkflowUserSettings(
+          props.integration,
+          workflow.id,
+          {
+            [id]: value,
+          }
+        );
       } catch (error) {
         console.error('Failed to update workflow settings', error);
       }
     }, 500),
-    [props.type, workflow.id]
+    [props.integration, workflow.id]
   );
 
   useEffect(() => {

@@ -53,8 +53,7 @@ function IntegrationList() {
             return (
               <li key={integration.type}>
                 <IntegrationCard
-                  key={integration.type}
-                  type={integration.type}
+                  integration={integration.type}
                   name={integration.name}
                   icon={integration.icon}
                   enabled={integrationInfo.enabled}
@@ -78,8 +77,7 @@ function IntegrationList() {
             return (
               <li key={integration.type}>
                 <IntegrationCard
-                  key={integration.type}
-                  type={integration.type}
+                  integration={integration.type}
                   name={integration.name}
                   icon={integration.icon}
                   enabled={integrationInfo.enabled}
