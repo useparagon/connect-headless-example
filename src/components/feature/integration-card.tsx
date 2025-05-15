@@ -84,7 +84,7 @@ function IntegrationModal(
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!integrationConfig) {
