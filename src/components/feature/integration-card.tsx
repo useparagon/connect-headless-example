@@ -8,11 +8,8 @@ import {
   IntegrationWorkflowStateMap,
   paragon,
   SerializedConnectInput,
-  SidebarInputType,
 } from '@useparagon/connect';
 
-import { TextInputField } from '@/components/form/text-input-field';
-import { BooleanField } from '@/components/form/boolean-field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import {
@@ -22,11 +19,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { SelectField } from '@/components/form/select-field';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
+import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
 
 type Props = {
   integration: string;
@@ -109,7 +106,38 @@ function IntegrationModal(
             <Button
               className="cursor-pointer"
               variant={props.enabled ? 'destructive' : 'default'}
-              onClick={() => {}}
+              onClick={() => {
+                if (!props.enabled) {
+                  paragon.installIntegration(props.integration, {
+                    onSuccess: () => {
+                      console.log('installed integration:', props.integration);
+                    },
+                    onError: (error) => {
+                      console.error(
+                        'error installing integration:',
+                        props.integration,
+                        error
+                      );
+                    },
+                  });
+                } else {
+                  paragon
+                    .uninstallIntegration(props.integration)
+                    .then(() => {
+                      console.log(
+                        'uninstalled integration:',
+                        props.integration
+                      );
+                    })
+                    .catch((error) => {
+                      console.error(
+                        'error uninstalling integration:',
+                        props.integration,
+                        error
+                      );
+                    });
+                }
+              }}
             >
               {props.enabled ? 'Disconnect' : 'Connect'}
             </Button>
@@ -223,150 +251,14 @@ function IntegrationSettings(props: {
 
   return (
     <div className="flex flex-col gap-6">
-      {settings?.map((setting) => {
-        const required = setting.required ?? true;
-
-        if (setting.type === SidebarInputType.BooleanInput) {
-          return (
-            <BooleanField
-              key={setting.id}
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              value={Boolean(formState[setting.id] ?? false)}
-              tooltip={setting.tooltip}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.ValueText) {
-          return (
-            <TextInputField
-              key={setting.id}
-              type="text"
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              tooltip={setting.tooltip}
-              value={String(formState[setting.id] ?? '')}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.Number) {
-          return (
-            <TextInputField
-              key={setting.id}
-              type="number"
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              tooltip={setting.tooltip}
-              value={String(formState[setting.id] ?? '')}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.Email) {
-          return (
-            <TextInputField
-              key={setting.id}
-              type="email"
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              tooltip={setting.tooltip}
-              value={String(formState[setting.id] ?? '')}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.Password) {
-          return (
-            <TextInputField
-              key={setting.id}
-              type="password"
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              value={String(formState[setting.id] ?? '')}
-              tooltip={setting.tooltip}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.URL) {
-          return (
-            <TextInputField
-              key={setting.id}
-              type="url"
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              value={String(formState[setting.id] ?? '')}
-              tooltip={setting.tooltip}
-              onChange={(value) => updateField(setting.id, value)}
-              disabled={isSaving}
-            />
-          );
-        }
-
-        if (setting.type === SidebarInputType.CustomDropdown) {
-          const options = setting.customDropdownOptions ?? [];
-
-          return (
-            <SelectField
-              key={setting.id}
-              id={setting.id}
-              title={setting.title}
-              required={required}
-              value={(formState[setting.id] as string) ?? null}
-              onChange={(value) => updateField(setting.id, value ?? undefined)}
-              allowClear
-            >
-              {options.map((option) => (
-                <SelectField.Item key={option.value} value={option.value}>
-                  {option.label}
-                </SelectField.Item>
-              ))}
-            </SelectField>
-          );
-        }
-
-        return (
-          <div key={setting.id} className="text-orange-600">
-            <div>
-              <span className="font-semibold">Title:</span>{' '}
-              <span className="font-mono">{setting.title}</span>
-              {required ? <span className="text-red-600"> *</span> : null}
-            </div>
-            {setting.tooltip ? (
-              <div>
-                <span className="font-semibold">Tooltip:</span>{' '}
-                <span className="font-mono">{setting.tooltip}</span>
-              </div>
-            ) : null}
-            <div>
-              <span className="font-semibold">Field type:</span>{' '}
-              <span className="font-mono">{setting.type}</span>
-            </div>
-            <div>
-              <span className="font-semibold">Current value:</span>{' '}
-              <span className="font-mono">{String(formState[setting.id])}</span>
-            </div>
-          </div>
-        );
-      })}
+      {settings?.map((setting) => (
+        <SerializedConnectInputPicker
+          key={setting.id}
+          field={setting}
+          value={formState[setting.id]}
+          onChange={(value) => updateField(setting.id, value)}
+        />
+      ))}
       <div>
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? 'Saving...' : 'Save'}
@@ -541,56 +433,14 @@ function WorkflowFields(props: {
 
   return (
     <div className="flex flex-col gap-6">
-      {workflow.inputs.map((input) => {
-        const currentValue = formState[input.id];
-        const required = input.required ?? true;
-
-        if (input.type === SidebarInputType.ValueText) {
-          return (
-            <TextInputField
-              key={input.id}
-              id={input.id}
-              type="text"
-              title={input.title}
-              tooltip={input.tooltip}
-              required={required}
-              value={String(currentValue ?? '')}
-              onChange={(value) => updateField(input.id, value)}
-            />
-          );
-        }
-
-        if (input.type === SidebarInputType.Number) {
-          return (
-            <TextInputField
-              key={input.id}
-              id={input.id}
-              type="number"
-              title={input.title}
-              tooltip={input.tooltip}
-              required={required}
-              value={String(currentValue ?? '')}
-              onChange={(value) => updateField(input.id, value)}
-            />
-          );
-        }
-
-        return (
-          <div key={input.id} className="text-orange-600">
-            <div className="font-mono">
-              Title: {input.title}
-              {input.required ? <span className="text-red-600"> *</span> : null}
-            </div>
-            {input.tooltip ? (
-              <div className="font-mono">Tooltip: {input.tooltip}</div>
-            ) : null}
-            <div className="font-mono">Type: {input.type}</div>
-            <div className="font-mono">
-              Current value: {String(currentValue)}
-            </div>
-          </div>
-        );
-      })}
+      {workflow.inputs.map((input) => (
+        <SerializedConnectInputPicker
+          key={input.id}
+          field={input}
+          value={formState[input.id]}
+          onChange={(value) => updateField(input.id, value)}
+        />
+      ))}
     </div>
   );
 }
