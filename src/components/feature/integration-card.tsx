@@ -317,12 +317,13 @@ function Workflows(props: {
   const { workflowSettings, workflows } = props;
   const [isSaving, setIsSaving] = useState(false);
   const [workflowsState, setWorkflowsState] = useState<Record<string, boolean>>(
-    Object.fromEntries(
-      Object.entries(workflowSettings).map(([key, value]) => [
-        key,
-        value?.enabled ?? false,
-      ])
-    )
+    () =>
+      Object.fromEntries(
+        Object.entries(workflowSettings).map(([id, value]) => [
+          id,
+          value?.enabled ?? false,
+        ])
+      )
   );
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
     setWorkflowsState((current) => ({
