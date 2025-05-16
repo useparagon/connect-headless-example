@@ -297,13 +297,11 @@ function IntegrationWorkflow(props: { integration: string }) {
         <legend className="text-lg font-bold px-2">
           User workflow settings
         </legend>
-        <div className="flex flex-col gap-6">
-          <Workflows
-            integration={props.integration}
-            workflows={workflows}
-            workflowSettings={workflowSettings}
-          />
-        </div>
+        <Workflows
+          integration={props.integration}
+          workflows={workflows}
+          workflowSettings={workflowSettings}
+        />
       </fieldset>
     </div>
   );
@@ -347,36 +345,46 @@ function Workflows(props: {
       });
   };
 
-  return workflows.map((workflow) => {
-    const hasInputs = workflow.inputs.length > 0;
-    const isEnabled = workflowsState[workflow.id] ?? false;
+  return (
+    <div>
+      {workflows.map((workflow, index) => {
+        const hasInputs = workflow.inputs.length > 0;
+        const isEnabled = workflowsState[workflow.id] ?? false;
+        const isNotLast = index < workflows.length - 1;
 
-    return (
-      <div key={workflow.id}>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <div className="font-medium">{workflow.description}</div>
-            {workflow.infoText ? (
-              <div className="text-sm text-gray-500">{workflow.infoText}</div>
-            ) : null}
+        return (
+          <div key={workflow.id}>
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="font-medium">{workflow.description}</div>
+                {workflow.infoText ? (
+                  <div className="text-sm text-gray-500">
+                    {workflow.infoText}
+                  </div>
+                ) : null}
+              </div>
+              <Switch
+                id={workflow.id}
+                checked={isEnabled}
+                disabled={isSaving}
+                onCheckedChange={(value) =>
+                  updateWorkflowState(workflow.id, value)
+                }
+              />
+            </div>
+            <WorkflowFields
+              integration={props.integration}
+              workflow={workflow}
+              workflowSettings={workflowSettings}
+              isEnabled={isEnabled}
+              hasInputs={hasInputs}
+            />
+            {isNotLast && <hr className="my-4 border-dashed border-gray-200" />}
           </div>
-          <Switch
-            id={workflow.id}
-            checked={isEnabled}
-            disabled={isSaving}
-            onCheckedChange={(value) => updateWorkflowState(workflow.id, value)}
-          />
-        </div>
-        <WorkflowFields
-          integration={props.integration}
-          workflow={workflow}
-          workflowSettings={workflowSettings}
-          isEnabled={isEnabled}
-          hasInputs={hasInputs}
-        />
-      </div>
-    );
-  });
+        );
+      })}
+    </div>
+  );
 }
 
 function WorkflowFields(props: {
@@ -434,7 +442,7 @@ function WorkflowFields(props: {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 mt-4">
       {workflow.inputs.map((input) => (
         <SerializedConnectInputPicker
           key={input.id}
