@@ -224,9 +224,10 @@ function IntegrationSettings(props: {
 }) {
   const { settings, settingsState } = props;
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
-    Object.fromEntries(
-      settings.map((setting) => [setting.id, settingsState[setting.id]])
-    )
+    () =>
+      Object.fromEntries(
+        settings.map((setting) => [setting.id, settingsState[setting.id]])
+      )
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -386,15 +387,15 @@ function WorkflowFields(props: {
 }) {
   const { workflow, isEnabled, hasInputs, workflowSettings } = props;
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
-    Object.fromEntries(
-      workflow.inputs.map((input) => [
-        input.id,
-        workflowSettings[workflow.id]?.settings[input.id],
-      ])
-    )
+    () =>
+      Object.fromEntries(
+        workflow.inputs.map((input) => [
+          input.id,
+          workflowSettings[workflow.id]?.settings[input.id],
+        ])
+      )
   );
 
-  // Create a debounced save function
   const debouncedSave = useCallback(
     debounce(async (id: string, value: ConnectInputValue) => {
       try {
