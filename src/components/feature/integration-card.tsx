@@ -348,7 +348,6 @@ function Workflows(props: {
   return (
     <div>
       {workflows.map((workflow, index) => {
-        const hasInputs = workflow.inputs.length > 0;
         const isEnabled = workflowsState[workflow.id] ?? false;
         const isNotLast = index < workflows.length - 1;
 
@@ -377,7 +376,6 @@ function Workflows(props: {
               workflow={workflow}
               workflowSettings={workflowSettings}
               isEnabled={isEnabled}
-              hasInputs={hasInputs}
             />
             {isNotLast && <hr className="my-4 border-dashed border-gray-200" />}
           </div>
@@ -392,9 +390,8 @@ function WorkflowFields(props: {
   workflow: IntegrationWorkflowMeta;
   workflowSettings: IntegrationWorkflowStateMap;
   isEnabled: boolean;
-  hasInputs: boolean;
 }) {
-  const { workflow, isEnabled, hasInputs, workflowSettings } = props;
+  const { workflow, isEnabled, workflowSettings } = props;
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
     () =>
       Object.fromEntries(
@@ -404,6 +401,7 @@ function WorkflowFields(props: {
         ])
       )
   );
+  const hasInputs = workflow.inputs.length > 0;
 
   const debouncedSave = useCallback(
     debounce(async (id: string, value: ConnectInputValue) => {
