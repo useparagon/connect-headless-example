@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 import {
   ConnectInputValue,
@@ -322,6 +322,7 @@ function Workflows(props: {
         ])
       )
   );
+
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
     setWorkflowsState((current) => ({
       ...current,
@@ -402,20 +403,21 @@ function WorkflowFields(props: {
   );
   const hasInputs = workflow.inputs.length > 0;
 
-  const debouncedSave = useCallback(
-    debounce(async (id: string, value: ConnectInputValue) => {
-      try {
-        await paragon.updateWorkflowUserSettings(
-          props.integration,
-          workflow.id,
-          {
-            [id]: value,
-          }
-        );
-      } catch (error) {
-        console.error('Failed to update workflow settings', error);
-      }
-    }, 500),
+  const debouncedSave = useMemo(
+    () =>
+      debounce(async (id: string, value: ConnectInputValue) => {
+        try {
+          await paragon.updateWorkflowUserSettings(
+            props.integration,
+            workflow.id,
+            {
+              [id]: value,
+            }
+          );
+        } catch (error) {
+          console.error('Failed to update workflow settings', error);
+        }
+      }, 500),
     [props.integration, workflow.id]
   );
 
