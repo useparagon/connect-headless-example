@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import debounce from 'lodash/debounce';
-
 import {
   ConnectInputValue,
   IntegrationSharedInputStateMap,
@@ -23,6 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrationConfig } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
+
 import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
 
 type Props = {
@@ -81,6 +81,36 @@ function IntegrationModal(
     props.integration
   );
 
+  const doEnable = async () => {
+    await paragon.installIntegration(props.integration, {
+      onSuccess: () => {
+        console.log('installed integration:', props.integration);
+      },
+      onError: (error) => {
+        console.error(
+          'error installing integration:',
+          props.integration,
+          error
+        );
+      },
+    });
+  };
+
+  const doDisable = () => {
+    paragon
+      .uninstallIntegration(props.integration)
+      .then(() => {
+        console.log('uninstalled integration:', props.integration);
+      })
+      .catch((error) => {
+        console.error(
+          'error uninstalling integration:',
+          props.integration,
+          error
+        );
+      });
+  };
+
   if (isLoading) {
     return null;
   }
@@ -106,38 +136,7 @@ function IntegrationModal(
             <Button
               className="cursor-pointer"
               variant={props.enabled ? 'destructive' : 'default'}
-              onClick={() => {
-                if (!props.enabled) {
-                  paragon.installIntegration(props.integration, {
-                    onSuccess: () => {
-                      console.log('installed integration:', props.integration);
-                    },
-                    onError: (error) => {
-                      console.error(
-                        'error installing integration:',
-                        props.integration,
-                        error
-                      );
-                    },
-                  });
-                } else {
-                  paragon
-                    .uninstallIntegration(props.integration)
-                    .then(() => {
-                      console.log(
-                        'uninstalled integration:',
-                        props.integration
-                      );
-                    })
-                    .catch((error) => {
-                      console.error(
-                        'error uninstalling integration:',
-                        props.integration,
-                        error
-                      );
-                    });
-                }
-              }}
+              onClick={props.enabled ? doDisable : doEnable}
             >
               {props.enabled ? 'Disconnect' : 'Connect'}
             </Button>
