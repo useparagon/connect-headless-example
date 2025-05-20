@@ -23,5 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# Cursor
+.cursor/*
+
 # Environment variables
 .env
