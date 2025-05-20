@@ -39,7 +39,7 @@ export function IntegrationCard(props: Props) {
     <Card
       className={cn(
         'min-w-[300px] hover:shadow-xs transition-shadow',
-        !props.enabled && 'border-dashed shadow-none'
+        !props.enabled && 'border-dashed shadow-none',
       )}
     >
       <CardContent>
@@ -75,10 +75,10 @@ export function IntegrationCard(props: Props) {
 function IntegrationModal(
   props: Props & {
     onOpenChange: (open: boolean) => void;
-  }
+  },
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
-    props.integration
+    props.integration,
   );
 
   const doEnable = async () => {
@@ -90,7 +90,7 @@ function IntegrationModal(
         console.error(
           'error installing integration:',
           props.integration,
-          error
+          error,
         );
       },
     });
@@ -106,7 +106,7 @@ function IntegrationModal(
         console.error(
           'error uninstalling integration:',
           props.integration,
-          error
+          error,
         );
       });
   };
@@ -143,7 +143,7 @@ function IntegrationModal(
           </div>
         </DialogHeader>
         <div className="pt-6">
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs defaultValue="overview" className="gap-6 w-full">
             <TabsList className="w-[250px] grid grid-cols-2">
               <TabsTrigger className="cursor-pointer" value="overview">
                 Overview
@@ -156,7 +156,7 @@ function IntegrationModal(
               value="overview"
               className="w-full overflow-y-auto max-h-[70dvh]"
             >
-              <div className="p-6">
+              <div>
                 <pre className="text-sm text-wrap text-black/70 font-sans">
                   {integrationConfig.longDescription?.replaceAll('\n\n', '\n')}
                 </pre>
@@ -166,7 +166,7 @@ function IntegrationModal(
               value="configuration"
               className="w-full overflow-y-auto max-h-[70dvh]"
             >
-              <div className="p-6 flex flex-col gap-6">
+              <div className="flex flex-col gap-6">
                 <IntegrationConfiguration integration={props.integration} />
                 <IntegrationWorkflow integration={props.integration} />
               </div>
@@ -225,8 +225,8 @@ function IntegrationSettings(props: {
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
     () =>
       Object.fromEntries(
-        settings.map((setting) => [setting.id, settingsState[setting.id]])
-      )
+        settings.map((setting) => [setting.id, settingsState[setting.id]]),
+      ),
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -319,8 +319,8 @@ function Workflows(props: {
         Object.entries(workflowSettings).map(([id, value]) => [
           id,
           value?.enabled ?? false,
-        ])
-      )
+        ]),
+      ),
   );
 
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
@@ -398,8 +398,8 @@ function WorkflowFields(props: {
         workflow.inputs.map((input) => [
           input.id,
           workflowSettings[workflow.id]?.settings[input.id],
-        ])
-      )
+        ]),
+      ),
   );
   const hasInputs = workflow.inputs.length > 0;
 
@@ -412,13 +412,13 @@ function WorkflowFields(props: {
             workflow.id,
             {
               [id]: value,
-            }
+            },
           );
         } catch (error) {
           console.error('Failed to update workflow settings', error);
         }
       }, 500),
-    [props.integration, workflow.id]
+    [props.integration, workflow.id],
   );
 
   useEffect(() => {
