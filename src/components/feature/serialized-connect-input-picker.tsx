@@ -136,8 +136,8 @@ export function SerializedConnectInputPicker(props: Props) {
         integration={props.integration}
         field={field}
         required={required}
-        value={value}
-        onChange={props.onChange}
+        value={value as string}
+        onChange={(value) => props.onChange(value ?? undefined)}
       />
     );
   }

@@ -1,26 +1,29 @@
-import { useFieldOptions } from '@/lib/hooks';
-import { ComboboxField } from '../form/combobox-field';
 import {
-  ConnectInputValue,
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
+import { useState } from 'react';
+
+import { ComboboxField } from '@/components/form/combobox-field';
+import { useFieldOptions } from '@/lib/hooks';
 
 type Props = {
   integration: string;
   field: SerializedConnectInput<SidebarInputType.DynamicEnum>;
   required: boolean;
   value: string;
-  onChange: (value: ConnectInputValue) => void;
+  onChange: (value: string | null) => void;
 };
 
 export function DynamicEnumField(props: Props) {
+  const [search, setSearch] = useState('');
   const { data: options } = useFieldOptions(
     props.integration,
-    props.field.sourceType,
+    props.field.sourceType as string,
+    search || undefined
   );
   const selectedOption = options.data.find(
-    (option) => option.value === props.value,
+    (option) => option.value === props.value
   );
 
   return (
@@ -29,9 +32,10 @@ export function DynamicEnumField(props: Props) {
       id={props.field.id}
       title={props.field.title}
       required={props.required}
-      value={(props.value as string) ?? null}
+      value={props.value ?? null}
       placeholder={selectedOption?.label ?? null}
       onSelect={props.onChange}
+      onDebouncedChange={setSearch}
       allowClear
     >
       {options.data.map((option) => {
