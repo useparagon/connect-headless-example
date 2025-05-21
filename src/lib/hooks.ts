@@ -33,15 +33,20 @@ export function useAuthenticatedUser() {
   });
 }
 
-const fieldOptionsInitialData = { data: [], nextPageCursor: null };
+type FieldOptionsResponse = Awaited<ReturnType<typeof paragon.getFieldOptions>>;
+
+const fieldOptionsInitialData: FieldOptionsResponse = {
+  data: [],
+  nextPageCursor: null,
+};
 
 export function useFieldOptions(
   integration: string,
   sourceType: string,
-  search?: string,
+  search?: string
 ) {
   return useQuery({
-    queryKey: ['fieldOptions', integration, sourceType],
+    queryKey: ['fieldOptions', integration, sourceType, search],
     queryFn: () => {
       return paragon.getFieldOptions(integration, sourceType, search);
     },

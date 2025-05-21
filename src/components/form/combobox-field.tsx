@@ -1,6 +1,14 @@
+import { debounce } from 'lodash';
 import { Check, ChevronsUpDown, CircleX, LoaderCircle } from 'lucide-react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -15,8 +23,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { FieldLabel } from './field-label';
-import { createContext, ReactNode, useContext, useState } from 'react';
 
 type Props = {
   id: string;
@@ -28,12 +36,15 @@ type Props = {
   isFetching: boolean;
   onSelect: (value: string | null) => void;
   allowClear?: boolean;
+  onDebouncedChange: (value: string) => void;
 };
 
-const comboboxFieldContext = createContext<null | {
+type ComboboxFieldContext = {
   selectedValue: string | null;
   setValue: (value: string) => void;
-}>(null);
+};
+
+const ComboboxFieldContext = createContext<null | ComboboxFieldContext>(null);
 
 export function ComboboxField(props: Props) {
   const [open, setOpen] = useState(false);
@@ -45,8 +56,16 @@ export function ComboboxField(props: Props) {
     props.onSelect(null);
   };
 
+  const handleDebouncedChange = useMemo(() => {
+    return debounce(props.onDebouncedChange, 500);
+  }, [props.onDebouncedChange]);
+
+  useEffect(() => {
+    handleDebouncedChange.cancel();
+  }, [handleDebouncedChange]);
+
   return (
-    <comboboxFieldContext.Provider
+    <ComboboxFieldContext.Provider
       value={{
         selectedValue: value,
         setValue: (value) => {
@@ -60,7 +79,7 @@ export function ComboboxField(props: Props) {
         <FieldLabel id={props.id} required={props.required}>
           {props.title}
         </FieldLabel>
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen} modal>
           <PopoverTrigger>
             <Button
               variant="outline"
@@ -101,7 +120,10 @@ export function ComboboxField(props: Props) {
           </PopoverTrigger>
           <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
             <Command>
-              <CommandInput placeholder="Search option..." />
+              <CommandInput
+                placeholder="Search option..."
+                onValueChange={handleDebouncedChange}
+              />
               <CommandList>
                 <CommandEmpty>No option found.</CommandEmpty>
                 <CommandGroup>{props.children}</CommandGroup>
@@ -110,7 +132,7 @@ export function ComboboxField(props: Props) {
           </PopoverContent>
         </Popover>
       </div>
-    </comboboxFieldContext.Provider>
+    </ComboboxFieldContext.Provider>
   );
 }
 
@@ -122,18 +144,14 @@ type ComboboxItemProps = {
 };
 
 function Item(props: ComboboxItemProps) {
-  const context = useContext(comboboxFieldContext);
+  const context = useContext(ComboboxFieldContext);
 
   if (!context) {
     throw 'Missing provider';
   }
 
   return (
-    <CommandItem
-      key={props.value}
-      value={props.value}
-      onSelect={context.setValue}
-    >
+    <CommandItem onSelect={() => context.setValue(props.value)}>
       <Check
         className={cn(
           'mr-2 h-4 w-4',
