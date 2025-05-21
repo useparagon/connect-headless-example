@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, CircleX } from 'lucide-react';
+import { Check, ChevronsUpDown, CircleX, LoaderCircle } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,8 +25,9 @@ type Props = {
   value: string | null;
   placeholder: string | null;
   children: ReactNode;
-  allowClear?: boolean;
+  isFetching: boolean;
   onSelect: (value: string | null) => void;
+  allowClear?: boolean;
 };
 
 const comboboxFieldContext = createContext<null | {
@@ -71,7 +72,18 @@ export function ComboboxField(props: Props) {
               }}
             >
               <span className="flex-1 text-left">
-                {props.placeholder ?? 'Select option...'}
+                {value ? (
+                  props.isFetching ? (
+                    <div className="flex items-center gap-1">
+                      <LoaderCircle className="h-4 w-4 animate-spin" />{' '}
+                      Loading...
+                    </div>
+                  ) : (
+                    props.placeholder
+                  )
+                ) : (
+                  'Select option...'
+                )}
               </span>
               <div className="flex items-center gap-1">
                 {props.allowClear && value && (

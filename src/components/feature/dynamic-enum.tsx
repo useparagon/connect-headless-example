@@ -15,7 +15,7 @@ type Props = {
 };
 
 export function DynamicEnumField(props: Props) {
-  const { data: options } = useFieldOptions(
+  const { data: options, isFetching } = useFieldOptions(
     props.integration,
     props.field.sourceType,
   );
@@ -32,6 +32,7 @@ export function DynamicEnumField(props: Props) {
       value={(props.value as string) ?? null}
       placeholder={selectedOption?.label ?? null}
       onSelect={props.onChange}
+      isFetching={isFetching}
       allowClear
     >
       {options.data.map((option) => {
