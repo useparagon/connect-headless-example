@@ -2,15 +2,14 @@ import {
   SidebarInputType,
   type ConnectInputValue,
   type SerializedConnectInput,
-  paragon,
 } from '@useparagon/connect';
 import { TextInputField } from '../form/text-input-field';
 import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
-import { ComboboxField } from '../form/combobox-field';
-import { useFieldOption } from '@/lib/hooks';
+import { DynamicEnumField } from './dynamic-enum';
 
 type Props = {
+  integration: string;
   field: SerializedConnectInput;
   value: ConnectInputValue;
   onChange: (value: ConnectInputValue) => void;
@@ -132,20 +131,14 @@ export function SerializedConnectInputPicker(props: Props) {
   }
 
   if (field.type === SidebarInputType.DynamicEnum) {
-    const options = paragon.getFieldOptions('slack', field.sourceType);
-    console.log(options);
     return (
-      <ComboboxField
-        key={field.id}
-        id={field.id}
-        title={field.title}
+      <DynamicEnumField
+        integration={props.integration}
+        field={field}
         required={required}
-        value={(value as string) ?? null}
-        allowClear
-      >
-        <ComboboxField.Item key="key" value="dog" label="Dog" />
-        <ComboboxField.Item key="key" value="cat" label="Cat" />
-      </ComboboxField>
+        value={value}
+        onChange={props.onChange}
+      />
     );
   }
 

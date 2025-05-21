@@ -253,6 +253,7 @@ function IntegrationSettings(props: {
     <div className="flex flex-col gap-6">
       {settings?.map((setting) => (
         <SerializedConnectInputPicker
+          integration={props.integration}
           key={setting.id}
           field={setting}
           value={formState[setting.id]}

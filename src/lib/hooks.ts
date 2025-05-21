@@ -32,3 +32,19 @@ export function useAuthenticatedUser() {
     },
   });
 }
+
+const fieldOptionsInitialData = { data: [], nextPageCursor: null };
+
+export function useFieldOptions(
+  integration: string,
+  sourceType: string,
+  search?: string,
+) {
+  return useQuery({
+    queryKey: ['fieldOptions', integration, sourceType],
+    queryFn: () => {
+      return paragon.getFieldOptions(integration, sourceType, search);
+    },
+    initialData: fieldOptionsInitialData,
+  });
+}
