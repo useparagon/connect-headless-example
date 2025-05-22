@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { KeyedSource, DataType, paragon } from '@useparagon/connect';
+import { paragon } from '@useparagon/connect';
 
 export function useIntegrationMetadata() {
   return useQuery({
@@ -45,23 +45,42 @@ export function useFieldOptions({
   sourceType,
   search,
   cursor,
-  parameters = [],
+  cacheKey,
+  mainInput,
 }: {
   integration: string;
   sourceType: string;
   search?: string;
   cursor?: string | number | false;
-  parameters?: KeyedSource<DataType.ANY>[];
+  cacheKey?: string;
+  mainInput?: string;
 }) {
   return useQuery({
-    queryKey: ['fieldOptions', integration, sourceType, search, parameters],
+    queryKey: [
+      'fieldOptions',
+      integration,
+      sourceType,
+      search,
+      cacheKey,
+      mainInput,
+    ],
     queryFn: () => {
       return paragon.getFieldOptions({
         integration,
         action: sourceType,
         search,
         cursor,
-        parameters,
+        parameters: cacheKey
+          ? [
+              {
+                key: cacheKey,
+                source: {
+                  type: 'VALUE',
+                  value: mainInput,
+                },
+              },
+            ]
+          : [],
       });
     },
     initialData: fieldOptionsInitialData,
