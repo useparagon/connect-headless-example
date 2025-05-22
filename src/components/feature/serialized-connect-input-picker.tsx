@@ -23,7 +23,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.BooleanInput) {
     return (
       <BooleanField
-        key={field.id}
         id={field.id}
         title={field.title}
         required={required}
@@ -37,7 +36,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.ValueText) {
     return (
       <TextInputField
-        key={field.id}
         type="text"
         id={field.id}
         title={field.title}
@@ -52,7 +50,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.Number) {
     return (
       <TextInputField
-        key={field.id}
         type="number"
         id={field.id}
         title={field.title}
@@ -67,7 +64,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.Email) {
     return (
       <TextInputField
-        key={field.id}
         type="email"
         id={field.id}
         title={field.title}
@@ -82,7 +78,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.Password) {
     return (
       <TextInputField
-        key={field.id}
         type="password"
         id={field.id}
         title={field.title}
@@ -97,7 +92,6 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.URL) {
     return (
       <TextInputField
-        key={field.id}
         type="url"
         id={field.id}
         title={field.title}
@@ -114,7 +108,6 @@ export function SerializedConnectInputPicker(props: Props) {
 
     return (
       <SelectField
-        key={field.id}
         id={field.id}
         title={field.title}
         required={required}

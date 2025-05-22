@@ -29,7 +29,6 @@ export function DynamicEnumField(props: Props) {
 
   return (
     <ComboboxField
-      key={props.field.id}
       id={props.field.id}
       title={props.field.title}
       required={props.required}
