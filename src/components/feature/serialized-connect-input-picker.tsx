@@ -7,6 +7,7 @@ import { TextInputField } from '../form/text-input-field';
 import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
+import { ComboInputField } from './combo-input';
 
 type Props = {
   integration: string;
@@ -133,6 +134,18 @@ export function SerializedConnectInputPicker(props: Props) {
   if (field.type === SidebarInputType.DynamicEnum) {
     return (
       <DynamicEnumField
+        integration={props.integration}
+        field={field}
+        required={required}
+        value={value as string}
+        onChange={(value) => props.onChange(value ?? undefined)}
+      />
+    );
+  }
+
+  if (field.type === SidebarInputType.ComboInput) {
+    return (
+      <ComboInputField
         integration={props.integration}
         field={field}
         required={required}

@@ -17,11 +17,11 @@ type Props = {
 
 export function DynamicEnumField(props: Props) {
   const [search, setSearch] = useState('');
-  const { data: options, isFetching } = useFieldOptions(
-    props.integration,
-    props.field.sourceType as string,
-    search || undefined,
-  );
+  const { data: options, isFetching } = useFieldOptions({
+    integration: props.integration,
+    sourceType: props.field.sourceType as string,
+    search: search || undefined,
+  });
   const selectedOption = options.data.find(
     (option) => option.value === props.value,
   );

@@ -34,6 +34,7 @@ type Props = {
   placeholder: string | null;
   children: ReactNode;
   isFetching: boolean;
+  disabled?: boolean;
   onSelect: (value: string | null) => void;
   allowClear?: boolean;
   onDebouncedChange: (value: string) => void;
@@ -75,13 +76,14 @@ export function ComboboxField(props: Props) {
         },
       }}
     >
-      <div className="flex flex-col gap-1 5">
+      <div className="w-full flex flex-col gap-1 5">
         <FieldLabel id={props.id} required={props.required}>
           {props.title}
         </FieldLabel>
         <Popover open={open} onOpenChange={setOpen} modal>
-          <PopoverTrigger>
+          <PopoverTrigger disabled={props.disabled}>
             <Button
+              disabled={props.disabled}
               variant="outline"
               role="combobox"
               aria-expanded={open}
