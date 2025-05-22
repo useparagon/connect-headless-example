@@ -33,7 +33,7 @@ export function DynamicEnumField(props: Props) {
       title={props.field.title}
       required={props.required}
       value={props.value ?? null}
-      placeholder={selectedOption?.label ?? null}
+      placeholder={selectedOption?.label ?? 'Select an option...'}
       onSelect={props.onChange}
       isFetching={isFetching}
       onDebouncedChange={setSearch}
@@ -41,11 +41,9 @@ export function DynamicEnumField(props: Props) {
     >
       {options.data.map((option) => {
         return (
-          <ComboboxField.Item
-            key={option.value}
-            value={option.value}
-            label={option.label}
-          />
+          <ComboboxField.Item key={option.value} value={option.value}>
+            {option.label}
+          </ComboboxField.Item>
         );
       })}
     </ComboboxField>
