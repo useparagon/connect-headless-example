@@ -39,7 +39,7 @@ export function IntegrationCard(props: Props) {
     <Card
       className={cn(
         'min-w-[300px] hover:shadow-xs transition-shadow',
-        !props.enabled && 'border-dashed shadow-none',
+        !props.enabled && 'border-dashed shadow-none'
       )}
     >
       <CardContent>
@@ -75,10 +75,10 @@ export function IntegrationCard(props: Props) {
 function IntegrationModal(
   props: Props & {
     onOpenChange: (open: boolean) => void;
-  },
+  }
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
-    props.integration,
+    props.integration
   );
 
   const doEnable = async () => {
@@ -90,7 +90,7 @@ function IntegrationModal(
         console.error(
           'error installing integration:',
           props.integration,
-          error,
+          error
         );
       },
     });
@@ -106,7 +106,7 @@ function IntegrationModal(
         console.error(
           'error uninstalling integration:',
           props.integration,
-          error,
+          error
         );
       });
   };
@@ -225,8 +225,8 @@ function IntegrationSettings(props: {
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
     () =>
       Object.fromEntries(
-        settings.map((setting) => [setting.id, settingsState[setting.id]]),
-      ),
+        settings.map((setting) => [setting.id, settingsState[setting.id]])
+      )
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -320,8 +320,8 @@ function Workflows(props: {
         Object.entries(workflowSettings).map(([id, value]) => [
           id,
           value?.enabled ?? false,
-        ]),
-      ),
+        ])
+      )
   );
 
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
@@ -399,8 +399,8 @@ function WorkflowFields(props: {
         workflow.inputs.map((input) => [
           input.id,
           workflowSettings[workflow.id]?.settings[input.id],
-        ]),
-      ),
+        ])
+      )
   );
   const hasInputs = workflow.inputs.length > 0;
 
@@ -413,13 +413,13 @@ function WorkflowFields(props: {
             workflow.id,
             {
               [id]: value,
-            },
+            }
           );
         } catch (error) {
           console.error('Failed to update workflow settings', error);
         }
       }, 500),
-    [props.integration, workflow.id],
+    [props.integration, workflow.id]
   );
 
   useEffect(() => {
@@ -446,6 +446,7 @@ function WorkflowFields(props: {
       {workflow.inputs.map((input) => (
         <SerializedConnectInputPicker
           key={input.id}
+          integration={props.integration}
           field={input}
           value={formState[input.id]}
           onChange={(value) => updateField(input.id, value)}
