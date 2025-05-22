@@ -2,7 +2,7 @@ import {
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useFieldOptions } from '@/lib/hooks';
@@ -22,8 +22,9 @@ export function DynamicEnumField(props: Props) {
     sourceType: props.field.sourceType as string,
     search: search || undefined,
   });
-  const selectedOption = options.data.find(
-    (option) => option.value === props.value,
+  const selectedOption = useMemo(
+    () => options.data.find((option) => option.value === props.value),
+    [options.data, props.value]
   );
 
   return (

@@ -5,11 +5,11 @@ import {
 
 import { useComboInputOptions, useFieldOptions } from '@/lib/hooks';
 import { ComboboxField } from '../form/combobox-field';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type Props = {
   integration: string;
-  field: SerializedConnectInput<SidebarInputType.DynamicEnum>;
+  field: SerializedConnectInput<SidebarInputType.ComboInput>;
   required: boolean;
   value: string;
   onChange: (value: string | null) => void;
@@ -20,21 +20,22 @@ export function ComboInputField(props: Props) {
 
   const { data: options } = useComboInputOptions(
     props.integration,
-    props.field.sourceType as string,
+    props.field.sourceType as string
   );
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
-      integration: props.integration || '',
+      integration: props.integration,
       sourceType: options?.mainInputSource.cacheKey as string,
     });
 
-  const selectedMainOption = mainInputOptions.data.find(
-    (option) => option.value === props.value,
+  const selectedMainOption = useMemo(
+    () => mainInputOptions.data.find((option) => option.value === props.value),
+    [mainInputOptions.data, props.value]
   );
 
   const { data: dependentInputOptions } = useFieldOptions({
-    integration: props.integration || '',
+    integration: props.integration,
     sourceType: options?.dependentInputSource.cacheKey as string,
     parameters: [
       {
