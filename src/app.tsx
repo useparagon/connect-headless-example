@@ -35,7 +35,7 @@ function IntegrationList() {
 
       return acc;
     },
-    [[], []] as [IIntegrationMetadata[], IIntegrationMetadata[]],
+    [[], []] as [IIntegrationMetadata[], IIntegrationMetadata[]]
   );
 
   return (

@@ -108,13 +108,13 @@ export function ComboboxField(props: Props) {
               </span>
               <div className="flex items-center gap-1">
                 {props.allowClear && value && (
-                  <Button
-                    variant="headless"
+                  <button
                     onClick={clearSelection}
                     aria-label="Clear selection"
+                    className="cursor-pointer opacity-50 hover:opacity-80 focus-visible:opacity-80 transition-opacity"
                   >
-                    <CircleX className="h-4 w-4 opacity-50" />
-                  </Button>
+                    <CircleX className="h-4 w-4" />
+                  </button>
                 )}
                 <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
               </div>
@@ -156,8 +156,8 @@ function Item(props: ComboboxItemProps) {
     <CommandItem onSelect={() => context.setValue(props.value)}>
       <Check
         className={cn(
-          'mr-2 h-4 w-4',
-          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0',
+          'mr-2 h-4 w-4 transition-opacity',
+          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0'
         )}
       />
       {props.label}

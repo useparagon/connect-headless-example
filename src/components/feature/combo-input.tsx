@@ -2,10 +2,10 @@ import {
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-
-import { useComboInputOptions, useFieldOptions } from '@/lib/hooks';
-import { ComboboxField } from '../form/combobox-field';
 import { useMemo, useState } from 'react';
+
+import { ComboboxField } from '@/components/form/combobox-field';
+import { useComboInputOptions, useFieldOptions } from '@/lib/hooks';
 
 export type ComboInputValue = {
   mainInput: string | undefined;
