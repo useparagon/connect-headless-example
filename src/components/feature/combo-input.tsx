@@ -76,7 +76,7 @@ export function ComboInputField(props: Props) {
         title={mainInputMeta.title}
         required={props.required}
         value={props.value.mainInput ?? null}
-        placeholder={selectedMainOption?.label ?? null}
+        placeholder={selectedMainOption?.label ?? 'Select an option...'}
         onSelect={(value) =>
           props.onChange({
             mainInput: value ?? undefined,
@@ -89,11 +89,9 @@ export function ComboInputField(props: Props) {
       >
         {mainInputOptions.data.map((option) => {
           return (
-            <ComboboxField.Item
-              key={option.value}
-              value={option.value}
-              label={option.label}
-            />
+            <ComboboxField.Item key={option.value} value={option.value}>
+              {option.label}
+            </ComboboxField.Item>
           );
         })}
       </ComboboxField>
@@ -102,7 +100,9 @@ export function ComboInputField(props: Props) {
         title={dependentInputMeta.title}
         required={props.required}
         value={props.value.dependentInput ?? null}
-        placeholder={selectedDependentInputOption?.label ?? null}
+        placeholder={
+          selectedDependentInputOption?.label ?? 'Select an option...'
+        }
         onSelect={(value) =>
           props.onChange({
             mainInput: props.value.mainInput,
@@ -116,11 +116,9 @@ export function ComboInputField(props: Props) {
       >
         {dependentInputOptions.data.map((option) => {
           return (
-            <ComboboxField.Item
-              key={option.value}
-              value={option.value}
-              label={option.label}
-            />
+            <ComboboxField.Item key={option.value} value={option.value}>
+              {option.label}
+            </ComboboxField.Item>
           );
         })}
       </ComboboxField>

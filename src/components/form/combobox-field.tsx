@@ -76,7 +76,7 @@ export function ComboboxField(props: Props) {
         },
       }}
     >
-      <div className="w-full flex flex-col gap-1 5">
+      <div className="w-full flex flex-col gap-1.5">
         <FieldLabel id={props.id} required={props.required}>
           {props.title}
         </FieldLabel>
@@ -92,20 +92,7 @@ export function ComboboxField(props: Props) {
                 setOpen(true);
               }}
             >
-              <span className="flex-1 text-left">
-                {value ? (
-                  props.isFetching ? (
-                    <div className="flex items-center gap-1">
-                      <LoaderCircle className="h-4 w-4 animate-spin" />{' '}
-                      Loading...
-                    </div>
-                  ) : (
-                    props.placeholder
-                  )
-                ) : (
-                  'Select option...'
-                )}
-              </span>
+              <span className="flex-1 text-left">{props.placeholder}</span>
               <div className="flex items-center gap-1">
                 {props.allowClear && value && (
                   <button
@@ -121,13 +108,16 @@ export function ComboboxField(props: Props) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-            <Command>
+            <Command shouldFilter={false}>
               <CommandInput
-                placeholder="Search option..."
+                placeholder="Search"
                 onValueChange={handleDebouncedChange}
+                leadingIcon={props.isFetching ? <Spinner /> : null}
               />
               <CommandList>
-                <CommandEmpty>No option found.</CommandEmpty>
+                <CommandEmpty>
+                  {props.isFetching ? null : 'No option found.'}
+                </CommandEmpty>
                 <CommandGroup>{props.children}</CommandGroup>
               </CommandList>
             </Command>
@@ -141,8 +131,8 @@ export function ComboboxField(props: Props) {
 ComboboxField.Item = Item;
 
 type ComboboxItemProps = {
-  label: string;
   value: string;
+  children: ReactNode;
 };
 
 function Item(props: ComboboxItemProps) {
@@ -160,7 +150,11 @@ function Item(props: ComboboxItemProps) {
           context.selectedValue === props.value ? 'opacity-100' : 'opacity-0'
         )}
       />
-      {props.label}
+      {props.children}
     </CommandItem>
   );
+}
+
+function Spinner() {
+  return <LoaderCircle className="size-4 shrink-0 animate-spin" />;
 }
