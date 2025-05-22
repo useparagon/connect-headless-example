@@ -6,7 +6,17 @@ import { z } from 'zod';
 
 import { App } from '@/app';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: {
+      retry: false,
+    },
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
 
 const config = z
   .object({
