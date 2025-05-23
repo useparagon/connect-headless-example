@@ -8,6 +8,7 @@ import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
 import { ComboInputField, ComboInputValue } from './combo-input';
+import { DynamicComboField } from './dynamic-combo';
 
 type Props = {
   integration: string;
@@ -151,6 +152,10 @@ export function SerializedConnectInputPicker(props: Props) {
         onChange={(value) => props.onChange(value ?? undefined)}
       />
     );
+  }
+
+  if (field.type === SidebarInputType.DynamicComboInput) {
+    return <DynamicComboField />;
   }
 
   return (
