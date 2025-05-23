@@ -3,6 +3,10 @@ import { IntegrationCard } from '@/components/feature/integration-card';
 import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
 import { IIntegrationMetadata } from 'node_modules/@useparagon/connect/dist/src/entities/integration.interface';
 
+import { paragon } from '@useparagon/connect';
+
+paragon.setHeadless(true);
+
 export function App() {
   return (
     <div>
