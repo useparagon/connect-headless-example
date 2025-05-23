@@ -87,11 +87,11 @@ export function useFieldOptions({
   });
 }
 
-export function useComboInputOptions(integration: string, sourceType: string) {
+export function useDataSourceOptions(integration: string, sourceType: string) {
   return useQuery({
     queryKey: ['comboInputOptions', integration, sourceType],
     queryFn: () => {
-      return paragon.getComboInputOptions(integration, sourceType);
+      return paragon.getDataSourceOptions(integration, sourceType);
     },
   });
 }

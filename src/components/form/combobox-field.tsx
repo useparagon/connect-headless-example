@@ -92,7 +92,13 @@ export function ComboboxField(props: Props) {
                 setOpen(true);
               }}
             >
-              <span className="flex-1 text-left">{props.placeholder}</span>
+              <span className="flex-1 text-left">
+                {props.isFetching && value ? (
+                  <Spinner withText />
+                ) : (
+                  props.placeholder
+                )}
+              </span>
               <div className="flex items-center gap-1">
                 {props.allowClear && value && (
                   <button
@@ -147,7 +153,7 @@ function Item(props: ComboboxItemProps) {
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',
-          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0'
+          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0',
         )}
       />
       {props.children}
@@ -155,6 +161,11 @@ function Item(props: ComboboxItemProps) {
   );
 }
 
-function Spinner() {
-  return <LoaderCircle className="size-4 shrink-0 animate-spin" />;
+function Spinner({ withText = false }: { withText?: boolean }) {
+  return (
+    <div className="flex items-center gap-2">
+      <LoaderCircle className="size-4 shrink-0 animate-spin" />
+      {withText && 'Loading...'}
+    </div>
+  );
 }
