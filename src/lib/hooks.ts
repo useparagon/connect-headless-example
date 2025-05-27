@@ -45,43 +45,35 @@ export function useFieldOptions({
   sourceType,
   search,
   cursor,
-  cacheKey,
-  mainInput,
+  parameters = [],
 }: {
   integration: string;
   sourceType: string;
   search?: string;
   cursor?: string | number | false;
-  cacheKey?: string;
-  mainInput?: string;
+  parameters?: { cacheKey: string; value: string | undefined }[];
 }) {
   return useQuery({
-    queryKey: [
-      'fieldOptions',
-      integration,
-      sourceType,
-      search,
-      cacheKey,
-      mainInput,
-    ],
+    queryKey: ['fieldOptions', integration, sourceType, search, parameters],
     queryFn: () => {
-      return paragon.getFieldOptions({
-        integration,
-        action: sourceType,
-        search,
-        cursor,
-        parameters: cacheKey
-          ? [
-              {
-                key: cacheKey,
-                source: {
-                  type: 'VALUE',
-                  value: mainInput,
-                },
+      if (sourceType) {
+        return paragon.getFieldOptions({
+          integration,
+          action: sourceType,
+          search,
+          cursor,
+          parameters: parameters.map((parameter) => {
+            return {
+              key: parameter.cacheKey,
+              source: {
+                type: 'VALUE',
+                value: parameter.value,
               },
-            ]
-          : [],
-      });
+            };
+          }),
+        });
+      }
+      return fieldOptionsInitialData;
     },
     initialData: fieldOptionsInitialData,
   });
