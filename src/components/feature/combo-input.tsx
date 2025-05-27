@@ -33,7 +33,6 @@ export function ComboInputField(props: Props) {
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.mainInputSource.cacheKey as string,
-      cacheKey: options?.mainInputSource.cacheKey as string,
       search: mainInputSearch,
     });
 
@@ -49,8 +48,12 @@ export function ComboInputField(props: Props) {
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.dependentInputSource.cacheKey as string,
-      cacheKey: options?.mainInputSource.cacheKey as string,
-      mainInput: props.value.mainInput,
+      parameters: [
+        {
+          cacheKey: options?.mainInputSource.cacheKey as string,
+          value: props.value.mainInput,
+        },
+      ],
       search: dependentInputSearch,
     });
 

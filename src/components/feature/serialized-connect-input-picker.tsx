@@ -8,6 +8,7 @@ import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
 import { ComboInputField, ComboInputValue } from './combo-input';
+import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 
 type Props = {
   integration: string;
@@ -144,6 +145,25 @@ export function SerializedConnectInputPicker(props: Props) {
 
     return (
       <ComboInputField
+        integration={props.integration}
+        field={field}
+        required={required}
+        value={currentValue}
+        onChange={(value) => props.onChange(value ?? undefined)}
+      />
+    );
+  }
+
+  if (field.type === SidebarInputType.FieldMapper) {
+    const currentValue: FieldMappingsInputValue =
+      (value as FieldMappingsInputValue) ?? {
+        mainInput: undefined,
+        dependentInput: undefined,
+        fieldMappings: {},
+      };
+
+    return (
+      <FieldMapperField
         integration={props.integration}
         field={field}
         required={required}
