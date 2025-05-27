@@ -51,8 +51,7 @@ export function FieldMapperField(props: Props) {
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
       integration: props.integration,
-      sourceType: options?.dependentInputSource.cacheKey as string,
-
+      sourceType: options?.dependentInputSource?.cacheKey as string,
       parameters: [
         {
           cacheKey: options?.recordSource.cacheKey as string,
@@ -74,14 +73,13 @@ export function FieldMapperField(props: Props) {
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.fieldSource.cacheKey as string,
-
       parameters: [
         {
           cacheKey: options?.recordSource.cacheKey as string,
           value: props.value.mainInput,
         },
-        {
-          cacheKey: options?.dependentInputSource.cacheKey as string,
+        options?.dependentInputOptions ?? {
+          cacheKey: options?.dependentInputSource?.cacheKey as string,
           value: props.value.dependentInput,
         },
       ],
@@ -103,16 +101,12 @@ export function FieldMapperField(props: Props) {
   const mainInputMeta = options?.recordSource;
   const dependentInputMeta = options?.dependentInputSource;
 
-  if (!mainInputMeta || !dependentInputMeta) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <div className="w-full flex gap-4">
         <ComboboxField
           id={props.field.id}
-          title={mainInputMeta.title}
+          title={mainInputMeta?.title}
           required={props.required}
           value={props.value.mainInput ?? null}
           placeholder={selectedMainOption?.label ?? 'Select an option...'}
@@ -135,34 +129,36 @@ export function FieldMapperField(props: Props) {
             );
           })}
         </ComboboxField>
-        <ComboboxField
-          id={props.field.id}
-          title={dependentInputMeta.title}
-          required={props.required}
-          value={props.value.dependentInput ?? null}
-          placeholder={
-            selectedDependentInputOption?.label ?? 'Select an option...'
-          }
-          onSelect={(value) =>
-            props.onChange({
-              mainInput: props.value.mainInput,
-              dependentInput: value ?? undefined,
-              fieldMappings: props.value.fieldMappings,
-            })
-          }
-          isFetching={isFetchingDependentInput}
-          onDebouncedChange={setDependentInputSearch}
-          disabled={!props.value.mainInput}
-          allowClear
-        >
-          {dependentInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
+        {dependentInputMeta && (
+          <ComboboxField
+            id={props.field.id}
+            title={dependentInputMeta?.title}
+            required={props.required}
+            value={props.value.dependentInput ?? null}
+            placeholder={
+              selectedDependentInputOption?.label ?? 'Select an option...'
+            }
+            onSelect={(value) =>
+              props.onChange({
+                mainInput: props.value.mainInput,
+                dependentInput: value ?? undefined,
+                fieldMappings: props.value.fieldMappings,
+              })
+            }
+            isFetching={isFetchingDependentInput}
+            onDebouncedChange={setDependentInputSearch}
+            disabled={!props.value.mainInput}
+            allowClear
+          >
+            {dependentInputOptions.data.map((option) => {
+              return (
+                <ComboboxField.Item key={option.value} value={option.value}>
+                  {option.label}
+                </ComboboxField.Item>
+              );
+            })}
+          </ComboboxField>
+        )}
       </div>
       {props.field.savedFieldMappings.map((fieldMap) => {
         return (
