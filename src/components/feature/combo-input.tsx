@@ -1,15 +1,18 @@
 import {
   SidebarInputType,
   type SerializedConnectInput,
-} from '@useparagon/connect';
-import { useMemo, useState } from 'react';
+} from "@useparagon/connect";
+import { useEffect, useMemo, useState } from "react";
 
-import { ComboboxField } from '@/components/form/combobox-field';
-import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import { ComboboxField } from "@/components/form/combobox-field";
+import { useDataSourceOptions, useFieldOptions } from "@/lib/hooks";
+
+import { VariableInput } from "./variable-input";
 
 export type ComboInputValue = {
   mainInput: string | undefined;
   dependentInput: string | undefined;
+  variableInput?: object;
 };
 
 type Props = {
@@ -21,8 +24,19 @@ type Props = {
 };
 
 export function ComboInputField(props: Props) {
-  const [mainInputSearch, setMainInputSearch] = useState('');
-  const [dependentInputSearch, setDependentInputSearch] = useState('');
+  const [mainInputSearch, setMainInputSearch] = useState("");
+  const [dependentInputSearch, setDependentInputSearch] = useState("");
+
+  const [customConfig, setCustomConfig] = useState<object>(props.value.variableInput || {});
+  const [customOptionFilter, setCustomOptionFilter] = useState("");
+
+  useEffect(() => {    
+    props.onChange({
+      mainInput: props.value.mainInput,
+      dependentInput: props.value.dependentInput,
+      variableInput: { ...customConfig },
+    });
+  }, [customConfig]);
 
   const { data: options } = useDataSourceOptions(
     props.integration,
@@ -33,7 +47,6 @@ export function ComboInputField(props: Props) {
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.mainInputSource.cacheKey as string,
-      cacheKey: options?.mainInputSource.cacheKey as string,
       search: mainInputSearch,
     });
 
@@ -49,8 +62,12 @@ export function ComboInputField(props: Props) {
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.dependentInputSource.cacheKey as string,
-      cacheKey: options?.mainInputSource.cacheKey as string,
-      mainInput: props.value.mainInput,
+      parameters: [
+        {
+          cacheKey: options?.mainInputSource.cacheKey as string,
+          value: props.value.mainInput,
+        },
+      ],
       search: dependentInputSearch,
     });
 
@@ -70,58 +87,74 @@ export function ComboInputField(props: Props) {
   }
 
   return (
-    <div className="w-full flex gap-4">
-      <ComboboxField
-        id={props.field.id}
-        title={mainInputMeta.title}
-        required={props.required}
-        value={props.value.mainInput ?? null}
-        placeholder={selectedMainOption?.label ?? 'Select an option...'}
-        onSelect={(value) =>
-          props.onChange({
-            mainInput: value ?? undefined,
-            dependentInput: value ? props.value.dependentInput : undefined,
-          })
-        }
-        isFetching={isFetchingMainInput}
-        onDebouncedChange={setMainInputSearch}
-        allowClear
-      >
-        {mainInputOptions.data.map((option) => {
-          return (
-            <ComboboxField.Item key={option.value} value={option.value}>
-              {option.label}
-            </ComboboxField.Item>
-          );
-        })}
-      </ComboboxField>
-      <ComboboxField
-        id={props.field.id}
-        title={dependentInputMeta.title}
-        required={props.required}
-        value={props.value.dependentInput ?? null}
-        placeholder={
-          selectedDependentInputOption?.label ?? 'Select an option...'
-        }
-        onSelect={(value) =>
-          props.onChange({
-            mainInput: props.value.mainInput,
-            dependentInput: value ?? undefined,
-          })
-        }
-        isFetching={isFetchingDependentInput}
-        onDebouncedChange={setDependentInputSearch}
-        disabled={!props.value.mainInput}
-        allowClear
-      >
-        {dependentInputOptions.data.map((option) => {
-          return (
-            <ComboboxField.Item key={option.value} value={option.value}>
-              {option.label}
-            </ComboboxField.Item>
-          );
-        })}
-      </ComboboxField>
-    </div>
+    <>
+      <div className="w-full flex gap-4">
+        <ComboboxField
+          id={props.field.id}
+          title={mainInputMeta.title}
+          required={props.required}
+          value={props.value.mainInput ?? null}
+          placeholder={selectedMainOption?.label ?? "Select an option..."}
+          onSelect={(value) =>
+            props.onChange({
+              mainInput: value ?? undefined,
+              dependentInput: value ? props.value.dependentInput : undefined,
+            })
+          }
+          isFetching={isFetchingMainInput}
+          onDebouncedChange={setMainInputSearch}
+          allowClear
+        >
+          {mainInputOptions.data.map((option) => {
+            return (
+              <ComboboxField.Item key={option.value} value={option.value}>
+                {option.label}
+              </ComboboxField.Item>
+            );
+          })}
+        </ComboboxField>
+        <ComboboxField
+          id={props.field.id}
+          title={dependentInputMeta.title}
+          required={props.required}
+          value={props.value.dependentInput ?? null}
+          placeholder={
+            selectedDependentInputOption?.label ?? "Select an option..."
+          }
+          onSelect={(value) =>
+            props.onChange({
+              mainInput: props.value.mainInput,
+              dependentInput: value ?? undefined,
+            })
+          }
+          isFetching={isFetchingDependentInput}
+          onDebouncedChange={setDependentInputSearch}
+          disabled={!props.value.mainInput}
+          allowClear
+        >
+          {dependentInputOptions.data.map((option) => {
+            return (
+              <ComboboxField.Item key={option.value} value={option.value}>
+                {option.label}
+              </ComboboxField.Item>
+            );
+          })}
+        </ComboboxField>
+      </div>
+      {props.value.mainInput && props.value.dependentInput && (
+        <VariableInput
+          integration={props.integration}
+          sourceType={options?.variableInputSource.cacheKey}
+          mainInputKey={options?.mainInputSource.cacheKey}
+          mainInputValue={props.value.mainInput}
+          dependantInputKey={options?.dependentInputSource.cacheKey}
+          dependantInputValue={props.value.dependentInput}
+          customConfig={customConfig}
+          setCustomConfig={setCustomConfig}
+          optionFilter={customOptionFilter}
+          setOptionFilter={setCustomOptionFilter}
+        />
+      )}
+    </>
   );
 }

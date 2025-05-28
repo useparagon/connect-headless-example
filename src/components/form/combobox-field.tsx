@@ -25,20 +25,34 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { FieldLabel } from './field-label';
+import { cva, VariantProps } from 'class-variance-authority';
+
+const comboboxVariants = cva('flex flex-col gap-1.5', {
+  variants: {
+    size: {
+      default: 'w-full',
+      sm: 'w-3xs',
+    },
+  },
+  defaultVariants: {
+    size: 'default',
+  },
+});
 
 type Props = {
   id: string;
-  title: string;
   required: boolean;
   value: string | null;
   placeholder: string | null;
   children: ReactNode;
   isFetching: boolean;
-  disabled?: boolean;
   onSelect: (value: string | null) => void;
-  allowClear?: boolean;
   onDebouncedChange: (value: string) => void;
-};
+  title?: string;
+  disabled?: boolean;
+  allowClear?: boolean;
+} & React.ComponentProps<'div'> &
+  VariantProps<typeof comboboxVariants>;
 
 type ComboboxFieldContext = {
   selectedValue: string | null;
@@ -47,7 +61,7 @@ type ComboboxFieldContext = {
 
 const ComboboxFieldContext = createContext<null | ComboboxFieldContext>(null);
 
-export function ComboboxField(props: Props) {
+export function ComboboxField({ size, className, ...props }: Props) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(props.value);
 
@@ -76,10 +90,12 @@ export function ComboboxField(props: Props) {
         },
       }}
     >
-      <div className="w-full flex flex-col gap-1.5">
-        <FieldLabel id={props.id} required={props.required}>
-          {props.title}
-        </FieldLabel>
+      <div className={cn(comboboxVariants({ size, className }))}>
+        {props.title && (
+          <FieldLabel id={props.id} required={props.required}>
+            {props.title}
+          </FieldLabel>
+        )}
         <Popover open={open} onOpenChange={setOpen} modal>
           <PopoverTrigger disabled={props.disabled}>
             <Button
