@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 import {
-  AccountType,
   ConnectInputValue,
   IntegrationSharedInputStateMap,
   IntegrationWorkflowMeta,
@@ -25,6 +24,7 @@ import { useIntegrationConfig } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 
 import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
+import { InstallFlowStage } from '@useparagon/connect/ConnectSDK';
 
 type Props = {
   integration: string;
@@ -83,37 +83,46 @@ function IntegrationModal(
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [flowState, setFlowState] = useState<any>();
+  const [installFlowStage, setInstallFlowStage] = useState<InstallFlowStage>();
 
   const doEnable = async () => {
     setIsInstalling(true);
-    paragon.flow.setIntegrationName(props.integration);
-    const next = paragon.flow.next();
+    const next = await paragon.installFlow.start(props.integration, {
+      allowsDefaultAccountType: true,
+      onNext: (next) => {
+        setInstallFlowStage(next);
+      },
+      onComplete: () => {
+        console.log(`Install complete for "${props.integration}"`);
+        window.location.reload();
+      },
+    });
 
     if (!next.done) {
-      console.log("you don't have all the data");
       setShowFlowForm(true);
-      setFlowState(next);
+      setInstallFlowStage(next);
       return;
     }
 
-    await paragon.installIntegration(props.integration, {
-      // data: {
-      //   paragon.flow.getData()
-      // }
-      onSuccess: () => {
-        setIsInstalling(false);
-        console.log('installed integration:', props.integration);
-      },
-      onError: (error) => {
-        setIsInstalling(false);
-        console.error(
-          'error installing integration:',
-          props.integration,
-          error
-        );
-      },
-    });
+    // console.log('calling installIntegration');
+
+    // await paragon.installIntegration(props.integration, {
+    //   // data: {
+    //   //   paragon.installFlow.getData()
+    //   // }
+    //   onSuccess: () => {
+    //     setIsInstalling(false);
+    //     console.log('installed integration:', props.integration);
+    //   },
+    //   onError: (error) => {
+    //     setIsInstalling(false);
+    //     console.error(
+    //       'error installing integration:',
+    //       props.integration,
+    //       error
+    //     );
+    //   },
+    // });
     setIsInstalling(false);
   };
 
@@ -122,6 +131,7 @@ function IntegrationModal(
       .uninstallIntegration(props.integration)
       .then(() => {
         console.log('uninstalled integration:', props.integration);
+        window.location.reload();
       })
       .catch((error) => {
         console.error(
@@ -169,66 +179,24 @@ function IntegrationModal(
           </div>
         </DialogHeader>
         <div className="pt-6">
-          {showFlowForm ? (
+          {showFlowForm && installFlowStage ? (
             <FlowForm
               integration={props.integration}
-              flowState={flowState}
+              installFlowStage={installFlowStage}
               onSelectAccount={(accountId) => {
-                paragon.flow.setAccountType(accountId);
-                if (paragon.flow.getScheme() === 'oauth') {
-                  console.log('oauth flow...');
-                  paragon.startOAuthFlow(
-                    props.integration,
-                    {},
-                    {
-                      onSuccess(connectCredentialId) {
-                        console.log('oauth flow success', connectCredentialId);
-                        console.log('next', paragon.flow.next());
-                      },
-                      onError(error) {
-                        console.error('oauth flow error', error);
-                      },
-                    }
-                  );
-                } else {
-                  console.log('not oauth...');
-                  setFlowState(paragon.flow.next());
-                }
+                paragon.installFlow.setAccountType(accountId, (error) => {
+                  console.error('oauth flow error', error);
+                });
               }}
               onFinishPreOptions={(preOptions) => {
-                paragon.flow.setPreOptions(preOptions);
-
-                if (paragon.flow.getScheme() === 'oauth') {
-                  console.log('oauth flow...');
-                  paragon.startOAuthFlow(
-                    props.integration,
-                    {},
-                    {
-                      onSuccess(connectCredentialId) {
-                        console.log('oauth flow success', connectCredentialId);
-                        console.log('next', paragon.flow.next());
-                      },
-                      onError(error) {
-                        console.error('oauth flow error', error);
-                      },
-                    }
-                  );
-                } else {
-                  console.log('not oauth...');
-                  paragon
-                    ._oauthCallback({
-                      payload: { ...preOptions },
-                      integrationId: paragon.getIntegrationId(
-                        props.integration
-                      ),
-                    })
-                    .then(() => {
-                      console.log('oauth flow finished');
-                    })
-                    .catch((error) => {
-                      console.error('error during oauth flow', error);
-                    });
-                }
+                paragon.installFlow.setPreOptions(preOptions, (error) => {
+                  console.error('pre options error', error);
+                });
+              }}
+              onFinishPostOptions={(postOptions) => {
+                paragon.installFlow.setPostOptions(postOptions, (error) => {
+                  console.error('post options error', error);
+                });
               }}
             />
           ) : (
@@ -273,21 +241,25 @@ function IntegrationModal(
 
 function FlowForm(props: {
   integration: string;
-  flowState: any;
+  installFlowStage: InstallFlowStage;
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
+  onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
 }) {
   const [preOptions, setPreOptions] = useState<
     Record<string, ConnectInputValue>
   >({});
+  const [postOptions, setPostOptions] = useState<
+    Record<string, ConnectInputValue>
+  >({});
 
-  if (props.flowState.stage === 'accountType') {
+  if (props.installFlowStage.stage === 'accountType') {
     return (
       <div>
         <div>
           <h2>Select an account</h2>
           <div className="flex flex-col gap-2 items-start">
-            {props.flowState.options.map((option: AccountType) => (
+            {props.installFlowStage.options.map((option) => (
               <Button
                 key={option.id}
                 type="button"
@@ -304,10 +276,10 @@ function FlowForm(props: {
     );
   }
 
-  if (props.flowState.stage === 'preOptions') {
+  if (props.installFlowStage.stage === 'preOptions') {
     return (
       <div className="flex flex-col gap-4">
-        {props.flowState.options.map((option: any) => (
+        {props.installFlowStage.options.map((option) => (
           <SerializedConnectInputPicker
             key={option.id}
             integration={props.integration}
@@ -327,6 +299,34 @@ function FlowForm(props: {
           }}
         >
           Next
+        </Button>
+      </div>
+    );
+  }
+
+  if (props.installFlowStage.stage === 'postOptions') {
+    return (
+      <div className="flex flex-col gap-4">
+        {props.installFlowStage.options.map((option) => (
+          <SerializedConnectInputPicker
+            key={option.id}
+            integration={props.integration}
+            field={option}
+            value={postOptions[option.id]}
+            onChange={(value) => {
+              setPostOptions((current) => ({
+                ...current,
+                [option.id]: value,
+              }));
+            }}
+          />
+        ))}
+        <Button
+          onClick={() => {
+            props.onFinishPostOptions(postOptions);
+          }}
+        >
+          Finish
         </Button>
       </div>
     );
