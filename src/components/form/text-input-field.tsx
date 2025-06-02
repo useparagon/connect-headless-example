@@ -6,6 +6,7 @@ import { FieldLabel } from './field-label';
 type Props = {
   id: string;
   title: string;
+  subtitle?: ReactNode;
   required: boolean;
   type: 'text' | 'number' | 'email' | 'password' | 'url';
   tooltip?: ReactNode;
@@ -24,6 +25,9 @@ export function TextInputField(props: Props) {
       >
         {props.title}
       </FieldLabel>
+      {props.subtitle ? (
+        <p className="text-sm text-gray-500">{props.subtitle}</p>
+      ) : null}
       <Input
         id={props.id}
         type={props.type}
