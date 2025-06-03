@@ -237,28 +237,10 @@ function FlowForm(props: {
 }) {
   const [preOptions, setPreOptions] = useState<
     Record<string, ConnectInputValue>
-  >(
-    Object.fromEntries(
-      'options' in props.installFlowStage
-        ? props.installFlowStage.options.map((option) => [
-            option.id,
-            option.defaultValue ?? undefined,
-          ])
-        : []
-    )
-  );
+  >({});
   const [postOptions, setPostOptions] = useState<
     Record<string, ConnectInputValue>
-  >(
-    Object.fromEntries(
-      'options' in props.installFlowStage
-        ? props.installFlowStage.options.map((option) => [
-            option.id,
-            option.defaultValue ?? undefined,
-          ])
-        : []
-    )
-  );
+  >({});
 
   if (props.installFlowStage.stage === 'accountType') {
     return (
@@ -290,7 +272,7 @@ function FlowForm(props: {
           <SerializedConnectInputPicker
             key={option.id}
             integration={props.integration}
-            field={option}
+            field={option as SerializedConnectInput}
             value={preOptions[option.id]}
             onChange={(value) => {
               setPreOptions((current) => ({
@@ -318,7 +300,7 @@ function FlowForm(props: {
           <SerializedConnectInputPicker
             key={option.id}
             integration={props.integration}
-            field={option}
+            field={option as SerializedConnectInput}
             value={postOptions[option.id]}
             onChange={(value) => {
               setPostOptions((current) => ({
