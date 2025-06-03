@@ -51,8 +51,8 @@ type Props = {
   title?: string;
   disabled?: boolean;
   allowClear?: boolean;
-} & React.ComponentProps<'div'> &
-  VariantProps<typeof comboboxVariants>;
+  className?: string;
+} & VariantProps<typeof comboboxVariants>;
 
 type ComboboxFieldContext = {
   selectedValue: string | null;
@@ -169,7 +169,7 @@ function Item(props: ComboboxItemProps) {
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',
-          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0',
+          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0'
         )}
       />
       {props.children}
