@@ -24,7 +24,8 @@ import { useIntegrationConfig } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 
 import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
-import { InstallFlowStage } from '@useparagon/connect/ConnectSDK';
+
+type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
 
 type Props = {
   integration: string;
@@ -35,6 +36,7 @@ type Props = {
 
 export function IntegrationCard(props: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [connected, setConnected] = useState(props.enabled);
 
   return (
     <Card
@@ -63,7 +65,9 @@ export function IntegrationCard(props: Props) {
                 integration={props.integration}
                 name={props.name}
                 icon={props.icon}
-                enabled={props.enabled}
+                enabled={connected}
+                onConnect={() => setConnected(true)}
+                onDisconnect={() => setConnected(false)}
               />
             )}
           </div>
@@ -76,6 +80,8 @@ export function IntegrationCard(props: Props) {
 function IntegrationModal(
   props: Props & {
     onOpenChange: (open: boolean) => void;
+    onConnect: () => void;
+    onDisconnect: () => void;
   }
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
@@ -83,55 +89,34 @@ function IntegrationModal(
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [installFlowStage, setInstallFlowStage] = useState<InstallFlowStage>();
+  const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
+    'overview'
+  );
+  const [installFlowStage, setInstallFlowStage] =
+    useState<null | InstallFlowStage>(null);
 
   const doEnable = async () => {
     setIsInstalling(true);
-    const next = await paragon.installFlow.start(props.integration, {
-      allowsDefaultAccountType: true,
+    await paragon.installFlow.start(props.integration, {
       onNext: (next) => {
+        setShowFlowForm(!next.done);
         setInstallFlowStage(next);
       },
       onComplete: () => {
-        console.log(`Install complete for "${props.integration}"`);
-        window.location.reload();
+        props.onConnect();
+        setTab('configuration');
+        setIsInstalling(false);
+        setInstallFlowStage(null);
       },
     });
-
-    if (!next.done) {
-      setShowFlowForm(true);
-      setInstallFlowStage(next);
-      return;
-    }
-
-    // console.log('calling installIntegration');
-
-    // await paragon.installIntegration(props.integration, {
-    //   // data: {
-    //   //   paragon.installFlow.getData()
-    //   // }
-    //   onSuccess: () => {
-    //     setIsInstalling(false);
-    //     console.log('installed integration:', props.integration);
-    //   },
-    //   onError: (error) => {
-    //     setIsInstalling(false);
-    //     console.error(
-    //       'error installing integration:',
-    //       props.integration,
-    //       error
-    //     );
-    //   },
-    // });
-    setIsInstalling(false);
   };
 
   const doDisable = () => {
     paragon
       .uninstallIntegration(props.integration)
       .then(() => {
-        console.log('uninstalled integration:', props.integration);
-        window.location.reload();
+        props.onDisconnect();
+        setTab('overview');
       })
       .catch((error) => {
         console.error(
@@ -200,12 +185,16 @@ function IntegrationModal(
               }}
             />
           ) : (
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={tab} onValueChange={setTab} className="w-full">
               <TabsList className="w-[250px] grid grid-cols-2">
                 <TabsTrigger className="cursor-pointer" value="overview">
                   Overview
                 </TabsTrigger>
-                <TabsTrigger className="cursor-pointer" value="configuration">
+                <TabsTrigger
+                  className="cursor-pointer"
+                  value="configuration"
+                  disabled={!props.enabled}
+                >
                   Configuration
                 </TabsTrigger>
               </TabsList>
@@ -248,10 +237,28 @@ function FlowForm(props: {
 }) {
   const [preOptions, setPreOptions] = useState<
     Record<string, ConnectInputValue>
-  >({});
+  >(
+    Object.fromEntries(
+      'options' in props.installFlowStage
+        ? props.installFlowStage.options.map((option) => [
+            option.id,
+            option.defaultValue ?? undefined,
+          ])
+        : []
+    )
+  );
   const [postOptions, setPostOptions] = useState<
     Record<string, ConnectInputValue>
-  >({});
+  >(
+    Object.fromEntries(
+      'options' in props.installFlowStage
+        ? props.installFlowStage.options.map((option) => [
+            option.id,
+            option.defaultValue ?? undefined,
+          ])
+        : []
+    )
+  );
 
   if (props.installFlowStage.stage === 'accountType') {
     return (
