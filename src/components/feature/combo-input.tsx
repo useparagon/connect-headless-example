@@ -17,7 +17,7 @@ export type ComboInputValue = {
 
 type Props = {
   integration: string;
-  field: SerializedConnectInput<SidebarInputType.ComboInput>;
+  field: SerializedConnectInput<SidebarInputType.ComboInput | SidebarInputType.DynamicComboInput>;
   required: boolean;
   value: ComboInputValue;
   onChange: (value: ComboInputValue) => void;

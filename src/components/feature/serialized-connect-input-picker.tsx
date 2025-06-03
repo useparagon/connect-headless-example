@@ -139,7 +139,7 @@ export function SerializedConnectInputPicker(props: Props) {
 
   if (
     field.type === SidebarInputType.ComboInput ||
-    field.type === "DYNAMIC_COMBO_INPUT"
+    field.type === SidebarInputType.DynamicComboInput
   ) {
     const currentValue: ComboInputValue = (value as ComboInputValue) ?? {
       mainInput: undefined,
