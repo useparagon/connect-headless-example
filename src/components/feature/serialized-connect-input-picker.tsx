@@ -9,6 +9,7 @@ import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
 import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
+import { CopyableInput } from '../form/copyable-input';
 
 type Props = {
   integration: string;
@@ -30,6 +31,16 @@ export function SerializedConnectInputPicker(props: Props) {
         value={Boolean(value ?? false)}
         tooltip={field.tooltip}
         onChange={(value) => onChange(value)}
+      />
+    );
+  }
+
+  if (field.type === SidebarInputType.CopyableButtonInput) {
+    return (
+      <CopyableInput
+        id={field.id}
+        title={field.title}
+        value={String(value ?? '')}
       />
     );
   }
