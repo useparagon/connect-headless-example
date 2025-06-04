@@ -22,7 +22,10 @@ export function SerializedConnectInputPicker(props: Props) {
   const { field, value, onChange } = props;
   const required = field.required ?? true;
 
-  if (field.type === SidebarInputType.BooleanInput) {
+  if (
+    field.type === SidebarInputType.BooleanInput ||
+    field.type === SidebarInputType.Switch
+  ) {
     return (
       <BooleanField
         id={field.id}

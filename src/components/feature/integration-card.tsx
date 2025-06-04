@@ -163,7 +163,7 @@ function IntegrationModal(
             </Button>
           </div>
         </DialogHeader>
-        <div className="pt-6">
+        <div className="pt-6 overflow-y-auto max-h-[70dvh]">
           {showFlowForm && installFlowStage ? (
             <FlowForm
               integration={props.integration}
