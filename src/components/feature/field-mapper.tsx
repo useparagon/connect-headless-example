@@ -136,7 +136,6 @@ export function FieldMapperField(props: Props) {
           value={props.value.mainInput ?? null}
           placeholder={selectedMainOption?.label ?? 'Select an option...'}
           onSelect={(value) => {
-            console.log('ACA ANDAMOS', 'value', value);
             props.onChange({
               mainInput: value ?? undefined,
               dependentInput: value ? props.value.dependentInput : undefined,
