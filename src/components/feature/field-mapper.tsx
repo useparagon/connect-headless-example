@@ -8,6 +8,9 @@ import { useMemo, useState } from 'react';
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 import { Label } from '../ui/label';
+import { SelectGroup, SelectLabel } from '../ui/select';
+import { CommandGroup } from '../ui/command';
+import { FieldLabel } from '../form/field-label';
 
 export type FieldMappingsInputValue = {
   mainInput: string | undefined;
@@ -40,13 +43,31 @@ export function FieldMapperField(props: Props) {
       search: mainInputSearch,
     });
 
-  const selectedMainOption = useMemo(
-    () =>
-      mainInputOptions.data.find(
+  const selectedMainOption = useMemo(() => {
+    let result;
+
+    result = mainInputOptions.data.find(
+      (option) => option.value === props.value.mainInput,
+    );
+
+    if (result) {
+      return result;
+    }
+
+    for (let index = 0; index < mainInputOptions.nestedData?.length; index++) {
+      const group = mainInputOptions.nestedData[index];
+
+      result = group.items.find(
         (option) => option.value === props.value.mainInput,
-      ),
-    [mainInputOptions.data, props.value],
-  );
+      );
+
+      if (result) {
+        break;
+      }
+    }
+
+    return result;
+  }, [mainInputOptions, props.value]);
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
@@ -103,6 +124,11 @@ export function FieldMapperField(props: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      {props.field.title && (
+        <FieldLabel id={props.field.id} required={props.required}>
+          {props.field.title}
+        </FieldLabel>
+      )}
       <div className="w-full flex gap-4">
         <ComboboxField
           id={props.field.id}
@@ -110,24 +136,42 @@ export function FieldMapperField(props: Props) {
           required={props.required}
           value={props.value.mainInput ?? null}
           placeholder={selectedMainOption?.label ?? 'Select an option...'}
-          onSelect={(value) =>
+          onSelect={(value) => {
+            console.log('ACA ANDAMOS', 'value', value);
             props.onChange({
               mainInput: value ?? undefined,
               dependentInput: value ? props.value.dependentInput : undefined,
               fieldMappings: {},
-            })
-          }
+            });
+          }}
           isFetching={isFetchingMainInput}
           onDebouncedChange={setMainInputSearch}
           allowClear
         >
-          {mainInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
+          {mainInputOptions.nestedData
+            ? mainInputOptions.nestedData.map((category) => {
+                return (
+                  <CommandGroup heading={category.title}>
+                    {category.items.map((option) => {
+                      return (
+                        <ComboboxField.Item
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </ComboboxField.Item>
+                      );
+                    })}
+                  </CommandGroup>
+                );
+              })
+            : mainInputOptions.data.map((option) => {
+                return (
+                  <ComboboxField.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </ComboboxField.Item>
+                );
+              })}
         </ComboboxField>
         {dependentInputMeta && (
           <ComboboxField
