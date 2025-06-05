@@ -146,30 +146,31 @@ export function FieldMapperField(props: Props) {
           onDebouncedChange={setMainInputSearch}
           allowClear
         >
-          {mainInputOptions.nestedData
-            ? mainInputOptions.nestedData.map((category) => {
-                return (
-                  <CommandGroup heading={category.title}>
-                    {category.items.map((option) => {
-                      return (
-                        <ComboboxField.Item
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </ComboboxField.Item>
-                      );
-                    })}
-                  </CommandGroup>
-                );
-              })
-            : mainInputOptions.data.map((option) => {
-                return (
-                  <ComboboxField.Item key={option.value} value={option.value}>
-                    {option.label}
-                  </ComboboxField.Item>
-                );
-              })}
+          {mainInputOptions.nestedData &&
+            mainInputOptions.nestedData.map((category) => {
+              return (
+                <CommandGroup heading={category.title}>
+                  {category.items.map((option) => {
+                    return (
+                      <ComboboxField.Item
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </ComboboxField.Item>
+                    );
+                  })}
+                </CommandGroup>
+              );
+            })}
+          {mainInputOptions.data &&
+            mainInputOptions.data.map((option) => {
+              return (
+                <ComboboxField.Item key={option.value} value={option.value}>
+                  {option.label}
+                </ComboboxField.Item>
+              );
+            })}
         </ComboboxField>
         {dependentInputMeta && (
           <ComboboxField
