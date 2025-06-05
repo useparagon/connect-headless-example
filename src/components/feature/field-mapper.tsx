@@ -8,7 +8,6 @@ import { useMemo, useState } from 'react';
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 import { Label } from '../ui/label';
-import { SelectGroup, SelectLabel } from '../ui/select';
 import { CommandGroup } from '../ui/command';
 import { FieldLabel } from '../form/field-label';
 
