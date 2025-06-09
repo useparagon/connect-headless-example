@@ -21,7 +21,6 @@ type Props = {
 };
 
 export function MultiSelectField(props: Props) {
-  console.log("multi value", props.value)
   return (
     <div className="flex flex-col gap-1.5">
       <FieldLabel id={props.id} required={props.required}>
@@ -29,7 +28,7 @@ export function MultiSelectField(props: Props) {
       </FieldLabel>
       <div className="flex gap-2">
         <Select
-          value={props.value.join(", ")}
+          value={props.value.join(', ')}
           onValueChange={(val) => {
             if (props.value.includes(val)) {
               props.onChange(props.value.filter((v) => v !== val));

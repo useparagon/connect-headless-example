@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 
 import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
 
+type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
+
 type Props = {
   integration: string;
   name: string;
@@ -34,6 +36,7 @@ type Props = {
 
 export function IntegrationCard(props: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [connected, setConnected] = useState(props.enabled);
 
   return (
     <Card
@@ -62,7 +65,9 @@ export function IntegrationCard(props: Props) {
                 integration={props.integration}
                 name={props.name}
                 icon={props.icon}
-                enabled={props.enabled}
+                enabled={connected}
+                onConnect={() => setConnected(true)}
+                onDisconnect={() => setConnected(false)}
               />
             )}
           </div>
@@ -75,23 +80,34 @@ export function IntegrationCard(props: Props) {
 function IntegrationModal(
   props: Props & {
     onOpenChange: (open: boolean) => void;
+    onConnect: () => void;
+    onDisconnect: () => void;
   }
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
     props.integration
   );
+  const [showFlowForm, setShowFlowForm] = useState(false);
+  const [flowFormError, setFlowFormError] = useState<Error | null>(null);
+  const [isInstalling, setIsInstalling] = useState(false);
+  const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
+    'overview'
+  );
+  const [installFlowStage, setInstallFlowStage] =
+    useState<null | InstallFlowStage>(null);
 
   const doEnable = async () => {
-    await paragon.installIntegration(props.integration, {
-      onSuccess: () => {
-        console.log('installed integration:', props.integration);
+    setIsInstalling(true);
+    await paragon.installFlow.start(props.integration, {
+      onNext: (next) => {
+        setShowFlowForm(!next.done);
+        setInstallFlowStage(next);
       },
-      onError: (error) => {
-        console.error(
-          'error installing integration:',
-          props.integration,
-          error
-        );
+      onComplete: () => {
+        props.onConnect();
+        setTab('configuration');
+        setIsInstalling(false);
+        setInstallFlowStage(null);
       },
     });
   };
@@ -100,7 +116,8 @@ function IntegrationModal(
     paragon
       .uninstallIntegration(props.integration)
       .then(() => {
-        console.log('uninstalled integration:', props.integration);
+        props.onDisconnect();
+        setTab('overview');
       })
       .catch((error) => {
         console.error(
@@ -137,45 +154,185 @@ function IntegrationModal(
               className="cursor-pointer"
               variant={props.enabled ? 'destructive' : 'default'}
               onClick={props.enabled ? doDisable : doEnable}
+              disabled={isInstalling}
             >
-              {props.enabled ? 'Disconnect' : 'Connect'}
+              {isInstalling
+                ? 'Installing...'
+                : props.enabled
+                ? 'Disconnect'
+                : 'Connect'}
             </Button>
           </div>
         </DialogHeader>
-        <div className="pt-6">
-          <Tabs defaultValue="overview" className="gap-6 w-full">
-            <TabsList className="w-[250px] grid grid-cols-2">
-              <TabsTrigger className="cursor-pointer" value="overview">
-                Overview
-              </TabsTrigger>
-              <TabsTrigger className="cursor-pointer" value="configuration">
-                Configuration
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent
-              value="overview"
-              className="w-full overflow-y-auto max-h-[70dvh]"
-            >
-              <div>
-                <pre className="text-sm text-wrap text-black/70 font-sans">
-                  {integrationConfig.longDescription?.replaceAll('\n\n', '\n')}
-                </pre>
-              </div>
-            </TabsContent>
-            <TabsContent
-              value="configuration"
-              className="w-full overflow-y-auto max-h-[70dvh]"
-            >
-              <div className="flex flex-col gap-6">
-                <IntegrationConfiguration integration={props.integration} />
-                <IntegrationWorkflow integration={props.integration} />
-              </div>
-            </TabsContent>
-          </Tabs>
+        <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
+          {showFlowForm && installFlowStage ? (
+            <FlowForm
+              integration={props.integration}
+              installFlowStage={installFlowStage}
+              onSelectAccount={(accountId) => {
+                paragon.installFlow.setAccountType(accountId, (error) => {
+                  setFlowFormError(error as Error);
+                });
+              }}
+              onFinishPreOptions={(preOptions) => {
+                paragon.installFlow.setPreOptions(preOptions, (error) => {
+                  setFlowFormError(error as Error);
+                });
+              }}
+              onFinishPostOptions={(postOptions) => {
+                paragon.installFlow.setPostOptions(postOptions, (error) => {
+                  setFlowFormError(error as Error);
+                });
+              }}
+              error={flowFormError}
+            />
+          ) : (
+            <Tabs value={tab} onValueChange={setTab} className="w-full">
+              <TabsList className="w-[250px] grid grid-cols-2">
+                <TabsTrigger className="cursor-pointer" value="overview">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  className="cursor-pointer"
+                  value="configuration"
+                  disabled={!props.enabled}
+                >
+                  Configuration
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent
+                value="overview"
+                className="w-full overflow-y-auto max-h-[70dvh]"
+              >
+                <div className="p-6">
+                  <pre className="text-sm text-wrap text-black/70 font-sans">
+                    {integrationConfig.longDescription?.replaceAll(
+                      '\n\n',
+                      '\n'
+                    )}
+                  </pre>
+                </div>
+              </TabsContent>
+              <TabsContent
+                value="configuration"
+                className="w-full overflow-y-auto max-h-[70dvh]"
+              >
+                <div className="p-6 flex flex-col gap-6">
+                  <IntegrationConfiguration integration={props.integration} />
+                  <IntegrationWorkflow integration={props.integration} />
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+
+function FlowForm(props: {
+  integration: string;
+  installFlowStage: InstallFlowStage;
+  onSelectAccount: (accountId: string) => void;
+  onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
+  onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
+  error: Error | null;
+}) {
+  const [preOptions, setPreOptions] = useState<
+    Record<string, ConnectInputValue>
+  >({});
+  const [postOptions, setPostOptions] = useState<
+    Record<string, ConnectInputValue>
+  >({});
+
+  if (props.installFlowStage.stage === 'accountType') {
+    return (
+      <div>
+        <div>
+          <h2>Select an account</h2>
+          <div className="flex flex-col gap-2 items-start">
+            {props.installFlowStage.options.map((option) => (
+              <Button
+                key={option.id}
+                type="button"
+                onClick={() => {
+                  props.onSelectAccount(option.id);
+                }}
+              >
+                {option.accountDescription}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (props.installFlowStage.stage === 'preOptions') {
+    return (
+      <div className="flex flex-col gap-4">
+        {props.installFlowStage.options.map((option) => (
+          <SerializedConnectInputPicker
+            key={option.id}
+            integration={props.integration}
+            field={option as SerializedConnectInput}
+            value={preOptions[option.id]}
+            onChange={(value) => {
+              setPreOptions((current) => ({
+                ...current,
+                [option.id]: value,
+              }));
+            }}
+          />
+        ))}
+        <Button
+          onClick={() => {
+            props.onFinishPreOptions(preOptions);
+          }}
+        >
+          Next
+        </Button>
+        {props.error ? (
+          <div className="flex flex-col gap-2">
+            <p className="font-medium">Something went wrong</p>
+            <pre className="text-red-500 max-w-full text-sm bg-red-50 p-2 rounded-md border border-red-200">
+              {JSON.stringify(JSON.parse(props.error.message), null, 2)}
+            </pre>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (props.installFlowStage.stage === 'postOptions') {
+    return (
+      <div className="flex flex-col gap-4">
+        {props.installFlowStage.options.map((option) => (
+          <SerializedConnectInputPicker
+            key={option.id}
+            integration={props.integration}
+            field={option as SerializedConnectInput}
+            value={postOptions[option.id]}
+            onChange={(value) => {
+              setPostOptions((current) => ({
+                ...current,
+                [option.id]: value,
+              }));
+            }}
+          />
+        ))}
+        <Button
+          onClick={() => {
+            props.onFinishPostOptions(postOptions);
+          }}
+        >
+          Finish
+        </Button>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function IntegrationConfiguration(props: { integration: string }) {

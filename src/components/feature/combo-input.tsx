@@ -17,7 +17,7 @@ export type ComboInputValue = {
 
 type Props = {
   integration: string;
-  field: SerializedConnectInput<SidebarInputType.ComboInput>;
+  field: SerializedConnectInput<SidebarInputType.ComboInput | SidebarInputType.DynamicComboInput>;
   required: boolean;
   value: ComboInputValue;
   onChange: (value: ComboInputValue) => void;
@@ -141,7 +141,7 @@ export function ComboInputField(props: Props) {
           })}
         </ComboboxField>
       </div>
-      {props.field.type === "DYNAMIC_COMBO_INPUT" && props.value.mainInput && props.value.dependentInput && (
+      {props.field.type === SidebarInputType.DynamicComboInput && props.value.mainInput && props.value.dependentInput && (
         <VariableInput
           integration={props.integration}
           sourceType={options?.variableInputSource.cacheKey}
