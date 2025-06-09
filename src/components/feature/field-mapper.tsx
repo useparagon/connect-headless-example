@@ -32,7 +32,7 @@ export function FieldMapperField(props: Props) {
 
   const { data: options } = useDataSourceOptions(
     props.integration,
-    props.field.sourceType as string,
+    props.field.sourceType as string
   );
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
@@ -46,7 +46,7 @@ export function FieldMapperField(props: Props) {
     let result;
 
     result = mainInputOptions.data.find(
-      (option) => option.value === props.value.mainInput,
+      (option) => option.value === props.value.mainInput
     );
 
     if (result) {
@@ -57,7 +57,7 @@ export function FieldMapperField(props: Props) {
       const group = mainInputOptions.nestedData[index];
 
       result = group.items.find(
-        (option) => option.value === props.value.mainInput,
+        (option) => option.value === props.value.mainInput
       );
 
       if (result) {
@@ -84,9 +84,9 @@ export function FieldMapperField(props: Props) {
   const selectedDependentInputOption = useMemo(
     () =>
       dependentInputOptions.data.find(
-        (option) => option.value === props.value.dependentInput,
+        (option) => option.value === props.value.dependentInput
       ),
-    [dependentInputOptions.data, props.value],
+    [dependentInputOptions.data, props.value]
   );
 
   const { data: fieldInputOptions, isFetching: isFetchingFieldInput } =
@@ -111,7 +111,7 @@ export function FieldMapperField(props: Props) {
     if (props.value.fieldMappings) {
       for (const [key, value] of Object.entries(props.value.fieldMappings)) {
         result[key] = fieldInputOptions.data.find(
-          (option) => option.value === value,
+          (option) => option.value === value
         );
       }
     }
@@ -171,6 +171,30 @@ export function FieldMapperField(props: Props) {
                 </ComboboxField.Item>
               );
             })}
+          {mainInputOptions.nestedData
+            ? mainInputOptions.nestedData.map((category) => {
+                return (
+                  <CommandGroup heading={category.title}>
+                    {category.items.map((option) => {
+                      return (
+                        <ComboboxField.Item
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </ComboboxField.Item>
+                      );
+                    })}
+                  </CommandGroup>
+                );
+              })
+            : mainInputOptions.data.map((option) => {
+                return (
+                  <ComboboxField.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </ComboboxField.Item>
+                );
+              })}
         </ComboboxField>
         {dependentInputMeta && (
           <ComboboxField
