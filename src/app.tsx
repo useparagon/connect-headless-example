@@ -3,9 +3,7 @@ import { IntegrationCard } from '@/components/feature/integration-card';
 import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
 import { IIntegrationMetadata } from 'node_modules/@useparagon/connect/dist/src/entities/integration.interface';
 
-import { paragon } from '@useparagon/connect';
-
-paragon.setHeadless(true);
+import { AuthenticatedConnectUser } from '@useparagon/connect';
 
 export function App() {
   return (
@@ -20,34 +18,25 @@ export function App() {
 }
 
 function IntegrationList() {
-  const { data: user } = useAuthenticatedUser();
-  const { data: integrations, isLoading: isLoadingIntegrations } =
-    useIntegrationMetadata();
+  const { data: user, refetch: refetchUser } = useAuthenticatedUser();
+  const {
+    data: integrations,
+    isLoading: isLoadingIntegrations,
+    refetch: refetchIntegrations,
+  } = useIntegrationMetadata();
 
   if (!user || isLoadingIntegrations || !integrations) {
     return <div>Loading...</div>;
   }
 
-  const [connectedIntegrations, notConnectedIntegrations] = integrations.reduce(
-    (acc, integration) => {
-      const integrationInfo = user.integrations[integration.type];
-      if (integrationInfo?.enabled) {
-        acc[0].push(integration);
-      } else {
-        acc[1].push(integration);
-      }
-
-      return acc;
-    },
-    [[], []] as [IIntegrationMetadata[], IIntegrationMetadata[]]
-  );
+  const sortedIntegrations = integrations.sort(byEnabledOnTop(user));
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-medium mb-4">Connected Integrations</h2>
+        <h2 className="text-xl font-medium mb-4">Integrations</h2>
         <ul className="flex flex-wrap gap-4">
-          {connectedIntegrations.map((integration) => {
+          {sortedIntegrations.map((integration) => {
             const integrationInfo = user.integrations[integration.type];
 
             if (!integrationInfo) {
@@ -61,30 +50,14 @@ function IntegrationList() {
                   name={integration.name}
                   icon={integration.icon}
                   enabled={integrationInfo.enabled}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      <div>
-        <h2 className="text-xl font-medium mb-4">Disconnected Integrations</h2>
-        <ul className="flex flex-wrap gap-4">
-          {notConnectedIntegrations.map((integration) => {
-            const integrationInfo = user.integrations[integration.type];
-
-            if (!integrationInfo) {
-              return null;
-            }
-
-            return (
-              <li key={integration.type}>
-                <IntegrationCard
-                  integration={integration.type}
-                  name={integration.name}
-                  icon={integration.icon}
-                  enabled={integrationInfo.enabled}
+                  onInstall={() => {
+                    refetchIntegrations();
+                    refetchUser();
+                  }}
+                  onUninstall={() => {
+                    refetchIntegrations();
+                    refetchUser();
+                  }}
                 />
               </li>
             );
@@ -93,4 +66,12 @@ function IntegrationList() {
       </div>
     </div>
   );
+}
+
+function byEnabledOnTop(user: AuthenticatedConnectUser) {
+  return function (a: IIntegrationMetadata, b: IIntegrationMetadata) {
+    const aEnabled = user.integrations[a.type]?.enabled;
+    const bEnabled = user.integrations[b.type]?.enabled;
+    return aEnabled ? -1 : bEnabled ? 1 : 0;
+  };
 }

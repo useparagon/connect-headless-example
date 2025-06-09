@@ -28,6 +28,8 @@ const config = z
 async function main() {
   window.paragon = paragon;
 
+  paragon.setHeadless(true);
+
   const rootElement = document.getElementById('root');
 
   if (!rootElement) {

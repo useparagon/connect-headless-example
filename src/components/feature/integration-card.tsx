@@ -32,6 +32,8 @@ type Props = {
   name: string;
   icon: string;
   enabled: boolean;
+  onInstall: () => void;
+  onUninstall: () => void;
 };
 
 export function IntegrationCard(props: Props) {
@@ -52,13 +54,20 @@ export function IntegrationCard(props: Props) {
               <img src={props.icon} width={30} />
               {props.name}
             </div>
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={() => setIsModalOpen(true)}
-            >
-              Manage
-            </Button>
+            <div className="flex gap-2 items-center">
+              <Button
+                variant="outline"
+                className="cursor-pointer relative"
+                onClick={() => setIsModalOpen(true)}
+              >
+                Manage
+                {props.enabled && (
+                  <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
+                    <GlowingBadge />
+                  </div>
+                )}
+              </Button>
+            </div>
             {isModalOpen && (
               <IntegrationModal
                 onOpenChange={setIsModalOpen}
@@ -66,8 +75,14 @@ export function IntegrationCard(props: Props) {
                 name={props.name}
                 icon={props.icon}
                 enabled={connected}
-                onConnect={() => setConnected(true)}
-                onDisconnect={() => setConnected(false)}
+                onInstall={() => {
+                  setConnected(true);
+                  props.onInstall();
+                }}
+                onUninstall={() => {
+                  setConnected(false);
+                  props.onUninstall();
+                }}
               />
             )}
           </div>
@@ -80,8 +95,6 @@ export function IntegrationCard(props: Props) {
 function IntegrationModal(
   props: Props & {
     onOpenChange: (open: boolean) => void;
-    onConnect: () => void;
-    onDisconnect: () => void;
   }
 ) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
@@ -104,7 +117,7 @@ function IntegrationModal(
         setInstallFlowStage(next);
       },
       onComplete: () => {
-        props.onConnect();
+        props.onInstall();
         setTab('configuration');
         setIsInstalling(false);
         setInstallFlowStage(null);
@@ -116,7 +129,7 @@ function IntegrationModal(
     paragon
       .uninstallIntegration(props.integration)
       .then(() => {
-        props.onDisconnect();
+        props.onUninstall();
         setTab('overview');
       })
       .catch((error) => {
@@ -604,5 +617,14 @@ function WorkflowFields(props: {
         />
       ))}
     </div>
+  );
+}
+
+function GlowingBadge() {
+  return (
+    <span className="relative flex size-3">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75"></span>
+      <span className="relative inline-flex size-3 rounded-full bg-green-400"></span>
+    </span>
   );
 }
