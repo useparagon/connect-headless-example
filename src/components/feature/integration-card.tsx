@@ -200,10 +200,7 @@ function IntegrationModal(
                   Configuration
                 </TabsTrigger>
               </TabsList>
-              <TabsContent
-                value="overview"
-                className="w-full overflow-y-auto max-h-[70dvh]"
-              >
+              <TabsContent value="overview" className="w-full">
                 <div className="p-6">
                   <pre className="text-sm text-wrap text-black/70 font-sans">
                     {integrationConfig.longDescription?.replaceAll(
@@ -213,10 +210,7 @@ function IntegrationModal(
                   </pre>
                 </div>
               </TabsContent>
-              <TabsContent
-                value="configuration"
-                className="w-full overflow-y-auto max-h-[70dvh]"
-              >
+              <TabsContent value="configuration" className="w-full">
                 <div className="p-6 flex flex-col gap-6">
                   <IntegrationConfiguration integration={props.integration} />
                   <IntegrationWorkflow integration={props.integration} />
