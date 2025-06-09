@@ -88,6 +88,7 @@ function IntegrationModal(
     props.integration
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
+  const [flowFormError, setFlowFormError] = useState<Error | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
     'overview'
@@ -170,19 +171,20 @@ function IntegrationModal(
               installFlowStage={installFlowStage}
               onSelectAccount={(accountId) => {
                 paragon.installFlow.setAccountType(accountId, (error) => {
-                  console.error('oauth flow error', error);
+                  setFlowFormError(error as Error);
                 });
               }}
               onFinishPreOptions={(preOptions) => {
                 paragon.installFlow.setPreOptions(preOptions, (error) => {
-                  console.error('pre options error', error);
+                  setFlowFormError(error as Error);
                 });
               }}
               onFinishPostOptions={(postOptions) => {
                 paragon.installFlow.setPostOptions(postOptions, (error) => {
-                  console.error('post options error', error);
+                  setFlowFormError(error as Error);
                 });
               }}
+              error={flowFormError}
             />
           ) : (
             <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -234,6 +236,7 @@ function FlowForm(props: {
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
+  error: Error | null;
 }) {
   const [preOptions, setPreOptions] = useState<
     Record<string, ConnectInputValue>
@@ -289,6 +292,14 @@ function FlowForm(props: {
         >
           Next
         </Button>
+        {props.error ? (
+          <div className="flex flex-col gap-2">
+            <p className="font-medium">Something went wrong</p>
+            <pre className="text-red-500 max-w-full text-sm bg-red-50 p-2 rounded-md border border-red-200">
+              {JSON.stringify(JSON.parse(props.error.message), null, 2)}
+            </pre>
+          </div>
+        ) : null}
       </div>
     );
   }
