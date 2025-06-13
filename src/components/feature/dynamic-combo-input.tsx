@@ -3,17 +3,20 @@ import {
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 
 import { VariableInput } from './variable-input';
+import { omit } from 'lodash';
+
+type VariableInputValue = Record<string, string | string[] | undefined>;
 
 export type DynamicComboInputValue = {
   mainInput: string | undefined;
   dependentInput: string | undefined;
-  variableInput?: Record<string, string | object>;
+  variableInput?: VariableInputValue;
 };
 
 type Props = {
@@ -28,21 +31,10 @@ export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const [customConfig, setCustomConfig] = useState<object>(
-    props.value.variableInput || {}
-  );
-  const [customOptionFilter, setCustomOptionFilter] = useState('');
-
-  useEffect(() => {
-    props.onChange({
-      mainInput: props.value.mainInput,
-      dependentInput: props.value.dependentInput,
-      variableInput: { ...customConfig },
-    });
-  }, [customConfig]);
-
   const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
     props.integration,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     props.field.sourceType as string
   );
 
@@ -63,6 +55,7 @@ export function DynamicComboInputField(props: Props) {
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
+      enabled: Boolean(props.value.mainInput),
       integration: props.integration,
       sourceType: options?.dependentInputSource.cacheKey as string,
       parameters: [
@@ -144,20 +137,35 @@ export function DynamicComboInputField(props: Props) {
           })}
         </ComboboxField>
       </div>
-      {props.field.type === SidebarInputType.DynamicComboInput &&
-        props.value.mainInput &&
-        props.value.dependentInput && (
+      {props.value.mainInput &&
+        props.value.dependentInput &&
+        options?.variableInputSource?.cacheKey &&
+        options?.mainInputSource?.cacheKey &&
+        options?.dependentInputSource?.cacheKey && (
           <VariableInput
             integration={props.integration}
-            sourceType={options?.variableInputSource.cacheKey}
+            sourceType={options?.variableInputSource?.cacheKey}
             mainInputKey={options?.mainInputSource.cacheKey}
-            mainInputValue={props.value.mainInput}
             dependantInputKey={options?.dependentInputSource.cacheKey}
+            mainInputValue={props.value.mainInput}
             dependantInputValue={props.value.dependentInput}
-            customConfig={customConfig}
-            setCustomConfig={setCustomConfig}
-            optionFilter={customOptionFilter}
-            setOptionFilter={setCustomOptionFilter}
+            variableInputsValues={props.value.variableInput || {}}
+            onVariableInputsValuesChange={(value) => {
+              props.onChange({
+                mainInput: props.value.mainInput,
+                dependentInput: props.value.dependentInput,
+                variableInput: { ...props.value.variableInput, ...value },
+              });
+            }}
+            onDeleteVariableInput={(fieldId) => {
+              const newVariableInput = omit(props.value.variableInput, fieldId);
+
+              props.onChange({
+                mainInput: props.value.mainInput,
+                dependentInput: props.value.dependentInput,
+                variableInput: newVariableInput,
+              });
+            }}
           />
         )}
     </>

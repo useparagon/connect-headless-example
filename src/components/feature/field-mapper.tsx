@@ -248,11 +248,6 @@ export function FieldMapperField(props: Props) {
       {props.field.savedFieldMappings.map((fieldMap) => {
         const placeholder = selectedFieldInputOptions[fieldMap.label];
 
-        console.log(
-          'props.value.fieldMappings?.[fieldMap.label]',
-          props.value.fieldMappings?.[fieldMap.label]
-        );
-
         return (
           <div key={fieldMap.label} className="flex gap-3 items-center">
             <ComboboxField

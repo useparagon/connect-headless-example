@@ -1,21 +1,27 @@
-import { useFieldOptions } from "@/lib/hooks";
-import { SelectField } from "../form/select-field";
-import { MultiSelectField } from "../form/multi-select-field";
-import { TextInputField } from "../form/text-input-field";
-import { ComboboxField } from "@/components/form/combobox-field";
-import { LoaderCircle } from 'lucide-react';
+import { useFieldOptions } from '@/lib/hooks';
+import { SelectField } from '../form/select-field';
+import { MultiSelectField } from '../form/multi-select-field';
+import { TextInputField } from '../form/text-input-field';
+import { ComboboxField } from '@/components/form/combobox-field';
+import { LoaderCircle, MinusCircleIcon } from 'lucide-react';
+import { DynamicDefaultInput } from '@useparagon/connect';
+import { Button } from '../ui/button';
+import { useState } from 'react';
+
+type VariableInputValue = string | string[] | undefined;
 
 type Props = {
   integration: string;
   sourceType: string;
-  mainInputValue: string;
   mainInputKey: string;
-  dependantInputValue: string;
   dependantInputKey: string;
-  customConfig: Record<string, string | object>;
-  setCustomConfig: (config: object) => void;
-  optionFilter: string;
-  setOptionFilter: (filter: string) => void;
+  mainInputValue: string;
+  dependantInputValue: string;
+  variableInputsValues: Record<string, VariableInputValue>;
+  onVariableInputsValuesChange: (
+    config: Record<string, VariableInputValue>
+  ) => void;
+  onDeleteVariableInput: (id: string) => void;
 };
 
 export const VariableInput = ({
@@ -25,15 +31,17 @@ export const VariableInput = ({
   mainInputKey,
   dependantInputValue,
   dependantInputKey,
-  customConfig,
-  setCustomConfig,
-  optionFilter,
-  setOptionFilter,
+  variableInputsValues,
+  onVariableInputsValuesChange,
+  onDeleteVariableInput,
 }: Props) => {
+  const [variableInputSelectorSearch, setVariableInputSelectorSearch] =
+    useState('');
+
   const { data: options, isFetching } = useFieldOptions({
     integration: integration,
     sourceType: sourceType,
-    search: "",
+    search: '',
     parameters: [
       {
         cacheKey: mainInputKey,
@@ -45,25 +53,15 @@ export const VariableInput = ({
       },
     ],
   });
-  const { required, nonRequired } = separateOptions(options.data);
-  
-  const handleAddCustomField = (value: string | null) => {
-    const customOption = options.data.find((o: Option) => o.id === value);
-    
-    setOptionFilter("");
-    setCustomConfig((customConfig: object) => ({
-      ...customConfig,
-      [customOption.id]: "",
-    }));
-    
-    return;
-  }
+  const { required, nonRequired } = separateOptions(options.nestedData);
 
   if (isFetching) {
-    return <div className="flex items-center gap-2">
-      <LoaderCircle className="size-4 shrink-0 animate-spin" />
-      Loading...
-    </div>
+    return (
+      <div className="flex items-center gap-2">
+        <LoaderCircle className="size-4 shrink-0 animate-spin" />
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -73,55 +71,58 @@ export const VariableInput = ({
           <InputSwitch
             key={o.id}
             option={o}
-            value={o.id in customConfig ? customConfig[o.id] : ""}
+            value={
+              o.id in variableInputsValues ? variableInputsValues[o.id] : ''
+            }
             onChange={(value) => {
-              setCustomConfig((customConfig: object) => ({
-                ...customConfig,
-                [o.id]: value,
-              }));
+              onVariableInputsValuesChange({ [o.id]: value });
             }}
           />
         ))}
-      {nonRequired.filter(option => option.id in customConfig).map((o) => (
-        <div className="flex items-center justify-between">
-          <InputSwitch
-            key={o.id}
-            option={o}
-            value={customConfig[o.id] || ""}
-            onChange={(value) => {
-              setCustomConfig((customConfig: object) => ({
-                ...customConfig,
-                [o.id]: value,
-              }));
-            }}
-          />
-          <span
-            onClick={() => {
-              const pruned = { ...customConfig };
-              delete pruned[o.id];
-              setCustomConfig(pruned);
-            }}
-          >
-            🗑️
-          </span>
-        </div>
-      ))}
+      {nonRequired
+        .filter((option) => option.id in variableInputsValues)
+        .map((o) => (
+          <div className="flex items-end justify-between gap-2">
+            <InputSwitch
+              key={o.id}
+              option={o}
+              value={variableInputsValues[o.id] || ''}
+              onChange={(value) => {
+                onVariableInputsValuesChange({ [o.id]: value });
+              }}
+            />
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onDeleteVariableInput(o.id);
+              }}
+            >
+              <MinusCircleIcon />
+            </Button>
+          </div>
+        ))}
       {!isFetching && nonRequired.length && (
         <ComboboxField
           id={`${integration}-custom-variable-field-selector`}
-          title={"Add field"}
+          title="Add field"
           required={false}
-          value={optionFilter}
-          placeholder={optionFilter || "Select an option..."}
-          onSelect={handleAddCustomField}
+          value={variableInputSelectorSearch}
+          placeholder={variableInputSelectorSearch || 'Select an option...'}
+          onSelect={(fieldId) => {
+            if (!fieldId) return;
+
+            setVariableInputSelectorSearch('');
+            onVariableInputsValuesChange({ [fieldId]: '' });
+          }}
           isFetching={isFetching}
-          onDebouncedChange={setOptionFilter}
-          
+          onDebouncedChange={setVariableInputSelectorSearch}
         >
           {nonRequired
-            .filter((option) => !(option.id in customConfig))
+            .filter((option) => !(option.id in variableInputsValues))
             .filter((option) =>
-              option?.title?.toLowerCase().includes(optionFilter.toLowerCase()),
+              option?.title
+                ?.toLowerCase()
+                .includes(variableInputSelectorSearch.toLowerCase())
             )
             .map((option) => {
               return (
@@ -141,65 +142,67 @@ const InputSwitch = ({
   value,
   onChange,
 }: {
-  value: string | object | Array<string>;
-  onChange: (x: unknown) => void;
-  option: Option;
+  value: VariableInputValue;
+  onChange: (value: VariableInputValue) => void;
+  option: DynamicDefaultInput;
 }) => {
   switch (option.type) {
-    case "multi":
-    case "multiCheckbox":
+    case 'multi':
+    case 'multiCheckbox':
       return (
         <MultiSelectField
           id={option.id}
           title={option.title}
           required={option.required}
-          value={value as string[]}
+          value={(value || []) as string[]}
           onChange={onChange}
           allowClear
         >
-          {option.items && option.items.map((option) => (
-            <MultiSelectField.Item key={option.value} value={option.value}>
-              {option.label}
-            </MultiSelectField.Item>
-          ))}
+          {option.items &&
+            option.items.map((option) => (
+              <MultiSelectField.Item key={option.value} value={option.value}>
+                {option.label}
+              </MultiSelectField.Item>
+            ))}
         </MultiSelectField>
       );
-    case "dropdown":
+    case 'dropdown':
       return (
         <SelectField
           id={option.id}
           title={option.title}
           required={option.required}
-          value={value as string}
-          onChange={onChange}
+          value={(value || '') as string}
+          onChange={(value) => onChange(value ?? undefined)}
           allowClear
         >
-          {option.items && option.items.map((option) => (
-            <SelectField.Item key={option.value} value={option.value}>
-              {option.label}
-            </SelectField.Item>
-          ))}
+          {option.items &&
+            option.items.map((option) => (
+              <SelectField.Item key={option.value} value={option.value}>
+                {option.label}
+              </SelectField.Item>
+            ))}
         </SelectField>
       );
-    case "number":
+    case 'number':
       return (
         <TextInputField
           id={option.id}
-          type={"number"}
+          type={'number'}
           title={option.title}
-          value={value as string}
+          value={(value || '') as string}
           onChange={onChange}
           disabled={false}
           required={option.required}
         />
       );
-    case "string":
+    case 'string':
       return (
         <TextInputField
           id={option.id}
-          type={"text"}
+          type={'text'}
           title={option.title}
-          value={value as string}
+          value={(value || '') as string}
           onChange={onChange}
           disabled={false}
           required={option.required}
@@ -210,20 +213,8 @@ const InputSwitch = ({
   }
 };
 
-type Option = {
-  id: string;
-  title: string;
-  required: boolean;
-  value: string;
-  onChange: (value: string) => void;
-  type: "multi" | "string" | "dropdown" | "multiCheckbox" | "number";
-  items?: Array<{ value: string; label: string }>;
-}
-
-const separateOptions = (
-  options: Array<Option>,
-): { required: Array<Option>; nonRequired: Array<Option> } => {
-  const organized: { required: Array<Option>; nonRequired: Array<Option> } = {
+const separateOptions = <T extends { required: boolean }>(options: T[]) => {
+  const organized: { required: T[]; nonRequired: T[] } = {
     required: [],
     nonRequired: [],
   };
