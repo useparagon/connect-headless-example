@@ -37,6 +37,7 @@ type FieldOptionsResponse = Awaited<ReturnType<typeof paragon.getFieldOptions>>;
 
 const fieldOptionsInitialData: FieldOptionsResponse = {
   data: [],
+  nestedData: [],
   nextPageCursor: null,
 };
 
