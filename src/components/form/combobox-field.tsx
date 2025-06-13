@@ -56,18 +56,16 @@ type Props = {
 
 type ComboboxFieldContext = {
   selectedValue: string | null;
-  setValue: (value: string) => void;
+  onChange: (value: string) => void;
 };
 
 const ComboboxFieldContext = createContext<null | ComboboxFieldContext>(null);
 
 export function ComboboxField({ size, className, ...props }: Props) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(props.value);
 
   const clearSelection = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setValue(null);
     props.onSelect(null);
   };
 
@@ -82,9 +80,8 @@ export function ComboboxField({ size, className, ...props }: Props) {
   return (
     <ComboboxFieldContext.Provider
       value={{
-        selectedValue: value,
-        setValue: (value) => {
-          setValue(value);
+        selectedValue: props.value,
+        onChange: (value) => {
           props.onSelect(value);
           setOpen(false);
         },
@@ -109,14 +106,14 @@ export function ComboboxField({ size, className, ...props }: Props) {
               }}
             >
               <span className="flex-1 text-left">
-                {props.isFetching && value ? (
+                {props.isFetching && props.value ? (
                   <Spinner withText />
                 ) : (
                   props.placeholder
                 )}
               </span>
               <div className="flex items-center gap-1">
-                {props.allowClear && value && (
+                {props.allowClear && props.value && (
                   <button
                     onClick={clearSelection}
                     aria-label="Clear selection"
@@ -165,7 +162,7 @@ function Item(props: ComboboxItemProps) {
   }
 
   return (
-    <CommandItem onSelect={() => context.setValue(props.value)}>
+    <CommandItem onSelect={() => context.onChange(props.value)}>
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',

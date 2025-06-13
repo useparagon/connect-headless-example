@@ -1,5 +1,6 @@
 import { MoveHorizontal } from 'lucide-react';
 import {
+  FieldMapperDataSource,
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
@@ -14,7 +15,7 @@ import { FieldLabel } from '../form/field-label';
 export type FieldMappingsInputValue = {
   mainInput: string | undefined;
   dependentInput: string | undefined;
-  fieldMappings: Record<string, string> | undefined;
+  fieldMappings: Record<string, string | undefined> | undefined;
 };
 
 type Props = {
@@ -30,10 +31,11 @@ export function FieldMapperField(props: Props) {
   const [dependentInputSearch, setDependentInputSearch] = useState('');
   const [fieldInputSearch, setFieldInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions(
+  const { data } = useDataSourceOptions(
     props.integration,
     props.field.sourceType as string
   );
+  const options = data as FieldMapperDataSource;
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
@@ -89,20 +91,29 @@ export function FieldMapperField(props: Props) {
     [dependentInputOptions.data, props.value]
   );
 
+  const parameters = useMemo(() => {
+    const params = [
+      {
+        cacheKey: options?.recordSource.cacheKey as string,
+        value: props.value.mainInput,
+      },
+    ];
+
+    if (options?.dependentInputSource) {
+      params.push({
+        cacheKey: options?.dependentInputSource.cacheKey as string,
+        value: props.value.dependentInput,
+      });
+    }
+
+    return params;
+  }, [options, props.value]);
+
   const { data: fieldInputOptions, isFetching: isFetchingFieldInput } =
     useFieldOptions({
       integration: props.integration,
       sourceType: options?.fieldSource.cacheKey as string,
-      parameters: [
-        {
-          cacheKey: options?.recordSource.cacheKey as string,
-          value: props.value.mainInput,
-        },
-        options?.dependentInputOptions ?? {
-          cacheKey: options?.dependentInputSource?.cacheKey as string,
-          value: props.value.dependentInput,
-        },
-      ],
+      parameters,
       search: fieldInputSearch,
     });
 
@@ -110,9 +121,15 @@ export function FieldMapperField(props: Props) {
     const result: Record<string, { label: string; value: string }> = {};
     if (props.value.fieldMappings) {
       for (const [key, value] of Object.entries(props.value.fieldMappings)) {
-        result[key] = fieldInputOptions.data.find(
+        const option = fieldInputOptions.data.find(
           (option) => option.value === value
         );
+
+        if (!option) {
+          continue;
+        }
+
+        result[key] = option;
       }
     }
     return result;
@@ -138,7 +155,7 @@ export function FieldMapperField(props: Props) {
           onSelect={(value) => {
             props.onChange({
               mainInput: value ?? undefined,
-              dependentInput: value ? props.value.dependentInput : undefined,
+              dependentInput: undefined,
               fieldMappings: {},
             });
           }}
@@ -149,7 +166,7 @@ export function FieldMapperField(props: Props) {
           {mainInputOptions.nestedData &&
             mainInputOptions.nestedData.map((category) => {
               return (
-                <CommandGroup heading={category.title}>
+                <CommandGroup key={category.title} heading={category.title}>
                   {category.items.map((option) => {
                     return (
                       <ComboboxField.Item
@@ -174,7 +191,7 @@ export function FieldMapperField(props: Props) {
           {mainInputOptions.nestedData
             ? mainInputOptions.nestedData.map((category) => {
                 return (
-                  <CommandGroup heading={category.title}>
+                  <CommandGroup key={category.title} heading={category.title}>
                     {category.items.map((option) => {
                       return (
                         <ComboboxField.Item
@@ -205,13 +222,13 @@ export function FieldMapperField(props: Props) {
             placeholder={
               selectedDependentInputOption?.label ?? 'Select an option...'
             }
-            onSelect={(value) =>
+            onSelect={(value) => {
               props.onChange({
                 mainInput: props.value.mainInput,
                 dependentInput: value ?? undefined,
-                fieldMappings: props.value.fieldMappings,
-              })
-            }
+                fieldMappings: value ? props.value.fieldMappings : {},
+              });
+            }}
             isFetching={isFetchingDependentInput}
             onDebouncedChange={setDependentInputSearch}
             disabled={!props.value.mainInput}
@@ -228,34 +245,34 @@ export function FieldMapperField(props: Props) {
         )}
       </div>
       {props.field.savedFieldMappings.map((fieldMap) => {
+        const placeholder = selectedFieldInputOptions[fieldMap.label];
+
+        console.log(
+          'props.value.fieldMappings?.[fieldMap.label]',
+          props.value.fieldMappings?.[fieldMap.label]
+        );
+
         return (
-          <div className="flex gap-3 items-center">
+          <div key={fieldMap.label} className="flex gap-3 items-center">
             <ComboboxField
               id={props.field.id}
               required={props.required}
-              value={
-                props.value.fieldMappings
-                  ? props.value.fieldMappings[fieldMap.label]
-                  : null
-              }
-              placeholder={
-                selectedFieldInputOptions[fieldMap.label]
-                  ? selectedFieldInputOptions[fieldMap.label].label
-                  : 'Select an option...'
-              }
-              onSelect={(value) =>
+              value={props.value.fieldMappings?.[fieldMap.label] ?? null}
+              placeholder={placeholder?.label ?? 'Select an option...'}
+              onSelect={(value) => {
                 props.onChange({
                   mainInput: props.value.mainInput,
                   dependentInput: props.value.dependentInput,
                   fieldMappings: {
                     ...props.value.fieldMappings,
-                    [fieldMap.label]: value,
+                    [fieldMap.label]: value ?? undefined,
                   },
-                })
-              }
+                });
+              }}
               isFetching={isFetchingFieldInput}
               onDebouncedChange={setFieldInputSearch}
               size="sm"
+              disabled={!props.value.mainInput || !props.value.dependentInput}
               allowClear
             >
               {fieldInputOptions.data.map((option) => {
