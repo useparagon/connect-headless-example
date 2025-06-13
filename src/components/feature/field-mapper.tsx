@@ -72,6 +72,7 @@ export function FieldMapperField(props: Props) {
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
+      enabled: Boolean(props.value.mainInput),
       integration: props.integration,
       sourceType: options?.dependentInputSource?.cacheKey as string,
       parameters: [
@@ -85,10 +86,10 @@ export function FieldMapperField(props: Props) {
 
   const selectedDependentInputOption = useMemo(
     () =>
-      dependentInputOptions.data.find(
+      dependentInputOptions?.data.find(
         (option) => option.value === props.value.dependentInput
       ),
-    [dependentInputOptions.data, props.value]
+    [dependentInputOptions?.data, props.value]
   );
 
   const parameters = useMemo(() => {
@@ -111,6 +112,7 @@ export function FieldMapperField(props: Props) {
 
   const { data: fieldInputOptions, isFetching: isFetchingFieldInput } =
     useFieldOptions({
+      enabled: Boolean(props.value.mainInput && props.value.dependentInput),
       integration: props.integration,
       sourceType: options?.fieldSource.cacheKey as string,
       parameters,
@@ -133,7 +135,7 @@ export function FieldMapperField(props: Props) {
       }
     }
     return result;
-  }, [fieldInputOptions.data, props.value.fieldMappings]);
+  }, [fieldInputOptions?.data, props.value.fieldMappings]);
 
   const mainInputMeta = options?.recordSource;
   const dependentInputMeta = options?.dependentInputSource;

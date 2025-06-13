@@ -47,14 +47,17 @@ export function useFieldOptions({
   search,
   cursor,
   parameters = [],
+  enabled = true,
 }: {
   integration: string;
   sourceType: string;
   search?: string;
   cursor?: string | number | false;
   parameters?: { cacheKey: string; value: string | undefined }[];
+  enabled?: boolean;
 }) {
   return useQuery({
+    enabled: enabled,
     queryKey: ['fieldOptions', integration, sourceType, search, parameters],
     queryFn: () => {
       if (sourceType) {
