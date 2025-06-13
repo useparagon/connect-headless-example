@@ -31,11 +31,10 @@ export function FieldMapperField(props: Props) {
   const [dependentInputSearch, setDependentInputSearch] = useState('');
   const [fieldInputSearch, setFieldInputSearch] = useState('');
 
-  const { data } = useDataSourceOptions(
+  const { data: options } = useDataSourceOptions<FieldMapperDataSource>(
     props.integration,
     props.field.sourceType as string
   );
-  const options = data as FieldMapperDataSource;
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
