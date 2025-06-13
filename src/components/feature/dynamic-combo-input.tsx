@@ -1,31 +1,47 @@
 import {
-  ComboInputDataSource,
+  DynamicComboInputDataSource,
   SidebarInputType,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 
-export type ComboInputValue = {
+import { VariableInput } from './variable-input';
+
+export type DynamicComboInputValue = {
   mainInput: string | undefined;
   dependentInput: string | undefined;
+  variableInput?: Record<string, string | object>;
 };
 
 type Props = {
   integration: string;
-  field: SerializedConnectInput<SidebarInputType.ComboInput>;
+  field: SerializedConnectInput<SidebarInputType.DynamicComboInput>;
   required: boolean;
-  value: ComboInputValue;
-  onChange: (value: ComboInputValue) => void;
+  value: DynamicComboInputValue;
+  onChange: (value: DynamicComboInputValue) => void;
 };
 
-export function ComboInputField(props: Props) {
+export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions<ComboInputDataSource>(
+  const [customConfig, setCustomConfig] = useState<object>(
+    props.value.variableInput || {}
+  );
+  const [customOptionFilter, setCustomOptionFilter] = useState('');
+
+  useEffect(() => {
+    props.onChange({
+      mainInput: props.value.mainInput,
+      dependentInput: props.value.dependentInput,
+      variableInput: { ...customConfig },
+    });
+  }, [customConfig]);
+
+  const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
     props.integration,
     props.field.sourceType as string
   );
@@ -47,7 +63,6 @@ export function ComboInputField(props: Props) {
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
-      enabled: Boolean(props.value.mainInput),
       integration: props.integration,
       sourceType: options?.dependentInputSource.cacheKey as string,
       parameters: [
@@ -86,7 +101,7 @@ export function ComboInputField(props: Props) {
           onSelect={(value) =>
             props.onChange({
               mainInput: value ?? undefined,
-              dependentInput: undefined,
+              dependentInput: value ? props.value.dependentInput : undefined,
             })
           }
           isFetching={isFetchingMainInput}
@@ -129,6 +144,22 @@ export function ComboInputField(props: Props) {
           })}
         </ComboboxField>
       </div>
+      {props.field.type === SidebarInputType.DynamicComboInput &&
+        props.value.mainInput &&
+        props.value.dependentInput && (
+          <VariableInput
+            integration={props.integration}
+            sourceType={options?.variableInputSource.cacheKey}
+            mainInputKey={options?.mainInputSource.cacheKey}
+            mainInputValue={props.value.mainInput}
+            dependantInputKey={options?.dependentInputSource.cacheKey}
+            dependantInputValue={props.value.dependentInput}
+            customConfig={customConfig}
+            setCustomConfig={setCustomConfig}
+            optionFilter={customOptionFilter}
+            setOptionFilter={setCustomOptionFilter}
+          />
+        )}
     </>
   );
 }

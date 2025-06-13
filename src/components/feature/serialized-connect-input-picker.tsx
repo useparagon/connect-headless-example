@@ -10,6 +10,7 @@ import { DynamicEnumField } from './dynamic-enum';
 import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
+import { DynamicComboInputField } from './dynamic-combo-input';
 
 type Props = {
   integration: string;
@@ -151,10 +152,7 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if (
-    field.type === SidebarInputType.ComboInput ||
-    field.type === SidebarInputType.DynamicComboInput
-  ) {
+  if (field.type === SidebarInputType.ComboInput) {
     const currentValue: ComboInputValue = (value as ComboInputValue) ?? {
       mainInput: undefined,
       dependentInput: undefined,
@@ -162,6 +160,24 @@ export function SerializedConnectInputPicker(props: Props) {
 
     return (
       <ComboInputField
+        integration={props.integration}
+        field={field}
+        required={required}
+        value={currentValue}
+        onChange={(value) => props.onChange(value ?? undefined)}
+      />
+    );
+  }
+
+  if (field.type === SidebarInputType.DynamicComboInput) {
+    const currentValue: ComboInputValue = (value as ComboInputValue) ?? {
+      mainInput: undefined,
+      dependentInput: undefined,
+      variableInput: {},
+    };
+
+    return (
+      <DynamicComboInputField
         integration={props.integration}
         field={field}
         required={required}
