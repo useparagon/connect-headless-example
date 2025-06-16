@@ -58,7 +58,7 @@ export function IntegrationCard(props: Props) {
             <div className="flex gap-2 items-center">
               <Button
                 variant="outline"
-                className="cursor-pointer relative"
+                className="relative"
                 onClick={() => setIsModalOpen(true)}
               >
                 {props.status ? 'Manage' : 'Start'}

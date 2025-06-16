@@ -94,7 +94,7 @@ export function ComboboxField({ size, className, ...props }: Props) {
           </FieldLabel>
         )}
         <Popover open={open} onOpenChange={setOpen} modal>
-          <PopoverTrigger disabled={props.disabled}>
+          <PopoverTrigger disabled={props.disabled} asChild>
             <Button
               disabled={props.disabled}
               variant="outline"
@@ -114,13 +114,13 @@ export function ComboboxField({ size, className, ...props }: Props) {
               </span>
               <div className="flex items-center gap-1">
                 {props.allowClear && props.value && (
-                  <button
+                  <span
                     onClick={clearSelection}
                     aria-label="Clear selection"
                     className="cursor-pointer opacity-50 hover:opacity-80 focus-visible:opacity-80 transition-opacity"
                   >
                     <CircleX className="h-4 w-4" />
-                  </button>
+                  </span>
                 )}
                 <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
               </div>
