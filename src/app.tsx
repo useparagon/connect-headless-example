@@ -1,9 +1,11 @@
 import { Header } from '@/components/layout/header';
 import { IntegrationCard } from '@/components/feature/integration-card';
 import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
-import { IIntegrationMetadata } from 'node_modules/@useparagon/connect/dist/src/entities/integration.interface';
 
-import { AuthenticatedConnectUser } from '@useparagon/connect';
+import {
+  AuthenticatedConnectUser,
+  IIntegrationMetadata,
+} from '@useparagon/connect';
 
 export function App() {
   return (
@@ -49,7 +51,7 @@ function IntegrationList() {
                   integration={integration.type}
                   name={integration.name}
                   icon={integration.icon}
-                  enabled={integrationInfo.enabled}
+                  status={integrationInfo.credentialStatus}
                   onInstall={() => {
                     refetchIntegrations();
                     refetchUser();

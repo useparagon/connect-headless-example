@@ -82,9 +82,8 @@ export const VariableInput = ({
       {nonRequired
         .filter((option) => option.id in variableInputsValues)
         .map((o) => (
-          <div className="flex items-end justify-between gap-2">
+          <div key={o.id} className="flex items-end justify-between gap-2">
             <InputSwitch
-              key={o.id}
               option={o}
               value={variableInputsValues[o.id] || ''}
               onChange={(value) => {
