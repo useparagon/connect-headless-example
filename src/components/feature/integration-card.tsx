@@ -2,12 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 import {
   ConnectInputValue,
+  CredentialStatus,
   IntegrationSharedInputStateMap,
   IntegrationWorkflowMeta,
   IntegrationWorkflowStateMap,
   paragon,
   SerializedConnectInput,
 } from '@useparagon/connect';
+import { AlertTriangleIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -31,20 +33,19 @@ type Props = {
   integration: string;
   name: string;
   icon: string;
-  enabled: boolean;
+  status: CredentialStatus | undefined;
   onInstall: () => void;
   onUninstall: () => void;
 };
 
 export function IntegrationCard(props: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [connected, setConnected] = useState(props.enabled);
 
   return (
     <Card
       className={cn(
         'min-w-[300px] hover:shadow-xs transition-shadow',
-        !props.enabled && 'border-dashed shadow-none'
+        !props.status && 'border-dashed shadow-none'
       )}
     >
       <CardContent>
@@ -60,10 +61,10 @@ export function IntegrationCard(props: Props) {
                 className="cursor-pointer relative"
                 onClick={() => setIsModalOpen(true)}
               >
-                Manage
-                {props.enabled && (
+                {props.status ? 'Manage' : 'Start'}
+                {props.status && (
                   <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
-                    <GlowingBadge />
+                    <GlowingBadge status={props.status} />
                   </div>
                 )}
               </Button>
@@ -74,13 +75,11 @@ export function IntegrationCard(props: Props) {
                 integration={props.integration}
                 name={props.name}
                 icon={props.icon}
-                enabled={connected}
+                status={props.status}
                 onInstall={() => {
-                  setConnected(true);
                   props.onInstall();
                 }}
                 onUninstall={() => {
-                  setConnected(false);
                   props.onUninstall();
                 }}
               />
@@ -108,21 +107,35 @@ function IntegrationModal(
   );
   const [installFlowStage, setInstallFlowStage] =
     useState<null | InstallFlowStage>(null);
+  const [installationError, setInstallationError] = useState<string | null>(
+    null
+  );
+  const isConnected = props.status === CredentialStatus.VALID;
+  const configurationTabDisabled =
+    !isConnected || props.status === CredentialStatus.INVALID;
 
   const doEnable = async () => {
     setIsInstalling(true);
-    await paragon.installFlow.start(props.integration, {
-      onNext: (next) => {
-        setShowFlowForm(!next.done);
-        setInstallFlowStage(next);
-      },
-      onComplete: () => {
-        props.onInstall();
-        setTab('configuration');
+    await paragon.installFlow
+      .start(props.integration, {
+        onNext: (next) => {
+          setShowFlowForm(!next.done);
+          setInstallFlowStage(next);
+        },
+        onComplete: () => {
+          props.onInstall();
+          setTab('configuration');
+          setIsInstalling(false);
+          setInstallFlowStage(null);
+        },
+      })
+      .catch((error) => {
         setIsInstalling(false);
-        setInstallFlowStage(null);
-      },
-    });
+        setInstallationError(
+          error?.message ??
+            'Something went wrong while installing the integration'
+        );
+      });
   };
 
   const doDisable = () => {
@@ -163,21 +176,32 @@ function IntegrationModal(
                 </DialogDescription>
               </div>
             </div>
-            <Button
-              className="cursor-pointer"
-              variant={props.enabled ? 'destructive' : 'default'}
-              onClick={props.enabled ? doDisable : doEnable}
-              disabled={isInstalling}
-            >
-              {isInstalling
-                ? 'Installing...'
-                : props.enabled
-                ? 'Disconnect'
-                : 'Connect'}
-            </Button>
+            <ActionButton
+              status={props.status}
+              isInstalling={isInstalling}
+              installationError={installationError}
+              onDisconnect={doDisable}
+              onConnect={doEnable}
+            />
           </div>
         </DialogHeader>
         <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
+          {installationError && (
+            <div className="text-sm bg-red-50 p-2 rounded-md border border-red-200 text-red-500 mb-6 flex gap-2 items-center">
+              <AlertTriangleIcon className="size-5" />
+              <p>{installationError}</p>
+            </div>
+          )}
+          {props.status === CredentialStatus.INVALID && !isInstalling && (
+            <div className="text-sm bg-red-50 p-2 rounded-md border border-red-200 text-red-500 mb-6 flex gap-2 items-center">
+              <AlertTriangleIcon className="size-5" />
+              <p>
+                Your {props.name} account is currently unreachable, and your
+                integration may not work as expected. <br /> Please reconnect
+                your account above.
+              </p>
+            </div>
+          )}
           {showFlowForm && installFlowStage ? (
             <FlowForm
               integration={props.integration}
@@ -208,7 +232,7 @@ function IntegrationModal(
                 <TabsTrigger
                   className="cursor-pointer"
                   value="configuration"
-                  disabled={!props.enabled}
+                  disabled={configurationTabDisabled}
                 >
                   Configuration
                 </TabsTrigger>
@@ -234,6 +258,50 @@ function IntegrationModal(
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type ActionButtonProps = {
+  status: CredentialStatus | undefined;
+  isInstalling: boolean;
+  installationError: string | null;
+  onDisconnect: () => void;
+  onConnect: () => void;
+};
+
+function ActionButton(props: ActionButtonProps) {
+  const text = useMemo(() => {
+    if (props.isInstalling) {
+      return 'Installing...';
+    }
+
+    if (props.status === CredentialStatus.VALID) {
+      return 'Disconnect';
+    }
+
+    if (props.status === CredentialStatus.INVALID) {
+      return 'Reconnect';
+    }
+
+    return 'Connect';
+  }, [props.status, props.isInstalling]);
+
+  const variant =
+    props.status === CredentialStatus.VALID ? 'destructive' : 'default';
+  const onClick =
+    props.status === CredentialStatus.VALID
+      ? props.onDisconnect
+      : props.onConnect;
+
+  return (
+    <Button
+      className="cursor-pointer"
+      variant={variant}
+      onClick={onClick}
+      disabled={props.isInstalling || Boolean(props.installationError)}
+    >
+      {text}
+    </Button>
   );
 }
 
@@ -620,11 +688,30 @@ function WorkflowFields(props: {
   );
 }
 
-function GlowingBadge() {
+type GlowingBadgeProps = {
+  status: CredentialStatus;
+};
+
+function GlowingBadge(props: GlowingBadgeProps) {
+  const lightColor =
+    props.status === CredentialStatus.VALID ? 'bg-green-300' : 'bg-red-300';
+  const darkColor =
+    props.status === CredentialStatus.VALID ? 'bg-green-400' : 'bg-red-400';
+
   return (
     <span className="relative flex size-3">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-75"></span>
-      <span className="relative inline-flex size-3 rounded-full bg-green-400"></span>
+      <span
+        className={cn(
+          'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 shadow-sm',
+          lightColor
+        )}
+      ></span>
+      <span
+        className={cn(
+          'relative inline-flex size-3 rounded-full shadow-sm',
+          darkColor
+        )}
+      ></span>
     </span>
   );
 }
