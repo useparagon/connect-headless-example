@@ -40,7 +40,7 @@ function IntegrationList() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl font-medium mb-4">Integrations</h2>
-        <ul className="flex flex-wrap gap-4">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           {sortedIntegrations.map((integration) => {
             const integrationInfo = user.integrations[integration.type];
 

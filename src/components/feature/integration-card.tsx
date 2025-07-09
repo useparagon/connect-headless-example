@@ -44,7 +44,7 @@ export function IntegrationCard(props: Props) {
   return (
     <Card
       className={cn(
-        'min-w-[300px] hover:shadow-xs transition-shadow',
+        'hover:shadow-xs transition-shadow',
         !props.status && 'border-dashed shadow-none'
       )}
     >
