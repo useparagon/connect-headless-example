@@ -14,7 +14,7 @@ export function App() {
       <div>
         <Header />
 
-        <div className="py-4 px-8">
+        <div className="container mx-auto py-4 px-8">
           <IntegrationList />
         </div>
       </div>
