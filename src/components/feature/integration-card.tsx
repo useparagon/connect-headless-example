@@ -434,7 +434,7 @@ function IntegrationConfiguration(props: { integration: string }) {
 
   return (
     <div>
-      <fieldset className="border border-gray-200 rounded-md p-4">
+      <fieldset className="border rounded-md p-4">
         <legend className="text-lg font-bold px-2">
           User integration settings
         </legend>
@@ -525,7 +525,7 @@ function IntegrationWorkflow(props: { integration: string }) {
 
   return (
     <div>
-      <fieldset className="border border-gray-200 rounded-md p-4">
+      <fieldset className="border rounded-md p-4">
         <legend className="text-lg font-bold px-2">
           User workflow settings
         </legend>
