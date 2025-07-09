@@ -6,16 +6,19 @@ import {
   AuthenticatedConnectUser,
   IIntegrationMetadata,
 } from '@useparagon/connect';
+import { ThemeProvider } from '@/lib/themes/theme-provider';
 
 export function App() {
   return (
-    <div>
-      <Header />
+    <ThemeProvider defaultTheme="dark" storageKey="theme">
+      <div>
+        <Header />
 
-      <div className="py-4 px-8">
-        <IntegrationList />
+        <div className="py-4 px-8">
+          <IntegrationList />
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
 

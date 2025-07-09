@@ -239,7 +239,7 @@ function IntegrationModal(
               </TabsList>
               <TabsContent value="overview" className="w-full">
                 <div className="p-6">
-                  <pre className="text-sm text-wrap text-black/70 font-sans">
+                  <pre className="text-sm text-wrap text-foreground/70 font-sans">
                     {integrationConfig.longDescription?.replaceAll(
                       '\n\n',
                       '\n'
