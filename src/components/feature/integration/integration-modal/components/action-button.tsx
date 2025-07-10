@@ -40,7 +40,7 @@ export function ActionButton(props: ActionButtonProps) {
       className="cursor-pointer"
       variant={variant}
       onClick={onClick}
-      disabled={props.isInstalling || Boolean(props.installationError)}
+      disabled={props.isInstalling}
     >
       {text}
     </Button>

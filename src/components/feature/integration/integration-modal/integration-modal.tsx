@@ -50,6 +50,7 @@ export function IntegrationModal(props: Props) {
     !isConnected || props.status === CredentialStatus.INVALID;
 
   const doEnable = async () => {
+    setInstallationError(null);
     setIsInstalling(true);
     await paragon.installFlow
       .start(props.integration, {
@@ -122,13 +123,13 @@ export function IntegrationModal(props: Props) {
         </DialogHeader>
         <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
           {installationError && (
-            <div className="text-sm bg-red-50 p-2 rounded-md border border-red-200 text-red-500 mb-6 flex gap-2 items-center">
+            <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
               <AlertTriangleIcon className="size-5" />
               <p>{installationError}</p>
             </div>
           )}
           {props.status === CredentialStatus.INVALID && !isInstalling && (
-            <div className="text-sm bg-red-50 p-2 rounded-md border border-red-200 text-red-500 mb-6 flex gap-2 items-center">
+            <div className="text-sm bg-amber-500/10 p-2 rounded-md border border-amber-500/20 text-amber-500 mb-6 flex gap-2 items-center">
               <AlertTriangleIcon className="size-5" />
               <p>
                 Your {props.name} account is currently unreachable, and your
