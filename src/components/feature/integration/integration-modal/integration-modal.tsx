@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tabs } from '@/components/ui/tabs';
-import { FlowForm } from '@/components/feature/integration/integration-install-flow-form';
+import { IntegrationInstallFlowForm } from '@/components/feature/integration/integration-install-flow-form';
 
 import { ActionButton } from './components/action-button';
 import { WorkflowSection } from './components/workflows';
@@ -139,7 +139,7 @@ export function IntegrationModal(props: Props) {
             </div>
           )}
           {showFlowForm && installFlowStage ? (
-            <FlowForm
+            <IntegrationInstallFlowForm
               integration={props.integration}
               installFlowStage={installFlowStage}
               onSelectAccount={(accountId) => {
