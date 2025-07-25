@@ -45,6 +45,8 @@ export function IntegrationModal(props: Props) {
   const [installationError, setInstallationError] = useState<string | null>(
     null
   );
+  const [isSendingPreOptions, setIsSendingPreOptions] = useState(false);
+  const [isSendingPostOptions, setIsSendingPostOptions] = useState(false);
   const isConnected = props.status === CredentialStatus.VALID;
   const configurationTabDisabled =
     !isConnected || props.status === CredentialStatus.INVALID;
@@ -55,10 +57,15 @@ export function IntegrationModal(props: Props) {
     await paragon.installFlow
       .start(props.integration, {
         onNext: (next) => {
+          console.log('onNext', next);
+          setIsSendingPreOptions(false);
+          setIsSendingPostOptions(false);
           setShowFlowForm(!next.done);
           setInstallFlowStage(next);
         },
         onComplete: () => {
+          setIsSendingPreOptions(false);
+          setIsSendingPostOptions(false);
           props.onInstall();
           setTab('configuration');
           setIsInstalling(false);
@@ -66,6 +73,8 @@ export function IntegrationModal(props: Props) {
         },
       })
       .catch((error) => {
+        setIsSendingPreOptions(false);
+        setIsSendingPostOptions(false);
         setIsInstalling(false);
         setInstallationError(
           error?.message ??
@@ -142,19 +151,25 @@ export function IntegrationModal(props: Props) {
             <IntegrationInstallFlowForm
               integration={props.integration}
               installFlowStage={installFlowStage}
+              isSendingPreOptions={isSendingPreOptions}
+              isSendingPostOptions={isSendingPostOptions}
               onSelectAccount={(accountId) => {
                 paragon.installFlow.setAccountType(accountId, (error) => {
                   setFlowFormError(error as Error);
                 });
               }}
               onFinishPreOptions={(preOptions) => {
+                setIsSendingPreOptions(true);
                 paragon.installFlow.setPreOptions(preOptions, (error) => {
                   setFlowFormError(error as Error);
+                  setIsSendingPreOptions(false);
                 });
               }}
               onFinishPostOptions={(postOptions) => {
+                setIsSendingPostOptions(true);
                 paragon.installFlow.setPostOptions(postOptions, (error) => {
                   setFlowFormError(error as Error);
+                  setIsSendingPostOptions(false);
                 });
               }}
               error={flowFormError}

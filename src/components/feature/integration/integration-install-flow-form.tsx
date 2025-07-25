@@ -15,6 +15,8 @@ type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
 type Props = {
   integration: string;
   installFlowStage: InstallFlowStage;
+  isSendingPreOptions: boolean;
+  isSendingPostOptions: boolean;
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
@@ -37,6 +39,7 @@ export function IntegrationInstallFlowForm(props: Props) {
           options={props.installFlowStage.options}
           onSubmit={props.onFinishPreOptions}
           error={props.error}
+          isLoading={props.isSendingPreOptions}
         />
       );
     case 'postOptions':
@@ -46,6 +49,7 @@ export function IntegrationInstallFlowForm(props: Props) {
           options={props.installFlowStage.options}
           onSubmit={props.onFinishPostOptions}
           error={props.error}
+          isLoading={props.isSendingPostOptions}
         />
       );
     case 'done':
@@ -83,6 +87,7 @@ function PreOptionsForm(props: {
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
   error: Error | null;
+  isLoading: boolean;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -105,7 +110,12 @@ function PreOptionsForm(props: {
           )}
         />
       ))}
-      <Button onClick={() => form.handleSubmit(props.onSubmit)()}>Next</Button>
+      <Button
+        onClick={() => form.handleSubmit(props.onSubmit)()}
+        disabled={props.isLoading}
+      >
+        Next
+      </Button>
       <ErrorMessage error={props.error} />
     </div>
   );
@@ -116,6 +126,7 @@ function PostOptionsForm(props: {
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
   error: Error | null;
+  isLoading: boolean;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -137,7 +148,10 @@ function PostOptionsForm(props: {
           )}
         />
       ))}
-      <Button onClick={() => form.handleSubmit(props.onSubmit)()}>
+      <Button
+        onClick={() => form.handleSubmit(props.onSubmit)()}
+        disabled={props.isLoading}
+      >
         Finish
       </Button>
       <ErrorMessage error={props.error} />
