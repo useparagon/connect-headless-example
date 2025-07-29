@@ -41,7 +41,7 @@ export function SelectField(props: Props) {
           <Button
             variant="link"
             size="icon"
-            className="text-black/70"
+            className="text-foreground"
             onClick={() => props.onChange(null)}
           >
             clear
