@@ -1,10 +1,12 @@
 import {
   AccountType,
   ConnectInputValue,
+  ConnectSDKError,
   IntegrationConnectInput,
   paragon,
   SerializedConnectInput,
 } from '@useparagon/connect';
+import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +20,7 @@ type Props = {
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
+  error: ConnectSDKError | null;
 };
 
 export function IntegrationInstallFlowForm(props: Props) {
@@ -82,7 +84,7 @@ function PreOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
+  error: ConnectSDKError | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -115,7 +117,7 @@ function PostOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
+  error: ConnectSDKError | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -145,8 +147,35 @@ function PostOptionsForm(props: {
   );
 }
 
-function ErrorMessage(props: { error: Error | null }) {
-  if (!props.error) {
+function ErrorMessage(props: { error: ConnectSDKError | null }) {
+  const errorMessage = useMemo(() => {
+    if (!props.error) {
+      return null;
+    }
+
+    if (props.error.name === 'UnknownError') {
+      return props.error.originalError instanceof Error
+        ? props.error.originalError.message
+        : 'Something went wrong';
+    }
+
+    return props.error.message;
+  }, [props.error]);
+
+  const formattedError = useMemo(() => {
+    if (!errorMessage) {
+      return null;
+    }
+
+    try {
+      return JSON.stringify(JSON.parse(errorMessage), null, 2);
+    } catch (error) {
+      console.error('Error while parsing error message', error);
+      return errorMessage;
+    }
+  }, [errorMessage]);
+
+  if (!errorMessage) {
     return null;
   }
 
@@ -154,7 +183,7 @@ function ErrorMessage(props: { error: Error | null }) {
     <div className="flex flex-col gap-2">
       <p className="font-medium">Something went wrong</p>
       <pre className="text-destructive max-w-full text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20">
-        {JSON.stringify(JSON.parse(props.error.message), null, 2)}
+        {formattedError}
       </pre>
     </div>
   );

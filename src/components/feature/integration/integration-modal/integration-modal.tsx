@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { CredentialStatus, paragon } from '@useparagon/connect';
+import {
+  ConnectSDKError,
+  CredentialStatus,
+  InstallFlowStage,
+  paragon,
+} from '@useparagon/connect';
 import { AlertTriangleIcon } from 'lucide-react';
 
 import { useIntegrationConfig } from '@/lib/hooks';
@@ -18,8 +23,6 @@ import { ActionButton } from './components/action-button';
 import { WorkflowSection } from './components/workflows';
 import { IntegrationSettingsSection } from './components/integration-settings';
 
-type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
-
 type Props = {
   integration: string;
   name: string;
@@ -35,16 +38,16 @@ export function IntegrationModal(props: Props) {
     props.integration
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
-  const [flowFormError, setFlowFormError] = useState<Error | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
     'overview'
   );
   const [installFlowStage, setInstallFlowStage] =
     useState<null | InstallFlowStage>(null);
-  const [installationError, setInstallationError] = useState<string | null>(
-    null
-  );
+  const [installationError, setInstallationError] = useState<{
+    stage?: InstallFlowStage['stage'];
+    error: ConnectSDKError;
+  } | null>(null);
   const isConnected = props.status === CredentialStatus.VALID;
   const configurationTabDisabled =
     !isConnected || props.status === CredentialStatus.INVALID;
@@ -52,34 +55,33 @@ export function IntegrationModal(props: Props) {
   const doEnable = async () => {
     setInstallationError(null);
     setIsInstalling(true);
-    await paragon.installFlow
-      .start(props.integration, {
-        onNext: (next) => {
-          setShowFlowForm(!next.done);
-          setInstallFlowStage(next);
-        },
-        onComplete: () => {
-          props.onInstall();
-          setTab('configuration');
-          setIsInstalling(false);
-          setInstallFlowStage(null);
-        },
-      })
-      .catch((error) => {
+    paragon.installFlow.start(props.integration, {
+      onNext: (next) => {
+        setShowFlowForm(!next.done);
+        setInstallFlowStage(next);
+      },
+      onComplete: () => {
         setIsInstalling(false);
-        setInstallationError(
-          error?.message ??
-            'Something went wrong while installing the integration'
-        );
-      });
+        setTab('configuration');
+        setInstallFlowStage(null);
+        props.onInstall();
+      },
+      onError: (error, errorContext) => {
+        setIsInstalling(false);
+        setInstallationError({
+          stage: errorContext?.stage,
+          error,
+        });
+      },
+    });
   };
 
   const doDisable = () => {
     paragon
       .uninstallIntegration(props.integration)
       .then(() => {
-        props.onUninstall();
         setTab('overview');
+        props.onUninstall();
       })
       .catch((error) => {
         console.error(
@@ -115,17 +117,16 @@ export function IntegrationModal(props: Props) {
             <ActionButton
               status={props.status}
               isInstalling={isInstalling}
-              installationError={installationError}
               onDisconnect={doDisable}
               onConnect={doEnable}
             />
           </div>
         </DialogHeader>
         <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
-          {installationError && (
+          {installationError && !installationError.stage && (
             <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
               <AlertTriangleIcon className="size-5" />
-              <p>{installationError}</p>
+              <p>{installationError.error.message}</p>
             </div>
           )}
           {props.status === CredentialStatus.INVALID && !isInstalling && (
@@ -143,21 +144,19 @@ export function IntegrationModal(props: Props) {
               integration={props.integration}
               installFlowStage={installFlowStage}
               onSelectAccount={(accountId) => {
-                paragon.installFlow.setAccountType(accountId, (error) => {
-                  setFlowFormError(error as Error);
-                });
+                paragon.installFlow.setAccountType(accountId);
               }}
               onFinishPreOptions={(preOptions) => {
-                paragon.installFlow.setPreOptions(preOptions, (error) => {
-                  setFlowFormError(error as Error);
-                });
+                paragon.installFlow.setPreOptions(preOptions);
               }}
               onFinishPostOptions={(postOptions) => {
-                paragon.installFlow.setPostOptions(postOptions, (error) => {
-                  setFlowFormError(error as Error);
-                });
+                paragon.installFlow.setPostOptions(postOptions);
               }}
-              error={flowFormError}
+              error={
+                installationError?.stage
+                  ? installationError?.error ?? null
+                  : null
+              }
             />
           ) : (
             <Tabs value={tab} onValueChange={setTab} className="w-full">
