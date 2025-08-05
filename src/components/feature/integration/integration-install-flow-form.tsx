@@ -1,7 +1,7 @@
 import {
   AccountType,
   ConnectInputValue,
-  ConnectSDKError,
+  InstallFlowError,
   IntegrationConnectInput,
   paragon,
   SerializedConnectInput,
@@ -20,7 +20,7 @@ type Props = {
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
-  error: ConnectSDKError | null;
+  error: InstallFlowError | null;
 };
 
 export function IntegrationInstallFlowForm(props: Props) {
@@ -84,7 +84,7 @@ function PreOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: ConnectSDKError | null;
+  error: InstallFlowError | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -117,7 +117,7 @@ function PostOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: ConnectSDKError | null;
+  error: InstallFlowError | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -147,7 +147,7 @@ function PostOptionsForm(props: {
   );
 }
 
-function ErrorMessage(props: { error: ConnectSDKError | null }) {
+function ErrorMessage(props: { error: InstallFlowError | null }) {
   const errorMessage = useMemo(() => {
     if (!props.error) {
       return null;

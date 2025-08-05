@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ConnectSDKError,
+  InstallFlowError,
   CredentialStatus,
   InstallFlowStage,
   paragon,
@@ -46,7 +46,7 @@ export function IntegrationModal(props: Props) {
     useState<null | InstallFlowStage>(null);
   const [installationError, setInstallationError] = useState<{
     stage?: InstallFlowStage['stage'];
-    error: ConnectSDKError;
+    error: InstallFlowError;
   } | null>(null);
   const isConnected = props.status === CredentialStatus.VALID;
   const configurationTabDisabled =
