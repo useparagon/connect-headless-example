@@ -22,6 +22,15 @@ import { IntegrationInstallFlowForm } from '@/components/feature/integration/int
 import { ActionButton } from './components/action-button';
 import { WorkflowSection } from './components/workflows';
 import { IntegrationSettingsSection } from './components/integration-settings';
+import { ErrorMessage } from '../error-message';
+
+const globalInstallationErrors = new Set<InstallFlowError['name']>([
+  'PopupBlockedError',
+  'UserNotAuthenticatedError',
+  'NoActiveInstallFlowError',
+  'HeadlessModeNotEnabledError',
+  'IntegrationNotFoundError',
+]);
 
 type Props = {
   integration: string;
@@ -51,6 +60,13 @@ export function IntegrationModal(props: Props) {
   const isConnected = props.status === CredentialStatus.VALID;
   const configurationTabDisabled =
     !isConnected || props.status === CredentialStatus.INVALID;
+  const showGlobalInstallationError =
+    installationError &&
+    (!installationError.stage ||
+      globalInstallationErrors.has(installationError.error.name));
+  const showStageError =
+    installationError?.stage &&
+    !globalInstallationErrors.has(installationError.error.name);
 
   const doEnable = async () => {
     setInstallationError(null);
@@ -67,6 +83,7 @@ export function IntegrationModal(props: Props) {
         props.onInstall();
       },
       onError: (error, errorContext) => {
+        console.log('onError', error);
         setIsInstalling(false);
         setInstallationError({
           stage: errorContext?.stage,
@@ -123,7 +140,7 @@ export function IntegrationModal(props: Props) {
           </div>
         </DialogHeader>
         <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
-          {installationError && !installationError.stage && (
+          {showGlobalInstallationError && (
             <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
               <AlertTriangleIcon className="size-5" />
               <p>{installationError.error.message}</p>
@@ -140,24 +157,24 @@ export function IntegrationModal(props: Props) {
             </div>
           )}
           {showFlowForm && installFlowStage ? (
-            <IntegrationInstallFlowForm
-              integration={props.integration}
-              installFlowStage={installFlowStage}
-              onSelectAccount={(accountId) => {
-                paragon.installFlow.setAccountType(accountId);
-              }}
-              onFinishPreOptions={(preOptions) => {
-                paragon.installFlow.setPreOptions(preOptions);
-              }}
-              onFinishPostOptions={(postOptions) => {
-                paragon.installFlow.setPostOptions(postOptions);
-              }}
-              error={
-                installationError?.stage
-                  ? installationError?.error ?? null
-                  : null
-              }
-            />
+            <div className="flex flex-col gap-4">
+              <IntegrationInstallFlowForm
+                integration={props.integration}
+                installFlowStage={installFlowStage}
+                onSelectAccount={(accountId) => {
+                  paragon.installFlow.setAccountType(accountId);
+                }}
+                onFinishPreOptions={(preOptions) => {
+                  paragon.installFlow.setPreOptions(preOptions);
+                }}
+                onFinishPostOptions={(postOptions) => {
+                  paragon.installFlow.setPostOptions(postOptions);
+                }}
+              />
+              {showStageError && (
+                <ErrorMessage error={installationError.error} />
+              )}
+            </div>
           ) : (
             <Tabs value={tab} onValueChange={setTab} className="w-full">
               <TabsList className="w-[250px] grid grid-cols-2">
