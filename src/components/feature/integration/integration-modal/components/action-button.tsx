@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 type ActionButtonProps = {
   status: CredentialStatus | undefined;
   isInstalling: boolean;
-  installationError: string | null;
   onDisconnect: () => void;
   onConnect: () => void;
 };
