@@ -38,6 +38,7 @@ export function DynamicEnumField(props: Props) {
       onSelect={props.onChange}
       isFetching={isFetching}
       onDebouncedChange={setSearch}
+      renderValue={() => <p>{selectedOption?.label}</p>}
       allowClear
     >
       {options.data.map((option) => {

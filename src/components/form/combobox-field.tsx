@@ -180,7 +180,7 @@ function Item(props: ComboboxItemProps) {
   }
 
   return (
-    <CommandItem onSelect={() => context.onChange(props.value)}>
+    <CommandItem value={props.value} onSelect={() => context.onChange(props.value)}>
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',

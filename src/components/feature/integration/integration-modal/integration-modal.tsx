@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CredentialStatus, paragon } from '@useparagon/connect';
 import { AlertTriangleIcon } from 'lucide-react';
 
@@ -6,17 +6,12 @@ import { useIntegrationConfig } from '@/lib/hooks';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tabs } from '@/components/ui/tabs';
 import { IntegrationInstallFlowForm } from '@/components/feature/integration/integration-install-flow-form';
 
-import { ActionButton } from './components/action-button';
-import { WorkflowSection } from './components/workflows';
-import { IntegrationSettingsSection } from './components/integration-settings';
+// Removed ActionButton, Workflows, and Settings — we only render when user input is needed
 
 type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
 
@@ -36,37 +31,44 @@ export function IntegrationModal(props: Props) {
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
   const [flowFormError, setFlowFormError] = useState<Error | null>(null);
-  const [isInstalling, setIsInstalling] = useState(false);
-  const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
-    'overview'
-  );
   const [installFlowStage, setInstallFlowStage] =
     useState<null | InstallFlowStage>(null);
   const [installationError, setInstallationError] = useState<string | null>(
     null
   );
   const isConnected = props.status === CredentialStatus.VALID;
-  const configurationTabDisabled =
-    !isConnected || props.status === CredentialStatus.INVALID;
+  const [autoStarted, setAutoStarted] = useState(false);
+  const latestIntegrationRef = useRef(props.integration);
+
+  // Reset install flow state when integration changes
+  useEffect(() => {
+    latestIntegrationRef.current = props.integration;
+    setShowFlowForm(false);
+    setInstallFlowStage(null);
+    setFlowFormError(null);
+    setInstallationError(null);
+    setAutoStarted(false);
+  }, [props.integration]);
 
   const doEnable = async () => {
     setInstallationError(null);
-    setIsInstalling(true);
+    const integrationAtStart = props.integration;
     await paragon.installFlow
-      .start(props.integration, {
+      .start(integrationAtStart, {
         onNext: (next) => {
+          if (latestIntegrationRef.current !== integrationAtStart) return;
           setShowFlowForm(!next.done);
           setInstallFlowStage(next);
         },
         onComplete: () => {
+          if (latestIntegrationRef.current !== integrationAtStart) return;
           props.onInstall();
-          setTab('configuration');
-          setIsInstalling(false);
           setInstallFlowStage(null);
+          setShowFlowForm(false);
+          props.onOpenChange(false);
         },
       })
       .catch((error) => {
-        setIsInstalling(false);
         setInstallationError(
           error?.message ??
             'Something went wrong while installing the integration'
@@ -74,21 +76,13 @@ export function IntegrationModal(props: Props) {
       });
   };
 
-  const doDisable = () => {
-    paragon
-      .uninstallIntegration(props.integration)
-      .then(() => {
-        props.onUninstall();
-        setTab('overview');
-      })
-      .catch((error) => {
-        console.error(
-          'error uninstalling integration:',
-          props.integration,
-          error
-        );
-      });
-  };
+  // Auto-start the connect flow on mount if not already connected
+  useEffect(() => {
+    if (!autoStarted && !isConnected) {
+      setAutoStarted(true);
+      void doEnable();
+    }
+  }, [autoStarted, isConnected]);
 
   if (isLoading) {
     return null;
@@ -98,99 +92,47 @@ export function IntegrationModal(props: Props) {
     throw new Error(`Integration config not found for ${props.integration}`);
   }
 
+  // Only render the modal when user input is required (account type or options)
+  if (!(showFlowForm && installFlowStage)) {
+    return null;
+  }
+
   return (
     <Dialog onOpenChange={props.onOpenChange} open>
-      <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px] max-h-[90dvh]">
+      <DialogContent className="w-[90dvw] max-w-[800px] max-h-[90dvh]">
         <DialogHeader>
-          <div className="flex gap-2 justify-between items-center">
-            <div className="flex gap-4 items-center">
-              <img src={props.icon} width={45} />
-              <div className="flex flex-col items-start gap-1">
-                <DialogTitle>{props.name}</DialogTitle>
-                <DialogDescription className="text-left">
-                  {integrationConfig.shortDescription}
-                </DialogDescription>
-              </div>
-            </div>
-            <ActionButton
-              status={props.status}
-              isInstalling={isInstalling}
-              installationError={installationError}
-              onDisconnect={doDisable}
-              onConnect={doEnable}
-            />
+          <div className="flex gap-4 items-center">
+            <img src={props.icon} width={32} />
+            <DialogTitle>Connect {props.name}</DialogTitle>
           </div>
         </DialogHeader>
-        <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
+        <div className="pt-4 px-1 overflow-y-auto max-h-[70dvh]">
           {installationError && (
-            <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
+            <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-4 flex gap-2 items-center">
               <AlertTriangleIcon className="size-5" />
               <p>{installationError}</p>
             </div>
           )}
-          {props.status === CredentialStatus.INVALID && !isInstalling && (
-            <div className="text-sm bg-amber-500/10 p-2 rounded-md border border-amber-500/20 text-amber-500 mb-6 flex gap-2 items-center">
-              <AlertTriangleIcon className="size-5" />
-              <p>
-                Your {props.name} account is currently unreachable, and your
-                integration may not work as expected. <br /> Please reconnect
-                your account above.
-              </p>
-            </div>
-          )}
-          {showFlowForm && installFlowStage ? (
-            <IntegrationInstallFlowForm
-              integration={props.integration}
-              installFlowStage={installFlowStage}
-              onSelectAccount={(accountId) => {
-                paragon.installFlow.setAccountType(accountId, (error) => {
-                  setFlowFormError(error as Error);
-                });
-              }}
-              onFinishPreOptions={(preOptions) => {
-                paragon.installFlow.setPreOptions(preOptions, (error) => {
-                  setFlowFormError(error as Error);
-                });
-              }}
-              onFinishPostOptions={(postOptions) => {
-                paragon.installFlow.setPostOptions(postOptions, (error) => {
-                  setFlowFormError(error as Error);
-                });
-              }}
-              error={flowFormError}
-            />
-          ) : (
-            <Tabs value={tab} onValueChange={setTab} className="w-full">
-              <TabsList className="w-[250px] grid grid-cols-2">
-                <TabsTrigger className="cursor-pointer" value="overview">
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  className="cursor-pointer"
-                  value="configuration"
-                  disabled={configurationTabDisabled}
-                >
-                  Configuration
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="overview" className="w-full">
-                <div className="p-6">
-                  <pre className="text-sm text-wrap text-foreground/70 font-sans">
-                    {integrationConfig.longDescription?.replaceAll(
-                      '\n\n',
-                      '\n'
-                    )}
-                  </pre>
-                </div>
-              </TabsContent>
-              <TabsContent value="configuration" className="w-full">
-                <div className="p-6 flex flex-col gap-6">
-                  <IntegrationSettingsSection integration={props.integration} />
-                  <WorkflowSection integration={props.integration} />
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
+          <IntegrationInstallFlowForm
+            integration={props.integration}
+            installFlowStage={installFlowStage}
+            onSelectAccount={(accountId) => {
+              paragon.installFlow.setAccountType(accountId, (error) => {
+                setFlowFormError(error as Error);
+              });
+            }}
+            onFinishPreOptions={(preOptions) => {
+              paragon.installFlow.setPreOptions(preOptions, (error) => {
+                setFlowFormError(error as Error);
+              });
+            }}
+            onFinishPostOptions={(postOptions) => {
+              paragon.installFlow.setPostOptions(postOptions, (error) => {
+                setFlowFormError(error as Error);
+              });
+            }}
+            error={flowFormError}
+          />
         </div>
       </DialogContent>
     </Dialog>

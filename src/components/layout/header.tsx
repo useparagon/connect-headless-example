@@ -19,10 +19,10 @@ export function Header() {
           >
             Paragon{' '}
             <p
-              className="text-xs opacity-70 uppercase font-extrabold"
+              className="text-xs opacity-70 uppercase font-extrabold mt-1"
               style={{ fontSize: 10 }}
             >
-              Headless Connect
+              Actions Playground
             </p>
           </div>
         </div>

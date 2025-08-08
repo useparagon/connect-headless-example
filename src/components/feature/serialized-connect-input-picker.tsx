@@ -12,6 +12,8 @@ import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
 import { CodeInputField } from '../form/code-input-field';
+import { StaticEnumField } from './static-enum';
+import { ConditionalInputField } from './conditional-input';
 
 type Props = {
   integration: string;
@@ -169,6 +171,19 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
+  // @ts-expect-error - Enum is not in some local type definitions; also handle raw "ENUM" string
+  if (field.type === SidebarInputType.Enum || (field as any).type === 'ENUM') {
+    const f = field as any;
+    return (
+      <StaticEnumField
+        field={f}
+        required={required}
+        value={(value as string) ?? f.defaultValue ?? null}
+        onChange={(v) => onChange(v ?? undefined)}
+      />
+    );
+  }
+
   if (field.type === SidebarInputType.DynamicEnum) {
     return (
       <DynamicEnumField
@@ -177,6 +192,18 @@ export function SerializedConnectInputPicker(props: Props) {
         required={required}
         value={value as string}
         onChange={(value) => props.onChange(value ?? undefined)}
+      />
+    );
+  }
+
+  if ((field as any).type === 'CONDITIONAL') {
+    const f = field as any;
+    return (
+      <ConditionalInputField
+        field={f}
+        required={required}
+        value={value as any}
+        onChange={(v) => onChange(v)}
       />
     );
   }

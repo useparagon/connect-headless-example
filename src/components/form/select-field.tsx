@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 
 import { FieldLabel } from './field-label';
+import { X } from 'lucide-react';
 
 type Props = {
   id: string;
@@ -20,14 +21,19 @@ type Props = {
   onChange: (value: string | null) => void;
   children: ReactNode;
   allowClear?: boolean;
+  subtitle?: ReactNode;
+  tooltip?: ReactNode;
 };
 
 export function SelectField(props: Props) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel id={props.id} required={props.required}>
+      <FieldLabel id={props.id} required={props.required} tooltip={props.tooltip}>
         {props.title}
       </FieldLabel>
+      {props.subtitle ? (
+        <p className="text-sm text-gray-500">{props.subtitle}</p>
+      ) : null}
       <div className="flex gap-2">
         <Select value={props.value ?? ''} onValueChange={props.onChange}>
           <SelectTrigger className="w-[180px]" id={props.id}>
@@ -44,7 +50,7 @@ export function SelectField(props: Props) {
             className="text-foreground"
             onClick={() => props.onChange(null)}
           >
-            clear
+            <X className="size-4" />
           </Button>
         ) : null}
       </div>

@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ComboboxField } from '../form/combobox-field';
 import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
 import { Button } from '../ui/button';
-import { Check } from 'lucide-react';
-import { paragon, SidebarInputType } from '@useparagon/connect';
+import { Check, Loader2, Play, XCircle } from 'lucide-react';
+import {
+  paragon,
+  SidebarInputType,
+  type ConnectInputValue,
+} from '@useparagon/connect';
 import { IntegrationModal } from './integration/integration-modal/integration-modal';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { config } from '@/main';
 import { SerializedConnectInputPicker } from './serialized-connect-input-picker';
 import inputsMapping from '@/lib/inputsMapping.json';
 
 const IntegrationTitle = ({ integration }: { integration: string | null }) => {
-  const { data: integrations, isLoading: isLoadingIntegrations } =
-    useIntegrationMetadata();
+  const { data: integrations } = useIntegrationMetadata();
 
   const integrationMetadata = integrations?.find((i) => i.type === integration);
   if (!integrationMetadata) {
@@ -34,11 +37,8 @@ const IntegrationTitle = ({ integration }: { integration: string | null }) => {
 export default function ActionTester() {
   const [integration, setIntegration] = useState<string | null>(null);
   const { data: user, refetch: refetchUser } = useAuthenticatedUser();
-  const {
-    data: integrations,
-    isLoading: isLoadingIntegrations,
-    refetch: refetchIntegrations,
-  } = useIntegrationMetadata();
+  const { data: integrations, isLoading: isLoadingIntegrations } =
+    useIntegrationMetadata();
   const integrationMetadata = integrations?.find((i) => i.type === integration);
   const actions = useQuery({
     queryKey: ['actions', integration],
@@ -59,8 +59,56 @@ export default function ActionTester() {
     },
   });
   const [action, setAction] = useState<string | null>(null);
+  const [inputValues, setInputValues] = useState<
+    Record<string, ConnectInputValue>
+  >({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const selectedAction = useMemo(
+    () => actions.data?.find((a: any) => a.name === action),
+    [actions.data, action],
+  );
+
+  useEffect(() => {
+    if (!selectedAction) {
+      setInputValues({});
+      return;
+    }
+    const initial: Record<string, ConnectInputValue> = {};
+    for (const input of selectedAction.inputs ?? []) {
+      initial[input.id] = input.value as ConnectInputValue;
+    }
+    setInputValues(initial);
+  }, [selectedAction]);
+
+  // Close the connect modal when switching integrations to avoid auto-starting flows unintentionally
+  useEffect(() => {
+    setIsModalOpen(false);
+  }, [integration]);
+
+  const runAction = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(
+        `https://actionkit.useparagon.com/projects/${config.VITE_PARAGON_PROJECT_ID}/actions`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${config.VITE_PARAGON_JWT_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: selectedAction.name,
+            parameters: inputValues,
+          }),
+        },
+      );
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   if (!user || isLoadingIntegrations || !integrations) {
     return <div>Loading...</div>;
@@ -107,17 +155,29 @@ export default function ActionTester() {
                       variant="ghost"
                       className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                       onClick={() => {
-                        paragon.uninstallIntegration(integration);
-                        refetchUser();
+                        paragon.uninstallIntegration(integration).then(() => {
+                          refetchUser();
+                          setIsDisconnecting(false);
+                        });
+                        setIsDisconnecting(true);
                       }}
                     >
-                      Disconnect account
+                      Disconnect account {isDisconnecting && <Loader2 className="size-4 animate-spin" />}
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={() => setIsModalOpen(true)}>
-                    Connect an account
-                  </Button>
+                  <div className="flex gap-4 items-center mt-2">
+                    <Button
+                      size="sm"
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Connect to {integrationMetadata?.name}
+                    </Button>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Connect an account to test Actions.
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -143,30 +203,68 @@ export default function ActionTester() {
               </ComboboxField.Item>
             ))}
           </ComboboxField>
-          {action &&
-            actions.data
-              ?.find((a: any) => a.name === action)
-              ?.inputs.map((input: any) => (
-                <SerializedConnectInputPicker
-                  key={input.id}
-                  integration={integration!}
-                  field={overrideInput(integration!, input)}
-                  value={input.value}
-                  onChange={() => {}}
-                />
-                // <div key={input.id} className="text-sm">
-                //   <p className="font-medium">{input.title}</p>
-                //   <p className="text-neutral-500 dark:text-neutral-400">
-                //     {input.subtitle}
-                //   </p>
-                // </div>
-              ))}
+          {selectedAction &&
+            selectedAction.inputs?.map((input: any) => (
+              <SerializedConnectInputPicker
+                key={input.id}
+                integration={integration!}
+                field={overrideInput(integration!, input)}
+                value={inputValues[input.id]}
+                onChange={(v) =>
+                  setInputValues((prev) => ({ ...prev, [input.id]: v }))
+                }
+              />
+            ))}
+          <div>
+            <Button
+              className="bg-indigo-500 hover:bg-indigo-600 text-white"
+              disabled={!selectedAction}
+              onClick={() => runAction.mutate()}
+            >
+              <Play className="size-3 mr-1 fill-white" /> Run Action
+            </Button>
+          </div>
         </div>
       </div>
-      <div className="w-[400px] border border-neutral-200 dark:border-neutral-800 rounded-md p-4">
-        <h1>Output</h1>
+      <div className="w-[40%] border border-neutral-200 dark:border-neutral-800 rounded-md p-8 px-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-bold">Output</h1>
+          <div className="flex gap-2 items-center">
+            {runAction.isSuccess && (
+              <Check className="size-5 text-green-600" />
+            )}
+            {runAction.isError && (
+              <XCircle className="size-5 fill-red-500 text-white" />
+            )}
+            {runAction.isLoading && <Loader2 className="size-5 animate-spin" />}
+            <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-500">
+              {runAction.isSuccess
+                ? 'Success'
+                : runAction.isError
+                ? 'Error'
+                : runAction.isLoading
+                ? 'Running...'
+                : ''}
+            </p>
+          </div>
+        </div>
+        {runAction.data ? (
+          <div className="flex flex-col gap-2">
+            <pre className="text-xs p-2 bg-neutral-100 dark:bg-neutral-900 rounded-md overflow-x-auto max-h-[500px]">
+              {JSON.stringify(runAction.data, null, 2)}
+            </pre>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 border border-neutral-200 dark:border-neutral-800 rounded-md p-4">
+            <p className="text-center text-neutral-500 dark:text-neutral-400 text-sm">
+              {runAction.isLoading
+                ? 'Running...'
+                : 'Run an Action to see the output here.'}
+            </p>
+          </div>
+        )}
       </div>
-      {isModalOpen && (
+      {isModalOpen && integration && !user.integrations[integration]?.enabled && (
         <IntegrationModal
           onOpenChange={setIsModalOpen}
           integration={integration!}
