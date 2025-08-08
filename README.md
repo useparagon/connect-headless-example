@@ -45,36 +45,52 @@ Here are some of the core functions of the app to explore as a starting point fo
 
 ### Integration authentication / setup flow
 
+[**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/d050a9afb3a955ff7fe3240bcc68ac3e99ae8b8b/src/components/feature/integration/integration-modal/integration-modal.tsx#L33)
+
+
 ![Jira install flow of Headless Connect Portal](/static/[Connect%20Headless%20Example]%202025-08-08%20at%2002.26.33%20AM.gif)
 
 To connect a user's integration account, we use the Headless Connect Portal to make the connection process seamless and native to the UI language of the rest of the demo app.
 
-This flow is implemented in the `IntegrationModal` component. [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/d050a9afb3a955ff7fe3240bcc68ac3e99ae8b8b/src/components/feature/integration/integration-modal/integration-modal.tsx#L33)
+This flow is implemented in the `IntegrationModal` component This component can also be forked and used directly in your own React app.
 
-The `IntegrationModal` component can also be forked and used directly in your own React app.
+---
 
 ### Listing available Actions
 
-We use the ActionKit [**List Actions endpoint**](https://docs.useparagon.com/actionkit/api-reference#list-actions) to query available Actions and schemas for a selected integration. [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L54-L71)
+[**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L54-L71)
+
+
+We use the ActionKit [**List Actions endpoint**](https://docs.useparagon.com/actionkit/api-reference#list-actions) to query available Actions and schemas for a selected integration. 
 
 ActionKit provides a title and description for each Action that can be used to present available Actions to a user.
 
+---
+
 ### Rendering inputs from Action schemas
+
+[**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/serialized-connect-input-picker.tsx)
 
 With the [Action schema](https://docs.useparagon.com/actionkit/schema-formats#paragon-format) that we pulled from the API, we can render inputs for users to configure their Action.
 
-The renderer is implemented in `SerializedConnectInputPicker`, which can render the input types described in [the documentation](https://docs.useparagon.com/actionkit/schema-formats#overview). You can use this component directly or a starting point in your own app. [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/serialized-connect-input-picker.tsx)
+The renderer is implemented in `SerializedConnectInputPicker`, which can render the input types described in [the documentation](https://docs.useparagon.com/actionkit/schema-formats#overview). You can use this component directly or a starting point in your own app. 
+
+---
 
 **Loading dynamic options**
 
-When inputs should render a dynamic list of integration data (like a Recipient list from Slack or a Folder list from Google Drive), the `SerializedConnectInputPicker` component uses the Headless Connect Portal `getFieldOptions` function to load available options for the user. [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/dynamic-enum.tsx#L18-L24)
+[**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/dynamic-enum.tsx#L18-L24)
+
+When inputs should render a dynamic list of integration data (like a Recipient list from Slack or a Folder list from Google Drive), the `SerializedConnectInputPicker` component uses the Headless Connect Portal `getFieldOptions` function to load available options for the user. 
 
 > [!NOTE]  
 > Inputs from the ActionKit API schema currently do not include their corresponding `sourceType`, which is mapped in the demo [here](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L354-L370).
 
 ### Running Actions
 
-When Actions are configured and the user is ready to run, we use the ActionKit [**Run Action endpoint**](https://docs.useparagon.com/actionkit/api-reference#run-action) to send the request with the Action name and configuration. [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L128-L154)
+[**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L128-L154)
+
+When Actions are configured and the user is ready to run, we use the ActionKit [Run Action endpoint](https://docs.useparagon.com/actionkit/api-reference#run-action) to send the request with the Action name and configuration.
 
 ActionKit API automatically handles authentication and secure token refresh with the integration in the background.
 
