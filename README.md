@@ -73,7 +73,7 @@ ActionKit provides a title and description for each Action that can be used to p
 
 [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/serialized-connect-input-picker.tsx)
 
-<img src="Inputs for Slack Send Message" src="/static/inputs.gif" width="300" />
+<img alt="Inputs for Slack Send Message" src="/static/inputs.gif" width="300" />
 
 With the [Action schema](https://docs.useparagon.com/actionkit/schema-formats#paragon-format) that we pulled from the API, we can render inputs for users to configure their Action.
 
