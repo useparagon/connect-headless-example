@@ -339,7 +339,9 @@ export default function ActionTester() {
             icon={integrationMetadata?.icon ?? ''}
             status={undefined}
             onInstall={() => {
-              refetchUser();
+              refetchUser().then(() => {
+                actions.refetch();
+              }); 
               setIsModalOpen(false);
             }}
             onUninstall={() => {
