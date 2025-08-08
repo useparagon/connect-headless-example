@@ -8,7 +8,7 @@ export function App() {
     <ThemeProvider defaultTheme="dark" storageKey="theme">
       <div>
         <Header />
-        <div className="container mx-auto py-4 px-8">
+        <div className="container mx-auto py-4 px-8 mt-20">
           <ActionTester />
         </div>
       </div>

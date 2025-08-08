@@ -48,6 +48,7 @@ type Props = {
   isFetching: boolean;
   onSelect: (value: string | null) => void;
   onDebouncedChange: (value: string) => void;
+  onOpenChange?: (open: boolean) => void;
   title?: string;
   subtitle?: React.ReactNode;
   disabled?: boolean;
@@ -65,6 +66,9 @@ const ComboboxFieldContext = createContext<null | ComboboxFieldContext>(null);
 
 export function ComboboxField({ size, className, ...props }: Props) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    props.onOpenChange?.(open);
+  }, [open]);
 
   const clearSelection = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -180,7 +184,10 @@ function Item(props: ComboboxItemProps) {
   }
 
   return (
-    <CommandItem value={props.value} onSelect={() => context.onChange(props.value)}>
+    <CommandItem
+      value={props.value}
+      onSelect={() => context.onChange(props.value)}
+    >
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',

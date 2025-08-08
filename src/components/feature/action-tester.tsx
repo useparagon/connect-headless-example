@@ -40,6 +40,7 @@ export default function ActionTester() {
   const { data: integrations, isLoading: isLoadingIntegrations } =
     useIntegrationMetadata();
   const integrationMetadata = integrations?.find((i) => i.type === integration);
+  const [integrationQuery, setIntegrationQuery] = useState('');
   const actions = useQuery({
     queryKey: ['actions', integration],
     queryFn: async () => {
@@ -62,6 +63,7 @@ export default function ActionTester() {
   const [inputValues, setInputValues] = useState<
     Record<string, ConnectInputValue>
   >({});
+  const [actionQuery, setActionQuery] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,6 +71,28 @@ export default function ActionTester() {
     () => actions.data?.find((a: any) => a.name === action),
     [actions.data, action],
   );
+
+  const filteredIntegrations = useMemo(() => {
+    const query = integrationQuery.trim().toLowerCase();
+    if (!integrations) return [];
+    if (!query) return integrations;
+    return integrations.filter(
+      (i) =>
+        (i.name ?? '').toLowerCase().includes(query) ||
+        (i.type ?? '').toLowerCase().includes(query),
+    );
+  }, [integrations, integrationQuery]);
+
+  const filteredActions = useMemo(() => {
+    const list = actions.data ?? [];
+    const query = actionQuery.trim().toLowerCase();
+    if (!query) return list;
+    return list.filter((a: any) => {
+      const title = (a.title ?? '').toLowerCase();
+      const name = (a.name ?? '').toLowerCase();
+      return title.includes(query) || name.includes(query);
+    });
+  }, [actions.data, actionQuery]);
 
   useEffect(() => {
     if (!selectedAction) {
@@ -103,6 +127,10 @@ export default function ActionTester() {
           }),
         },
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
       const data = await response.json();
       return data;
     },
@@ -115,7 +143,7 @@ export default function ActionTester() {
   }
 
   return (
-    <div className="flex gap-4 h-min-screen">
+    <div className="flex gap-4 h-min-screen relative">
       <div className="flex-1 border border-neutral-200 dark:border-neutral-800 rounded-md p-8">
         <h1 className="text-xl font-bold mb-4">Actions</h1>
         <div className="flex flex-col gap-6">
@@ -128,11 +156,18 @@ export default function ActionTester() {
               allowClear
               required
               isFetching={false}
-              onSelect={(value) => setIntegration(value ?? null)}
-              onDebouncedChange={() => {}}
+              onSelect={(value) => {
+                setIntegration(value ?? null);
+              }}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIntegrationQuery('');
+                }
+              }}
+              onDebouncedChange={setIntegrationQuery}
               renderValue={(value) => <IntegrationTitle integration={value} />}
             >
-              {integrations
+              {filteredIntegrations
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((integration) => (
                   <ComboboxField.Item
@@ -162,7 +197,10 @@ export default function ActionTester() {
                         setIsDisconnecting(true);
                       }}
                     >
-                      Disconnect account {isDisconnecting && <Loader2 className="size-4 animate-spin" />}
+                      Disconnect account{' '}
+                      {isDisconnecting && (
+                        <Loader2 className="size-4 animate-spin" />
+                      )}
                     </Button>
                   </div>
                 ) : (
@@ -192,12 +230,17 @@ export default function ActionTester() {
             isFetching={actions.isLoading}
             disabled={!integration || !user.integrations[integration]?.enabled}
             onSelect={(value) => setAction(value ?? null)}
-            onDebouncedChange={() => {}}
+            onOpenChange={(open) => {
+              if (!open) {
+                setActionQuery('');
+              }
+            }}
+            onDebouncedChange={setActionQuery}
             renderValue={(value) => (
               <p>{actions.data?.find((a: any) => a.name === value)?.title}</p>
             )}
           >
-            {actions.data?.map((action: any) => (
+            {filteredActions.map((action: any) => (
               <ComboboxField.Item key={action.name} value={action.name}>
                 <p>{action.title}</p>
               </ComboboxField.Item>
@@ -218,25 +261,26 @@ export default function ActionTester() {
           <div>
             <Button
               className="bg-indigo-500 hover:bg-indigo-600 text-white"
-              disabled={!selectedAction}
+              disabled={!selectedAction || runAction.isLoading}
               onClick={() => runAction.mutate()}
             >
-              <Play className="size-3 mr-1 fill-white" /> Run Action
+              <Play className="size-3 mr-1 fill-white" /> Run Action{' '}
+              {runAction.isLoading && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
             </Button>
           </div>
         </div>
       </div>
-      <div className="w-[40%] border border-neutral-200 dark:border-neutral-800 rounded-md p-8 px-6">
+      <div className="w-[40%] max-h-[calc(100dvh-10rem)] border border-neutral-200 dark:border-neutral-800 rounded-md p-8 px-6 sticky top-22">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold">Output</h1>
           <div className="flex gap-2 items-center">
-            {runAction.isSuccess && (
-              <Check className="size-5 text-green-600" />
-            )}
+            {runAction.isSuccess && <Check className="size-5 text-green-600" />}
             {runAction.isError && (
               <XCircle className="size-5 fill-red-500 text-white" />
             )}
-            {runAction.isLoading && <Loader2 className="size-5 animate-spin" />}
+            {runAction.isLoading && <Loader2 className="size-4 animate-spin" />}
             <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-500">
               {runAction.isSuccess
                 ? 'Success'
@@ -248,10 +292,14 @@ export default function ActionTester() {
             </p>
           </div>
         </div>
-        {runAction.data ? (
-          <div className="flex flex-col gap-2">
-            <pre className="text-xs p-2 bg-neutral-100 dark:bg-neutral-900 rounded-md overflow-x-auto max-h-[500px]">
-              {JSON.stringify(runAction.data, null, 2)}
+        {runAction.data || runAction.error ? (
+          <div className="flex flex-col gap-2 h-full pb-4">
+            <pre className="text-xs p-2 bg-neutral-100 dark:bg-neutral-900 rounded-md overflow-x-scroll">
+              {runAction.data
+                ? JSON.stringify(runAction.data, null, 2)
+                : runAction.error
+                ? JSON.stringify(runAction.error, null, 2)
+                : ''}
             </pre>
           </div>
         ) : (
@@ -264,22 +312,24 @@ export default function ActionTester() {
           </div>
         )}
       </div>
-      {isModalOpen && integration && !user.integrations[integration]?.enabled && (
-        <IntegrationModal
-          onOpenChange={setIsModalOpen}
-          integration={integration!}
-          name={integrationMetadata?.name ?? ''}
-          icon={integrationMetadata?.icon ?? ''}
-          status={undefined}
-          onInstall={() => {
-            refetchUser();
-            setIsModalOpen(false);
-          }}
-          onUninstall={() => {
-            refetchUser();
-          }}
-        />
-      )}
+      {isModalOpen &&
+        integration &&
+        !user.integrations[integration]?.enabled && (
+          <IntegrationModal
+            onOpenChange={setIsModalOpen}
+            integration={integration!}
+            name={integrationMetadata?.name ?? ''}
+            icon={integrationMetadata?.icon ?? ''}
+            status={undefined}
+            onInstall={() => {
+              refetchUser();
+              setIsModalOpen(false);
+            }}
+            onUninstall={() => {
+              refetchUser();
+            }}
+          />
+        )}
     </div>
   );
 }

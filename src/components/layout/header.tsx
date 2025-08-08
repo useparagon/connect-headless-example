@@ -6,7 +6,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="py-4 border-b border-border border-dashed">
+    <header className="py-4 border-b border-border fixed top-0 left-0 right-0 z-10 bg-background">
       <div className="container px-8 mx-auto flex items-center justify-between">
         <div className="flex items-center">
           <img
