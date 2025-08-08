@@ -1,5 +1,5 @@
-import { config } from "@/main";
-import { useQuery } from "@tanstack/react-query";
+import { config } from '@/main';
+import { useQuery } from '@tanstack/react-query';
 
 type ActionsSectionProps = {
     integration: string;
@@ -18,7 +18,7 @@ export default function ActionsSection({ integration }: ActionsSectionProps) {
       return data.actions[integration] ?? [];
     }
   });
-  return actions.data?.map((action: any) => (
+  return actions.data?.map((action: { name: string; title: string; description?: string }) => (
     <div key={action.name}>
       <h3>{action.title}</h3>
       <p>{action.description}</p>

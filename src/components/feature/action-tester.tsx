@@ -7,6 +7,7 @@ import {
   paragon,
   SidebarInputType,
   type ConnectInputValue,
+  type SerializedConnectInput,
 } from '@useparagon/connect';
 import { IntegrationModal } from './integration/integration-modal/integration-modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -34,6 +35,13 @@ const IntegrationTitle = ({ integration }: { integration: string | null }) => {
   );
 };
 
+type ParagonAction = {
+  name: string;
+  title: string;
+  description?: string;
+  inputs?: SerializedConnectInput[];
+};
+
 export default function ActionTester() {
   const [integration, setIntegration] = useState<string | null>(null);
   const { data: user, refetch: refetchUser } = useAuthenticatedUser();
@@ -41,11 +49,13 @@ export default function ActionTester() {
     useIntegrationMetadata();
   const integrationMetadata = integrations?.find((i) => i.type === integration);
   const [integrationQuery, setIntegrationQuery] = useState('');
-  const actions = useQuery({
+
+
+  const actions = useQuery<ParagonAction[]>({
     queryKey: ['actions', integration],
     queryFn: async () => {
       if (!integration || !user?.integrations[integration]?.enabled) {
-        return [];
+        return [] as ParagonAction[];
       }
       const response = await fetch(
         `https://actionkit.useparagon.com/projects/${config.VITE_PARAGON_PROJECT_ID}/actions?integrations=${integration}&format=paragon`,
@@ -55,8 +65,8 @@ export default function ActionTester() {
           },
         },
       );
-      const data = await response.json();
-      return (integration && data.actions[integration]) ?? [];
+       const data = await response.json();
+       return ((integration && data.actions[integration]) ?? []) as ParagonAction[];
     },
   });
   const [action, setAction] = useState<string | null>(null);
@@ -67,10 +77,9 @@ export default function ActionTester() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const selectedAction = useMemo(
-    () => actions.data?.find((a: any) => a.name === action),
-    [actions.data, action],
-  );
+  const selectedAction: ParagonAction | null = useMemo(() => {
+    return actions.data?.find((a) => a.name === action) ?? null;
+  }, [actions.data, action]);
 
   const filteredIntegrations = useMemo(() => {
     const query = integrationQuery.trim().toLowerCase();
@@ -87,7 +96,7 @@ export default function ActionTester() {
     const list = actions.data ?? [];
     const query = actionQuery.trim().toLowerCase();
     if (!query) return list;
-    return list.filter((a: any) => {
+    return list.filter((a) => {
       const title = (a.title ?? '').toLowerCase();
       const name = (a.name ?? '').toLowerCase();
       return title.includes(query) || name.includes(query);
@@ -101,18 +110,26 @@ export default function ActionTester() {
     }
     const initial: Record<string, ConnectInputValue> = {};
     for (const input of selectedAction.inputs ?? []) {
-      initial[input.id] = input.value as ConnectInputValue;
+      type ExtendedSerializedConnectInput = SerializedConnectInput & {
+        value?: unknown;
+      };
+      const withValue = input as ExtendedSerializedConnectInput;
+      if (withValue.value !== undefined) {
+        initial[input.id] = withValue.value as ConnectInputValue;
+      }
     }
     setInputValues(initial);
   }, [selectedAction]);
 
-  // Close the connect modal when switching integrations to avoid auto-starting flows unintentionally
   useEffect(() => {
     setIsModalOpen(false);
   }, [integration]);
 
   const runAction = useMutation({
     mutationFn: async () => {
+      if (!selectedAction) {
+        throw new Error('No action selected');
+      }
       const response = await fetch(
         `https://actionkit.useparagon.com/projects/${config.VITE_PARAGON_PROJECT_ID}/actions`,
         {
@@ -237,17 +254,17 @@ export default function ActionTester() {
             }}
             onDebouncedChange={setActionQuery}
             renderValue={(value) => (
-              <p>{actions.data?.find((a: any) => a.name === value)?.title}</p>
+              <p>{actions.data?.find((a) => a.name === value)?.title}</p>
             )}
           >
-            {filteredActions.map((action: any) => (
+            {filteredActions.map((action) => (
               <ComboboxField.Item key={action.name} value={action.name}>
                 <p>{action.title}</p>
               </ComboboxField.Item>
             ))}
           </ComboboxField>
           {selectedAction &&
-            selectedAction.inputs?.map((input: any) => (
+            selectedAction.inputs?.map((input: SerializedConnectInput) => (
               <SerializedConnectInputPicker
                 key={input.id}
                 integration={integration!}
@@ -334,16 +351,20 @@ export default function ActionTester() {
   );
 }
 
-function overrideInput(integration: string, input: any) {
-  const sourceType =
-    // @ts-ignore
-    inputsMapping?.[integration as keyof typeof inputsMapping]?.[input.id];
+function overrideInput(
+  integration: string,
+  input: SerializedConnectInput,
+) {
+  const mapping =
+    (inputsMapping as unknown as Record<string, Record<string, string>>) ||
+    ({} as Record<string, Record<string, string>>);
+  const sourceType = mapping[integration]?.[input.id as string];
   if (sourceType) {
     return {
-      ...input,
+      ...(input as SerializedConnectInput<SidebarInputType.DynamicEnum>),
       type: SidebarInputType.DynamicEnum,
       sourceType,
-    };
+    } as SerializedConnectInput;
   }
   return input;
 }

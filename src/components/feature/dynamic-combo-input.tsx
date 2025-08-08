@@ -28,14 +28,16 @@ type Props = {
 };
 
 export function DynamicComboInputField(props: Props) {
+  type DynamicComboField = SerializedConnectInput<
+    SidebarInputType.DynamicComboInput
+  > & { sourceType: string };
+
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
   const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
     props.integration,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    props.field.sourceType as string
+    (props.field as DynamicComboField).sourceType
   );
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =

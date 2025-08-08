@@ -26,6 +26,12 @@ export function SerializedConnectInputPicker(props: Props) {
   const { field, value, onChange } = props;
   const required = field.required ?? true;
 
+  const getRawType = (f: SerializedConnectInput): string | SidebarInputType => {
+    // Some inputs use additional string identifiers not present in the SDK type
+    const t = (f as unknown as { type: string | SidebarInputType }).type;
+    return t;
+  };
+
   if (
     field.type === SidebarInputType.BooleanInput ||
     field.type === SidebarInputType.Switch
@@ -54,10 +60,8 @@ export function SerializedConnectInputPicker(props: Props) {
 
   if (
     field.type === SidebarInputType.ValueText ||
-    // @ts-expect-error - TextArea is not in the type
-    field.type === SidebarInputType.TextArea ||
-    // @ts-expect-error - Text is not in the type
-    field.type === SidebarInputType.Text
+    getRawType(field) === SidebarInputType.TextArea ||
+    getRawType(field) === SidebarInputType.Text
   ) {
     return (
       <TextInputField
@@ -74,9 +78,9 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  // @ts-expect-error - Code is not in the type
-  if (field.type === SidebarInputType.Code) {
-    const f = field as any;
+  if (getRawType(field) === SidebarInputType.Code) {
+    type WithPlaceholder = { placeholder?: string };
+    const f = field as unknown as SerializedConnectInput & WithPlaceholder;
     return (
       <CodeInputField
         id={f.id}
@@ -171,9 +175,18 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  // @ts-expect-error - Enum is not in some local type definitions; also handle raw "ENUM" string
-  if (field.type === SidebarInputType.Enum || (field as any).type === 'ENUM') {
-    const f = field as any;
+  if (getRawType(field) === SidebarInputType.Enum) {
+    type EnumOption = { value: string; label: string };
+    const f = field as unknown as {
+      id: string;
+      title: string;
+      type?: SidebarInputType;
+      subtitle?: string;
+      enumOptions?: Array<EnumOption>;
+      options?: Array<EnumOption>;
+      values?: Array<EnumOption> | Array<string>;
+      defaultValue?: string;
+    };
     return (
       <StaticEnumField
         field={f}
@@ -196,14 +209,20 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if ((field as any).type === 'CONDITIONAL') {
-    const f = field as any;
+  if (getRawType(field) === 'CONDITIONAL') {
+    const f = field as unknown as {
+      id: string;
+      title: string;
+      subtitle?: string;
+      supportedKeys: string[];
+      supportedOperators: string[];
+    };
     return (
       <ConditionalInputField
         field={f}
         required={required}
-        value={value as any}
-        onChange={(v) => onChange(v)}
+        value={value as unknown as any}
+        onChange={(v) => onChange(v as unknown as ConnectInputValue)}
       />
     );
   }

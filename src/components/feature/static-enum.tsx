@@ -40,7 +40,6 @@ export function StaticEnumField(props: Props) {
       if (typeof v === 'string') {
         return { value: String(v), label: formatLabel(String(v)) };
       }
-      console.log('v', v);
       return v;
     })
   ) as EnumOption[];

@@ -20,8 +20,8 @@ type Props = {
     supportedOperators: SupportedOperator[];
   };
   required: boolean;
-  value: any;
-  onChange: (value: any) => void;
+  value: JoinNode | null | undefined;
+  onChange: (value: JoinNode) => void;
 };
 
 type JoinType = 'AND' | 'OR';
@@ -69,7 +69,7 @@ export function ConditionalInputField({
             <div className="flex flex-col gap-1">
               {(group as JoinNode).conditions.map(
                 (c: JoinNode | OperatorCondition, conditionIndex: number) => {
-                  if ('operator' in c && 'conditions' in (c as any))
+                  if ('operator' in c && 'conditions' in (c as JoinNode))
                     return null;
                   const currentKey = readConditionKey(c, field.supportedKeys);
                   const currentOperator = (c as OperatorCondition).operator;
