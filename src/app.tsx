@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/header';
 
 import { ThemeProvider } from '@/lib/themes/theme-provider';
-import { IntegrationList } from './components/feature/integration/integration-list';
+import ActionTester from './components/feature/action-tester';
 
 export function App() {
   return (
@@ -9,7 +9,7 @@ export function App() {
       <div>
         <Header />
         <div className="container mx-auto py-4 px-8">
-          <IntegrationList />
+          <ActionTester />
         </div>
       </div>
     </ThemeProvider>

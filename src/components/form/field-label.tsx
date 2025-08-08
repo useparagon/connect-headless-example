@@ -18,11 +18,8 @@ export function FieldLabel(props: Props) {
   return (
     <Label htmlFor={props.id}>
       {props.children}
-      {props.required ? (
-        <Tooltip>
-          <TooltipTrigger> 🚩</TooltipTrigger>
-          <TooltipContent>This field is required</TooltipContent>
-        </Tooltip>
+      {!props.required ? (
+        <p className="text-xs text-muted-foreground">(optional)</p>
       ) : null}
       {props.tooltip ? (
         <Tooltip>

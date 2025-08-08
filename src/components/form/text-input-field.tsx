@@ -15,6 +15,7 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
+  placeholder?: string;
 };
 
 export function TextInputField(props: Props) {
@@ -37,6 +38,8 @@ export function TextInputField(props: Props) {
         onChange={(e) => props.onChange(e.target.value)}
         disabled={props.disabled}
         readOnly={props.readOnly}
+        placeholder={props.placeholder}
+        required={props.required}
       />
     </div>
   );

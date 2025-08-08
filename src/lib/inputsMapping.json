@@ -1,0 +1,130 @@
+{
+  "asana": {
+    "workspace": "workspaces",
+    "team": "teams",
+    "project": "projects",
+    "assignee": "assignees"
+  },
+  "azuredevops": {
+    "project": "projects"
+  },
+  "close": {
+    "status": "status",
+    "assigneeId": "users"
+  },
+  "dropbox": {
+    "folderId": "folders"
+  },
+  "facebookAds": {
+    "page": "pages",
+    "campaignId": "campaigns",
+    "pixelId": "pixels"
+  },
+  "googleCalendar": {
+    "calendarId": "calendars"
+  },
+  "googledrive": {
+    "parentId": "folders"
+  },
+  "googlesearchconsole": {
+    "siteUrl": "sites"
+  },
+  "googlesheets": {
+    "spreadsheetId": "spreadSheets",
+    "worksheet": "worksheetId",
+    "column": "cachedColumns"
+  },
+  "hubspot": {
+    "customObjectName": "customRecordTypes",
+    "listId": "contactLists",
+    "ownerId": "owners",
+    "lifecycleStage": "lifecyclestages",
+    "leadStatus": "leadStatuses",
+    "dealStage": "dealStages",
+    "pipelineId": "pipelines"
+  },
+  "intercom": {
+    "ownerId": "adminIdList"
+  },
+  "jira": {
+    "project": "projects",
+    "assignee": "assignees",
+    "issueType": "issueTypes",
+    "status": "jiraIssueStatuses"
+  },
+  "klaviyo": {
+    "listId": "subscriberLists",
+    "templateId": "templates",
+    "campaignId": "allCampaigns"
+  },
+  "linear": {
+    "teamId": "getTeams"
+  },
+  "mailchimp": {
+    "listId": "list",
+    "templateId": "template"
+  },
+  "microsoftDynamics": {
+    "ownerId": "cachedOwners",
+    "pipelineId": "cachedProcessStages",
+    "currencyId": "cachedTransactionCurrencies"
+  },
+  "microsoftTeams": {
+    "channel": "channels",
+    "chatRecipient": "chats"
+  },
+  "monday": {
+    "boardId": "boards",
+    "memberId": "users"
+  },
+  "onedrive": {
+    "folder": "folders",
+    "filePath": "folders"
+  },
+  "outlook": {
+    "calendar": "calendarCacheKey",
+    "mailFolder": "mailFolderCacheKey",
+    "timezone": "supportedTimeZonesCacheKey"
+  },
+  "outreach": {
+    "opportunityStage": "opportunityStages",
+    "sequenceId": "sequences"
+  },
+  "pardot": {
+    "listId": "lists",
+    "timezone": "timezones"
+  },
+  "pipedrive": {
+    "pipelineId": "pipelines",
+    "stageId": "stages"
+  },
+  "salesforce": {
+    "objectName": "recordTypes",
+    "ownerId": "owners",
+    "leadStatus": "leadStatuses",
+    "opportunityStage": "opportunityStages",
+    "campaignId": "campaign",
+    "listViewId": "listView"
+  },
+  "sharepoint": {
+    "listId": "listCacheKey",
+    "column": "columnCacheKey"
+  },
+  "slack": {
+    "channel": "channels",
+    "memberId": "members"
+  },
+  "stripe": {
+    "plan": "getPlans"
+  },
+  "trello": {
+    "boardId": "boards",
+    "listId": "lists"
+  },
+  "woocommerce": {
+    "paymentId": "opportunityStages"
+  },
+  "zendesk": {
+    "assigneeId": "zendeskAgentUsers"
+  }
+}

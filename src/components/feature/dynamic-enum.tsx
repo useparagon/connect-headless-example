@@ -31,6 +31,7 @@ export function DynamicEnumField(props: Props) {
     <ComboboxField
       id={props.field.id}
       title={props.field.title}
+      subtitle={props.field.subtitle}
       required={props.required}
       value={props.value ?? null}
       placeholder={selectedOption?.label ?? 'Select an option...'}

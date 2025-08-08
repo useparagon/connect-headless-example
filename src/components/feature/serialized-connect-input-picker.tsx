@@ -11,6 +11,7 @@ import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
+import { CodeInputField } from '../form/code-input-field';
 
 type Props = {
   integration: string;
@@ -49,16 +50,41 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if (field.type === SidebarInputType.ValueText) {
+  if (
+    field.type === SidebarInputType.ValueText ||
+    // @ts-expect-error - TextArea is not in the type
+    field.type === SidebarInputType.TextArea ||
+    // @ts-expect-error - Text is not in the type
+    field.type === SidebarInputType.Text
+  ) {
     return (
       <TextInputField
         type="text"
         id={field.id}
         title={field.title}
+        subtitle={field.subtitle}
         required={required}
         tooltip={field.tooltip}
         value={String(value ?? '')}
         onChange={(value) => onChange(value)}
+        placeholder={field.placeholder}
+      />
+    );
+  }
+
+  // @ts-expect-error - Code is not in the type
+  if (field.type === SidebarInputType.Code) {
+    const f = field as any;
+    return (
+      <CodeInputField
+        id={f.id}
+        title={f.title}
+        subtitle={f.subtitle}
+        required={required}
+        tooltip={f.tooltip}
+        value={String(value ?? '')}
+        onChange={(value) => onChange(value)}
+        placeholder={f.placeholder}
       />
     );
   }
@@ -69,6 +95,7 @@ export function SerializedConnectInputPicker(props: Props) {
         type="number"
         id={field.id}
         title={field.title}
+        subtitle={field.subtitle}
         required={required}
         tooltip={field.tooltip}
         value={String(value ?? '')}
@@ -111,10 +138,12 @@ export function SerializedConnectInputPicker(props: Props) {
         type="url"
         id={field.id}
         title={field.title}
+        subtitle={field.subtitle}
         required={required}
         value={String(value ?? '')}
         tooltip={field.tooltip}
         onChange={(value) => onChange(value)}
+        placeholder={field.placeholder}
       />
     );
   }

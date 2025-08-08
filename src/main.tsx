@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const config = z
+export const config = z
   .object({
     VITE_PARAGON_PROJECT_ID: z.string(),
     VITE_PARAGON_JWT_TOKEN: z.string(),

@@ -49,9 +49,11 @@ type Props = {
   onSelect: (value: string | null) => void;
   onDebouncedChange: (value: string) => void;
   title?: string;
+  subtitle?: React.ReactNode;
   disabled?: boolean;
   allowClear?: boolean;
   className?: string;
+  renderValue?: (value: string | null) => ReactNode;
 } & VariantProps<typeof comboboxVariants>;
 
 type ComboboxFieldContext = {
@@ -93,6 +95,9 @@ export function ComboboxField({ size, className, ...props }: Props) {
             {props.title}
           </FieldLabel>
         )}
+        {props.subtitle ? (
+          <p className="text-sm text-gray-500">{props.subtitle}</p>
+        ) : null}
         <Popover open={open} onOpenChange={setOpen} modal>
           <PopoverTrigger disabled={props.disabled} asChild>
             <Button
@@ -105,9 +110,22 @@ export function ComboboxField({ size, className, ...props }: Props) {
                 setOpen(true);
               }}
             >
-              <span className="flex-1 text-left">
+              <span
+                className={cn(
+                  'flex-1 text-left',
+                  props.value
+                    ? 'text-neutral-900 dark:text-neutral-100'
+                    : 'text-neutral-400 dark:text-neutral-500',
+                )}
+              >
                 {props.isFetching && props.value ? (
                   <Spinner withText />
+                ) : props.value ? (
+                  props.renderValue ? (
+                    props.renderValue?.(props.value)
+                  ) : (
+                    props.value
+                  )
                 ) : (
                   props.placeholder
                 )}
@@ -166,7 +184,7 @@ function Item(props: ComboboxItemProps) {
       <Check
         className={cn(
           'mr-2 h-4 w-4 transition-opacity',
-          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0'
+          context.selectedValue === props.value ? 'opacity-100' : 'opacity-0',
         )}
       />
       {props.children}
