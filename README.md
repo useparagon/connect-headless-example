@@ -58,10 +58,12 @@ This flow is implemented in the `IntegrationModal` component This component can 
 
 ### Listing available Actions
 
+<img alt="Available actions for Slack" src="/static/actions.png" width="300" />
+
 [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L54-L71)
 
 
-We use the ActionKit [**List Actions endpoint**](https://docs.useparagon.com/actionkit/api-reference#list-actions) to query available Actions and schemas for a selected integration. 
+We use the ActionKit [List Actions endpoint](https://docs.useparagon.com/actionkit/api-reference#list-actions) to query available Actions and schemas for a selected integration. 
 
 ActionKit provides a title and description for each Action that can be used to present available Actions to a user.
 
@@ -71,13 +73,15 @@ ActionKit provides a title and description for each Action that can be used to p
 
 [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/serialized-connect-input-picker.tsx)
 
+<img src="Inputs for Slack Send Message" src="/static/inputs.gif" width="300" />
+
 With the [Action schema](https://docs.useparagon.com/actionkit/schema-formats#paragon-format) that we pulled from the API, we can render inputs for users to configure their Action.
 
-The renderer is implemented in `SerializedConnectInputPicker`, which can render the input types described in [the documentation](https://docs.useparagon.com/actionkit/schema-formats#overview). You can use this component directly or a starting point in your own app. 
+The renderer is implemented in `SerializedConnectInputPicker`, which can render the input types described in [the documentation](https://docs.useparagon.com/actionkit/schema-formats#overview). You can use this component directly or as a starting point in your own app. 
 
 ---
 
-**Loading dynamic options**
+### Loading dynamic options
 
 [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/dynamic-enum.tsx#L18-L24)
 
