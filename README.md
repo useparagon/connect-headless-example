@@ -52,16 +52,16 @@ Here are some of the core functions of the app to explore as a starting point fo
 
 To connect a user's integration account, we use the Headless Connect Portal to make the connection process seamless and native to the UI language of the rest of the demo app.
 
-This flow is implemented in the `IntegrationModal` component This component can also be forked and used directly in your own React app.
+This flow is implemented in the `IntegrationModal` component (source linked above). This component can also be forked and used directly in your own React app.
 
 ---
 
 ### Listing available Actions
 
-<img alt="Available actions for Slack" src="/static/actions.png" width="300" />
-
 [**See the code &rarr;**](https://github.com/useparagon/connect-headless-example/blob/actionkit/src/components/feature/action-tester.tsx#L54-L71)
 
+
+<img alt="Available actions for Slack" src="/static/actions.png" width="300" />
 
 We use the ActionKit [List Actions endpoint](https://docs.useparagon.com/actionkit/api-reference#list-actions) to query available Actions and schemas for a selected integration. 
 
