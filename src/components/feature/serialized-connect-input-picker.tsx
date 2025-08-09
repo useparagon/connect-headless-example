@@ -175,9 +175,63 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if (getRawType(field) === SidebarInputType.Enum) {
+  if (
+    getRawType(field) === SidebarInputType.Enum ||
+    getRawType(field) === SidebarInputType.EditableEnum
+  ) {
     type EnumOption = { value: string; label: string };
+    type EnumWithDependents = EnumOption & {
+      dependentInputs?: SerializedConnectInput[];
+    };
     const f = field as unknown as {
+      id: string;
+      title: string;
+      type?: SidebarInputType;
+      subtitle?: string;
+      enumOptions?: Array<EnumOption>;
+      options?: Array<EnumOption>;
+      values?: Array<EnumWithDependents | EnumOption | string>;
+      defaultValue?: string;
+    };
+
+    const current = (value as any) ?? {};
+    const selectedValue: string | null =
+      (typeof current === 'object' && 'selected' in current
+        ? (current.selected as string | null)
+        : (value as string | null)) ?? f.defaultValue ?? null;
+    const dependentValues: Record<string, ConnectInputValue> =
+      (typeof current === 'object' && 'dependents' in current
+        ? (current.dependents as Record<string, ConnectInputValue>)
+        : ({} as Record<string, ConnectInputValue>)) ?? {};
+
+    const getSelectedDefinition = (): EnumWithDependents | null => {
+      const list = (f.values ?? []) as Array<EnumWithDependents | EnumOption | string>;
+      for (const item of list) {
+        if (typeof item === 'string') {
+          if (item === selectedValue) return null;
+          continue;
+        }
+        const val = item.value;
+        if (val === selectedValue) {
+          return item as EnumWithDependents;
+        }
+      }
+      return null;
+    };
+
+    const selectedDefinition = getSelectedDefinition();
+
+    const fieldForSelector = {
+      ...f,
+      values: (f.values ?? []).map((item: any) =>
+        typeof item === 'string'
+          ? item
+          : ({
+              value: item.value,
+              label: item.label ?? String(item.value),
+            } as EnumOption),
+      ),
+    } as unknown as {
       id: string;
       title: string;
       type?: SidebarInputType;
@@ -187,13 +241,42 @@ export function SerializedConnectInputPicker(props: Props) {
       values?: Array<EnumOption> | Array<string>;
       defaultValue?: string;
     };
+
     return (
-      <StaticEnumField
-        field={f}
-        required={required}
-        value={(value as string) ?? f.defaultValue ?? null}
-        onChange={(v) => onChange(v ?? undefined)}
-      />
+      <div className="flex flex-col">
+        <StaticEnumField
+          field={fieldForSelector as any}
+          required={required}
+          value={selectedValue}
+          onChange={(v) =>
+            onChange(
+              (f.values || []).some((it: any) => typeof it === 'object')
+                ? ((v
+                    ? { selected: v, dependents: {} }
+                    : undefined) as unknown as ConnectInputValue)
+                : ((v ?? undefined) as unknown as ConnectInputValue),
+            )
+          }
+        />
+        {selectedValue && selectedDefinition?.dependentInputs?.length ? (
+          <div className="flex flex-col gap-6 mt-6">
+            {selectedDefinition.dependentInputs.map((child) => (
+              <SerializedConnectInputPicker
+                key={child.id}
+                integration={props.integration}
+                field={child}
+                value={dependentValues[child.id]}
+                onChange={(v) =>
+                  onChange({
+                    selected: selectedValue,
+                    dependents: { ...dependentValues, [child.id]: v },
+                  } as unknown as ConnectInputValue)
+                }
+              />)
+            )}
+          </div>
+        ) : null}
+      </div>
     );
   }
 

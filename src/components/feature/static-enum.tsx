@@ -36,11 +36,13 @@ export function StaticEnumField(props: Props) {
   const options: EnumOption[] = (
     props.field?.enumOptions ??
     props.field?.options ??
-    (props.field?.values || []).map((v) => {
+    ((props.field?.values ?? []) as Array<string | EnumOption>).map((v) => {
       if (typeof v === 'string') {
         return { value: String(v), label: formatLabel(String(v)) };
       }
-      return v;
+      const optionValue = v.value;
+      const optionLabel = v.label ?? formatLabel(String(optionValue));
+      return { value: String(optionValue), label: optionLabel };
     })
   ) as EnumOption[];
 
