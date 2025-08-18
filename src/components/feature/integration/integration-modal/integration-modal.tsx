@@ -25,7 +25,9 @@ import { IntegrationSettingsSection } from './components/integration-settings';
 import { ErrorMessage } from '../error-message';
 
 const globalInstallationErrors = new Set<InstallFlowError['name']>([
-  'PopupBlockedError',
+  'OAuthBlockedError',
+  'OAuthCancelledError',
+  'OAuthTimeoutError',
   'UserNotAuthenticatedError',
   'NoActiveInstallFlowError',
   'HeadlessModeNotEnabledError',
@@ -38,8 +40,6 @@ type Props = {
   icon: string;
   status: CredentialStatus | undefined;
   onOpenChange: (open: boolean) => void;
-  onInstall: () => void;
-  onUninstall: () => void;
 };
 
 export function IntegrationModal(props: Props) {
@@ -72,6 +72,7 @@ export function IntegrationModal(props: Props) {
     setInstallationError(null);
     setIsInstalling(true);
     paragon.installFlow.start(props.integration, {
+      oauthTimeout: 10_000,
       onNext: (next) => {
         setShowFlowForm(!next.done);
         setInstallFlowStage(next);
@@ -80,10 +81,8 @@ export function IntegrationModal(props: Props) {
         setIsInstalling(false);
         setTab('configuration');
         setInstallFlowStage(null);
-        props.onInstall();
       },
       onError: (error, errorContext) => {
-        console.log('onError', error);
         setIsInstalling(false);
         setInstallationError({
           stage: errorContext?.stage,
@@ -98,7 +97,6 @@ export function IntegrationModal(props: Props) {
       .uninstallIntegration(props.integration)
       .then(() => {
         setTab('overview');
-        props.onUninstall();
       })
       .catch((error) => {
         console.error(
