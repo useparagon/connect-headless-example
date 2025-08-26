@@ -1,10 +1,13 @@
 import { useAuthenticatedUser, useIntegrationMetadata } from '@/lib/hooks';
 import {
   AuthenticatedConnectUser,
-  IIntegrationMetadata,
+  IntegrationMetadata,
+  SDK_EVENT,
+  paragon,
 } from '@useparagon/connect';
 
 import { IntegrationCard } from './integration-card';
+import { useEffect } from 'react';
 
 export function IntegrationList() {
   const { data: user, refetch: refetchUser } = useAuthenticatedUser();
@@ -13,6 +16,21 @@ export function IntegrationList() {
     isLoading: isLoadingIntegrations,
     refetch: refetchIntegrations,
   } = useIntegrationMetadata();
+
+  useEffect(() => {
+    const updateUser = () => {
+      refetchUser();
+      refetchIntegrations();
+    };
+
+    paragon.subscribe(SDK_EVENT.ON_INTEGRATION_INSTALL, updateUser);
+    paragon.subscribe(SDK_EVENT.ON_INTEGRATION_UNINSTALL, updateUser);
+
+    return () => {
+      paragon.unsubscribe(SDK_EVENT.ON_INTEGRATION_INSTALL, updateUser);
+      paragon.unsubscribe(SDK_EVENT.ON_INTEGRATION_UNINSTALL, updateUser);
+    };
+  }, [refetchUser, refetchIntegrations]);
 
   if (!user || isLoadingIntegrations || !integrations) {
     return <div>Loading...</div>;
@@ -39,14 +57,6 @@ export function IntegrationList() {
                   name={integration.name}
                   icon={integration.icon}
                   status={integrationInfo.credentialStatus}
-                  onInstall={() => {
-                    refetchIntegrations();
-                    refetchUser();
-                  }}
-                  onUninstall={() => {
-                    refetchIntegrations();
-                    refetchUser();
-                  }}
                 />
               </li>
             );
@@ -58,7 +68,7 @@ export function IntegrationList() {
 }
 
 function byEnabledOnTop(user: AuthenticatedConnectUser) {
-  return function (a: IIntegrationMetadata, b: IIntegrationMetadata) {
+  return function (a: IntegrationMetadata, b: IntegrationMetadata) {
     const aEnabled = user.integrations[a.type]?.enabled;
     const bEnabled = user.integrations[b.type]?.enabled;
     return aEnabled ? -1 : bEnabled ? 1 : 0;

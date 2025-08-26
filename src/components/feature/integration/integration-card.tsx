@@ -12,8 +12,6 @@ type Props = {
   name: string;
   icon: string;
   status: CredentialStatus | undefined;
-  onInstall: () => void;
-  onUninstall: () => void;
 };
 
 export function IntegrationCard(props: Props) {
@@ -23,7 +21,7 @@ export function IntegrationCard(props: Props) {
     <Card
       className={cn(
         'hover:shadow-xs transition-shadow',
-        !props.status && 'border-dashed shadow-none',
+        !props.status && 'border-dashed shadow-none'
       )}
     >
       <CardContent>
@@ -54,12 +52,6 @@ export function IntegrationCard(props: Props) {
                 name={props.name}
                 icon={props.icon}
                 status={props.status}
-                onInstall={() => {
-                  props.onInstall();
-                }}
-                onUninstall={() => {
-                  props.onUninstall();
-                }}
               />
             )}
           </div>

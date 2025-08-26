@@ -18,7 +18,6 @@ type Props = {
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
 };
 
 export function IntegrationInstallFlowForm(props: Props) {
@@ -36,7 +35,6 @@ export function IntegrationInstallFlowForm(props: Props) {
           integration={props.integration}
           options={props.installFlowStage.options}
           onSubmit={props.onFinishPreOptions}
-          error={props.error}
         />
       );
     case 'postOptions':
@@ -45,7 +43,6 @@ export function IntegrationInstallFlowForm(props: Props) {
           integration={props.integration}
           options={props.installFlowStage.options}
           onSubmit={props.onFinishPostOptions}
-          error={props.error}
         />
       );
     case 'done':
@@ -59,13 +56,14 @@ function AccountTypePicker(props: {
   onSelect: (accountId: string) => void;
 }) {
   return (
-    <div>
-      <h2>Select an account</h2>
-      <div className="flex flex-col gap-2 items-start">
+    <div className="flex flex-col gap-4">
+      <h2 className="text-lg font-medium">Select an account</h2>
+      <div className="flex gap-2 items-start">
         {props.options.map((option) => (
           <Button
             key={option.id}
             type="button"
+            variant="outline"
             onClick={() => {
               props.onSelect(option.id);
             }}
@@ -82,7 +80,6 @@ function PreOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -106,7 +103,6 @@ function PreOptionsForm(props: {
         />
       ))}
       <Button onClick={() => form.handleSubmit(props.onSubmit)()}>Next</Button>
-      <ErrorMessage error={props.error} />
     </div>
   );
 }
@@ -115,7 +111,6 @@ function PostOptionsForm(props: {
   integration: string;
   options: IntegrationConnectInput[];
   onSubmit: (options: Record<string, ConnectInputValue>) => void;
-  error: Error | null;
 }) {
   const form = useForm<Record<string, ConnectInputValue>>();
 
@@ -140,22 +135,6 @@ function PostOptionsForm(props: {
       <Button onClick={() => form.handleSubmit(props.onSubmit)()}>
         Finish
       </Button>
-      <ErrorMessage error={props.error} />
-    </div>
-  );
-}
-
-function ErrorMessage(props: { error: Error | null }) {
-  if (!props.error) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="font-medium">Something went wrong</p>
-      <pre className="text-destructive max-w-full text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20">
-        {JSON.stringify(JSON.parse(props.error.message), null, 2)}
-      </pre>
     </div>
   );
 }
