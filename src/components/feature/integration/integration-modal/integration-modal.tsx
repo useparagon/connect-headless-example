@@ -26,7 +26,6 @@ import { ErrorMessage } from '../error-message';
 
 const globalInstallationErrors = new Set<InstallFlowError['name']>([
   'OAuthBlockedError',
-  'OAuthCancelledError',
   'OAuthTimeoutError',
   'UserNotAuthenticatedError',
   'NoActiveInstallFlowError',
