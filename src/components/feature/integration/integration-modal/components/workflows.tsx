@@ -119,7 +119,7 @@ function Workflows(props: {
               workflowSettings={workflowSettings}
               isEnabled={isEnabled}
             />
-            {isNotLast && <hr className="my-4 border-dashed border-gray-200" />}
+            {isNotLast && <hr className="my-4 border-dashed border-border" />}
           </div>
         );
       })}

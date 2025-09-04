@@ -209,7 +209,7 @@ export function SerializedConnectInputPicker(props: Props) {
   return (
     <div>
       <p>Field not supported:</p>
-      <pre className="max-w-full max-h-[150px] text-sm overflow-auto bg-gray-50 p-2 rounded-md border border-gray-200">
+      <pre className="max-w-full max-h-[150px] text-sm overflow-auto bg-card p-2 rounded-md border border-border">
         {JSON.stringify(field, null, 2)}
       </pre>
     </div>
