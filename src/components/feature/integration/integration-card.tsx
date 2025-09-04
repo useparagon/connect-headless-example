@@ -60,3 +60,22 @@ export function IntegrationCard(props: Props) {
     </Card>
   );
 }
+
+IntegrationCard.Skeleton = Skeleton;
+
+function Skeleton() {
+  return (
+    <Card className="animate-pulse">
+      <CardContent>
+        <CardTitle>
+          <div className="flex gap-2 items-center justify-between">
+            <div className="flex gap-2 items-center">
+              <div className="w-[30px] h-[30px] bg-border rounded-full"></div>
+              <div className="w-20 h-4 bg-border rounded"></div>
+            </div>
+          </div>
+        </CardTitle>
+      </CardContent>
+    </Card>
+  );
+}

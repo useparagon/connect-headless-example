@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import z from 'zod';
 
 type Theme = 'dark' | 'light' | 'system';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey: string;
+  defaultTheme: Theme;
 };
 
 type ThemeProviderState = {
@@ -18,17 +18,19 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 };
 
+const themeSchema = z.enum(['dark', 'light', 'system']);
+const STORAGE_KEY = 'theme';
+
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
-  storageKey,
+  defaultTheme,
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    return themeSchema.parse(localStorage.getItem(STORAGE_KEY) || defaultTheme);
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -51,7 +53,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      localStorage.setItem(STORAGE_KEY, theme);
       setTheme(theme);
     },
   };
