@@ -30,7 +30,7 @@ async function authenticate() {
 
   await paragon.authenticate(
     config.data.VITE_PARAGON_PROJECT_ID,
-    config.data.VITE_PARAGON_JWT_TOKEN
+    config.data.VITE_PARAGON_JWT_TOKEN,
   );
   paragon.setHeadless(true);
 

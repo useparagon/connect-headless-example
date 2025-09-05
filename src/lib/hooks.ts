@@ -85,7 +85,7 @@ export function useFieldOptions({
 
 export function useDataSourceOptions<T>(
   integration: string,
-  sourceType: string
+  sourceType: string,
 ) {
   return useQuery({
     queryKey: ['comboInputOptions', integration, sourceType],

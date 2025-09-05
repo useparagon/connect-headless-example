@@ -58,7 +58,7 @@ function useTemporaryState<T>(initialValue: T, duration: number) {
 
       timeoutRef.current = setTimeout(() => setValue(initialValue), duration);
     },
-    [initialValue, duration]
+    [initialValue, duration],
   );
 
   return [value, setValueWithTimeout] as const;

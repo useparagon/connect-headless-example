@@ -61,8 +61,8 @@ function Workflows(props: {
         Object.entries(workflowSettings).map(([id, value]) => [
           id,
           value?.enabled ?? false,
-        ])
-      )
+        ]),
+      ),
   );
 
   const localUpdateWorkflowState = (workflowId: string, enabled: boolean) => {
@@ -140,8 +140,8 @@ function WorkflowFields(props: {
         workflow.inputs.map((input) => [
           input.id,
           workflowSettings[workflow.id]?.settings[input.id],
-        ])
-      )
+        ]),
+      ),
   );
   const hasInputs = workflow.inputs.length > 0;
 
@@ -154,13 +154,13 @@ function WorkflowFields(props: {
             workflow.id,
             {
               [id]: value,
-            }
+            },
           );
         } catch (error) {
           console.error('Failed to update workflow settings', error);
         }
       }, 500),
-    [props.integration, workflow.id]
+    [props.integration, workflow.id],
   );
 
   useEffect(() => {

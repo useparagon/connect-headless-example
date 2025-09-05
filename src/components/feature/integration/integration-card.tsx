@@ -21,7 +21,7 @@ export function IntegrationCard(props: Props) {
     <Card
       className={cn(
         'hover:shadow-xs transition-shadow',
-        !props.status && 'border-dashed shadow-none'
+        !props.status && 'border-dashed shadow-none',
       )}
     >
       <CardContent>

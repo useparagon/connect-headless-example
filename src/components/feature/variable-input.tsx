@@ -19,7 +19,7 @@ type Props = {
   dependantInputValue: string;
   variableInputsValues: Record<string, VariableInputValue>;
   onVariableInputsValuesChange: (
-    config: Record<string, VariableInputValue>
+    config: Record<string, VariableInputValue>,
   ) => void;
   onDeleteVariableInput: (id: string) => void;
 };
@@ -121,7 +121,7 @@ export const VariableInput = ({
             .filter((option) =>
               option?.title
                 ?.toLowerCase()
-                .includes(variableInputSelectorSearch.toLowerCase())
+                .includes(variableInputSelectorSearch.toLowerCase()),
             )
             .map((option) => {
               return (
