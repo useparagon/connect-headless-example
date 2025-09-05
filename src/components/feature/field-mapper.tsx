@@ -111,7 +111,10 @@ export function FieldMapperField(props: Props) {
 
   const { data: fieldInputOptions, isFetching: isFetchingFieldInput } =
     useFieldOptions({
-      enabled: Boolean(props.value.mainInput && props.value.dependentInput),
+      enabled: Boolean(
+        props.value.mainInput &&
+          (!options?.dependentInputSource || props.value.dependentInput),
+      ),
       integration: props.integration,
       sourceType: options?.fieldSource.cacheKey as string,
       parameters,
@@ -268,7 +271,11 @@ export function FieldMapperField(props: Props) {
               isFetching={isFetchingFieldInput}
               onDebouncedChange={setFieldInputSearch}
               size="sm"
-              disabled={!props.value.mainInput || !props.value.dependentInput}
+              disabled={Boolean(
+                !props.value.mainInput ||
+                  (options?.dependentInputSource &&
+                    !props.value.dependentInput),
+              )}
               allowClear
             >
               {fieldInputOptions.data.map((option) => {
