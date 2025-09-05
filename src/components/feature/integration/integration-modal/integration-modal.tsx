@@ -43,12 +43,12 @@ type Props = {
 
 export function IntegrationModal(props: Props) {
   const { data: integrationConfig, isLoading } = useIntegrationConfig(
-    props.integration
+    props.integration,
   );
   const [showFlowForm, setShowFlowForm] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
   const [tab, setTab] = useState<'overview' | 'configuration' | (string & {})>(
-    'overview'
+    'overview',
   );
   const [installFlowStage, setInstallFlowStage] =
     useState<null | InstallFlowStage>(null);
@@ -101,7 +101,7 @@ export function IntegrationModal(props: Props) {
         console.error(
           'error uninstalling integration:',
           props.integration,
-          error
+          error,
         );
       });
   };
@@ -191,7 +191,7 @@ export function IntegrationModal(props: Props) {
                   <pre className="text-sm text-wrap text-foreground/70 font-sans">
                     {integrationConfig.longDescription?.replaceAll(
                       '\n\n',
-                      '\n'
+                      '\n',
                     )}
                   </pre>
                 </div>

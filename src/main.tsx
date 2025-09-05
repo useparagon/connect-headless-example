@@ -33,7 +33,7 @@ async function main() {
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
-    </StrictMode>
+    </StrictMode>,
   );
 }
 

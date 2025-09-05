@@ -56,8 +56,8 @@ function IntegrationSettings(props: {
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
     () =>
       Object.fromEntries(
-        settings.map((setting) => [setting.id, settingsState[setting.id]])
-      )
+        settings.map((setting) => [setting.id, settingsState[setting.id]]),
+      ),
   );
   const [isSaving, setIsSaving] = useState(false);
 

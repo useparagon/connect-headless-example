@@ -24,7 +24,7 @@ export function DynamicEnumField(props: Props) {
   });
   const selectedOption = useMemo(
     () => options.data.find((option) => option.value === props.value),
-    [options.data, props.value]
+    [options.data, props.value],
   );
 
   return (

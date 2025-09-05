@@ -27,7 +27,7 @@ export function ComboInputField(props: Props) {
 
   const { data: options } = useDataSourceOptions<ComboInputDataSource>(
     props.integration,
-    props.field.sourceType as string
+    props.field.sourceType as string,
   );
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
@@ -40,9 +40,9 @@ export function ComboInputField(props: Props) {
   const selectedMainOption = useMemo(
     () =>
       mainInputOptions.data.find(
-        (option) => option.value === props.value.mainInput
+        (option) => option.value === props.value.mainInput,
       ),
-    [mainInputOptions.data, props.value]
+    [mainInputOptions.data, props.value],
   );
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
@@ -62,9 +62,9 @@ export function ComboInputField(props: Props) {
   const selectedDependentInputOption = useMemo(
     () =>
       dependentInputOptions.data.find(
-        (option) => option.value === props.value.dependentInput
+        (option) => option.value === props.value.dependentInput,
       ),
-    [dependentInputOptions.data, props.value]
+    [dependentInputOptions.data, props.value],
   );
 
   const mainInputMeta = options?.mainInputSource;
