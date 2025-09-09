@@ -68,7 +68,7 @@ const multiSelectVariants = cva('m-1 transition-all duration-300 ease-in-out', {
   },
   defaultVariants: {
     variant: 'default',
-    badgeAnimation: 'bounce',
+    badgeAnimation: 'none',
   },
 });
 
@@ -114,6 +114,11 @@ interface MultiSelectProps
       'animationConfig'
     >,
     VariantProps<typeof multiSelectVariants> {
+  /**
+   * An array of required option objects or groups to be displayed in the multi-select component.
+   * This options cannot be removed.
+   */
+  requiredOptions?: MultiSelectOption[];
   /**
    * An array of option objects or groups to be displayed in the multi-select component.
    */
@@ -310,11 +315,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       options,
       onValueChange,
       variant,
+      requiredOptions = [],
       defaultValue = [],
       placeholder = 'Select options',
       animation = 0,
       animationConfig,
-      maxCount = 3,
+      maxCount = 20,
       modalPopover = false,
       asChild = false,
       className,
@@ -335,8 +341,11 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     },
     ref,
   ) => {
-    const [selectedValues, setSelectedValues] =
-      React.useState<string[]>(defaultValue);
+    const [selectedValues, setSelectedValues] = React.useState<string[]>(() => {
+      const requiredValues = requiredOptions.map((option) => option.value);
+      const combinedValues = [...new Set([...requiredValues, ...defaultValue])];
+      return combinedValues;
+    });
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
     const [searchValue, setSearchValue] = React.useState('');
@@ -387,11 +396,13 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     );
 
     const resetToDefault = React.useCallback(() => {
-      setSelectedValues(defaultValue);
+      const requiredValues = requiredOptions.map((option) => option.value);
+      const combinedValues = [...new Set([...requiredValues, ...defaultValue])];
+      setSelectedValues(combinedValues);
       setIsPopoverOpen(false);
       setSearchValue('');
-      onValueChange(defaultValue);
-    }, [defaultValue, onValueChange]);
+      onValueChange(combinedValues);
+    }, [defaultValue, onValueChange, requiredOptions]);
 
     const buttonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -405,8 +416,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
           onValueChange(values);
         },
         clear: () => {
-          setSelectedValues([]);
-          onValueChange([]);
+          const requiredValues = requiredOptions.map((option) => option.value);
+          setSelectedValues(requiredValues);
+          onValueChange(requiredValues);
         },
         focus: () => {
           if (buttonRef.current) {
@@ -424,7 +436,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
           }
         },
       }),
-      [resetToDefault, selectedValues, onValueChange],
+      [resetToDefault, selectedValues, onValueChange, requiredOptions],
     );
 
     const [screenSize, setScreenSize] = React.useState<
@@ -569,15 +581,24 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
     const getOptionByValue = React.useCallback(
       (value: string): MultiSelectOption | undefined => {
+        // First check in regular options
         const option = getAllOptions().find((option) => option.value === value);
-        if (!option && process.env.NODE_ENV === 'development') {
+        if (option) return option;
+
+        // Then check in required options
+        const requiredOption = requiredOptions.find(
+          (option) => option.value === value,
+        );
+        if (requiredOption) return requiredOption;
+
+        if (process.env.NODE_ENV === 'development') {
           console.warn(
             `MultiSelect: Option with value "${value}" not found in options list`,
           );
         }
-        return option;
+        return undefined;
       },
-      [getAllOptions],
+      [getAllOptions, requiredOptions],
     );
 
     const filteredOptions = React.useMemo(() => {
@@ -621,6 +642,15 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       if (disabled) return;
       const option = getOptionByValue(optionValue);
       if (option?.disabled) return;
+
+      // Prevent removal of required options
+      const isRequired = requiredOptions.some(
+        (req) => req.value === optionValue,
+      );
+      if (isRequired && selectedValues.includes(optionValue)) {
+        return;
+      }
+
       const newSelectedValues = selectedValues.includes(optionValue)
         ? selectedValues.filter((value) => value !== optionValue)
         : [...selectedValues, optionValue];
@@ -633,8 +663,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
     const handleClear = () => {
       if (disabled) return;
-      setSelectedValues([]);
-      onValueChange([]);
+      const requiredValues = requiredOptions.map((option) => option.value);
+      setSelectedValues(requiredValues);
+      onValueChange(requiredValues);
     };
 
     const handleTogglePopover = () => {
@@ -644,10 +675,17 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
     const clearExtraOptions = () => {
       if (disabled) return;
-      const newSelectedValues = selectedValues.slice(
-        0,
-        responsiveSettings.maxCount,
+      const requiredValues = requiredOptions.map((option) => option.value);
+      const nonRequiredValues = selectedValues.filter(
+        (value) => !requiredValues.includes(value),
       );
+      const newSelectedValues = [
+        ...requiredValues,
+        ...nonRequiredValues.slice(
+          0,
+          responsiveSettings.maxCount - requiredValues.length,
+        ),
+      ];
       setSelectedValues(newSelectedValues);
       onValueChange(newSelectedValues);
     };
@@ -655,8 +693,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     const toggleAll = () => {
       if (disabled) return;
       const allOptions = getAllOptions().filter((option) => !option.disabled);
+      const requiredValues = requiredOptions.map((option) => option.value);
+
       if (selectedValues.length === allOptions.length) {
-        handleClear();
+        // Clear all non-required options, keep required ones
+        setSelectedValues(requiredValues);
+        onValueChange(requiredValues);
       } else {
         const allValues = allOptions.map((option) => option.value);
         setSelectedValues(allValues);
@@ -819,7 +861,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                 maxWidth: `min(${widthConstraints.maxWidth}, 100%)`,
               }}
             >
-              {selectedValues.length > 0 ? (
+              {selectedValues.length > 0 || requiredOptions.length > 0 ? (
                 <div className="flex justify-between items-center w-full">
                   <div
                     className={cn(
@@ -843,6 +885,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         const option = getOptionByValue(value);
                         const IconComponent = option?.icon;
                         const customStyle = option?.style;
+                        const isRequired = requiredOptions.some(
+                          (req) => req.value === value,
+                        );
                         if (!option) {
                           return null;
                         }
@@ -870,6 +915,12 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                                 'max-w-[120px] truncate',
                               singleLine && 'flex-shrink-0 whitespace-nowrap',
                               '[&>svg]:pointer-events-auto',
+                              // Disabled styling for required options
+                              isRequired && [
+                                'opacity-75',
+                                'cursor-default',
+                                'hover:opacity-75',
+                              ],
                             )}
                             style={{
                               ...badgeStyle,
@@ -887,9 +938,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                                     'h-3 w-3 mr-1',
                                   customStyle?.iconColor && 'text-current',
                                 )}
-                                {...(customStyle?.iconColor && {
-                                  style: { color: customStyle.iconColor },
-                                })}
+                                {...(customStyle?.iconColor &&
+                                  !isRequired && {
+                                    style: { color: customStyle.iconColor },
+                                  })}
                               />
                             )}
                             <span
@@ -899,34 +951,36 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                             >
                               {option.label}
                             </span>
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleOption(value);
-                              }}
-                              onKeyDown={(event) => {
-                                if (
-                                  event.key === 'Enter' ||
-                                  event.key === ' '
-                                ) {
-                                  event.preventDefault();
+                            {!isRequired && (
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={(event) => {
                                   event.stopPropagation();
                                   toggleOption(value);
-                                }
-                              }}
-                              aria-label={`Remove ${option.label} from selection`}
-                              className="ml-2 h-4 w-4 cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50"
-                            >
-                              <XCircle
-                                className={cn(
-                                  'h-3 w-3',
-                                  responsiveSettings.compactMode &&
-                                    'h-2.5 w-2.5',
-                                )}
-                              />
-                            </div>
+                                }}
+                                onKeyDown={(event) => {
+                                  if (
+                                    event.key === 'Enter' ||
+                                    event.key === ' '
+                                  ) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    toggleOption(value);
+                                  }
+                                }}
+                                aria-label={`Remove ${option.label} from selection`}
+                                className="ml-2 h-4 w-4 cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50 flex items-center justify-center"
+                              >
+                                <XCircle
+                                  className={cn(
+                                    'max-h-3 max-w-3',
+                                    responsiveSettings.compactMode &&
+                                      'h-2.5 w-2.5',
+                                  )}
+                                />
+                              </div>
+                            )}
                           </Badge>
                         );
                       })
@@ -1090,6 +1144,43 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         )
                       </span>
                     </CommandItem>
+                  </CommandGroup>
+                )}
+                {requiredOptions.length > 0 && (
+                  <CommandGroup heading="Required">
+                    {requiredOptions.map((option) => {
+                      const isSelected = selectedValues.includes(option.value);
+                      const IconComponent = option.icon;
+                      return (
+                        <CommandItem
+                          key={option.value}
+                          onSelect={() => {}} // Prevent selection/deselection
+                          role="option"
+                          aria-selected={isSelected}
+                          aria-disabled={true}
+                          aria-label={`${option.label}, required, selected`}
+                          className="opacity-50 cursor-not-allowed"
+                          disabled={true}
+                        >
+                          <div
+                            className={cn(
+                              'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                              'bg-primary text-primary-foreground',
+                            )}
+                            aria-hidden="true"
+                          >
+                            <CheckIcon className="h-4 w-4" />
+                          </div>
+                          {IconComponent && (
+                            <IconComponent
+                              className="mr-2 h-4 w-4 text-muted-foreground"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <span>{option.label}</span>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 )}
                 {isGroupedOptions(filteredOptions) ? (
