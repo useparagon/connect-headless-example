@@ -78,6 +78,8 @@ const multiSelectVariants = cva('m-1 transition-all duration-300 ease-in-out', {
 interface MultiSelectOption {
   /** The text to display for the option. */
   label: string;
+  /** Optional description to display for the option. */
+  description?: string;
   /** The unique value associated with the option. */
   value: string;
   /** Optional icon component to display alongside the option. */
@@ -322,7 +324,6 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       animationConfig,
       maxCount = 20,
       modalPopover = false,
-      asChild = false,
       className,
       hideSelectAll = false,
       searchable = true,
@@ -849,7 +850,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                 getAllOptions().length
               } options selected. ${placeholder}`}
               className={cn(
-                'flex p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
+                'dark:bg-input/30 border-input flex p-1 rounded-md border min-h-10 h-auto items-center justify-between hover:bg-inherit [&_svg]:pointer-events-auto',
                 autoSize ? 'w-auto' : 'w-full',
                 responsiveSettings.compactMode && 'min-h-8 text-sm',
                 screenSize === 'mobile' && 'min-h-12 text-base',
@@ -1159,25 +1160,34 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                           aria-selected={isSelected}
                           aria-disabled={true}
                           aria-label={`${option.label}, required, selected`}
-                          className="opacity-50 cursor-not-allowed"
+                          className="opacity-50 cursor-not-allowed items-start"
                           disabled={true}
                         >
-                          <div
-                            className={cn(
-                              'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                              'bg-primary text-primary-foreground',
-                            )}
-                            aria-hidden="true"
-                          >
-                            <CheckIcon className="h-4 w-4" />
+                          <div className="h-[20px] flex flex-col justify-center">
+                            <div
+                              className={cn(
+                                'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                                'bg-primary text-primary-foreground',
+                              )}
+                              aria-hidden="true"
+                            >
+                              <CheckIcon className="h-4 w-4" />
+                            </div>
                           </div>
                           {IconComponent && (
                             <IconComponent
-                              className="mr-2 h-4 w-4 text-muted-foreground"
+                              className="m-0 h-4 w-4 text-muted-foreground"
                               aria-hidden="true"
                             />
                           )}
-                          <span>{option.label}</span>
+                          <div className="flex flex-col gap-px">
+                            <span className="font-medium">{option.label}</span>
+                            {option.description && (
+                              <span className="font-normal text-muted-foreground">
+                                {option.description}
+                              </span>
+                            )}
+                          </div>
                         </CommandItem>
                       );
                     })}
@@ -1201,29 +1211,42 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                               isSelected ? ', selected' : ', not selected'
                             }${option.disabled ? ', disabled' : ''}`}
                             className={cn(
-                              'cursor-pointer',
+                              'cursor-pointer items-start',
                               option.disabled &&
                                 'opacity-50 cursor-not-allowed',
                             )}
                             disabled={option.disabled}
                           >
-                            <div
-                              className={cn(
-                                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'opacity-50 [&_svg]:invisible',
-                              )}
-                              aria-hidden="true"
-                            >
-                              <CheckIcon className="h-4 w-4" />
+                            <div className="h-[20px] flex flex-col justify-center">
+                              <div
+                                className={cn(
+                                  'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                                  'bg-primary text-primary-foreground',
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'opacity-50 [&_svg]:invisible',
+                                )}
+                                aria-hidden="true"
+                              >
+                                <CheckIcon className="h-4 w-4" />
+                              </div>
                             </div>
                             {option.icon && (
                               <option.icon
-                                className="mr-2 h-4 w-4 text-muted-foreground"
+                                className="m-0 h-4 w-4 text-muted-foreground"
                                 aria-hidden="true"
                               />
                             )}
+                            <div className="flex flex-col gap-px">
+                              <span className="font-medium">
+                                {option.label}
+                              </span>
+                              {option.description && (
+                                <span className="font-normal text-muted-foreground">
+                                  {option.description}
+                                </span>
+                              )}
+                            </div>
                             <span>{option.label}</span>
                           </CommandItem>
                         );
@@ -1231,7 +1254,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                     </CommandGroup>
                   ))
                 ) : (
-                  <CommandGroup>
+                  <CommandGroup heading="Optional">
                     {filteredOptions.map((option) => {
                       const isSelected = selectedValues.includes(option.value);
                       return (
@@ -1245,29 +1268,40 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                             isSelected ? ', selected' : ', not selected'
                           }${option.disabled ? ', disabled' : ''}`}
                           className={cn(
-                            'cursor-pointer',
+                            'cursor-pointer items-start',
                             option.disabled && 'opacity-50 cursor-not-allowed',
                           )}
                           disabled={option.disabled}
                         >
-                          <div
-                            className={cn(
-                              'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                              isSelected
-                                ? 'bg-primary text-primary-foreground'
-                                : 'opacity-50 [&_svg]:invisible',
-                            )}
-                            aria-hidden="true"
-                          >
-                            <CheckIcon className="h-4 w-4" />
+                          <div className="h-[20px] flex flex-col justify-center">
+                            <div
+                              className={cn(
+                                'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                                'bg-primary text-primary-foreground',
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'opacity-50 [&_svg]:invisible',
+                              )}
+                              aria-hidden="true"
+                            >
+                              <CheckIcon className="h-4 w-4" />
+                            </div>
                           </div>
+
                           {option.icon && (
                             <option.icon
-                              className="mr-2 h-4 w-4 text-muted-foreground"
+                              className="m-0 h-4 w-4 text-muted-foreground"
                               aria-hidden="true"
                             />
                           )}
-                          <span>{option.label}</span>
+                          <div className="flex flex-col gap-px">
+                            <span className="font-medium">{option.label}</span>
+                            {option.description && (
+                              <span className="font-normal text-muted-foreground">
+                                {option.description}
+                              </span>
+                            )}
+                          </div>
                         </CommandItem>
                       );
                     })}

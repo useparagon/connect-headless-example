@@ -4,6 +4,7 @@ import {
   IntegrationConnectInput,
   paragon,
   SerializedConnectInput,
+  SidebarInputType,
 } from '@useparagon/connect';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -64,6 +65,8 @@ function AccountTypePicker(props: {
             key={option.id}
             type="button"
             variant="outline"
+            // TODO: Enable once we support it
+            disabled={option.id === 'user-configured-oauth'}
             onClick={() => {
               props.onSelect(option.id);
             }}
@@ -85,23 +88,31 @@ function PreOptionsForm(props: {
 
   return (
     <div className="flex flex-col gap-4">
-      {props.options.map((option) => (
-        <Controller
-          key={option.id}
-          control={form.control}
-          name={option.id}
-          defaultValue={option.defaultValue}
-          render={({ field }) => (
-            <SerializedConnectInputPicker
-              key={option.id}
-              integration={props.integration}
-              field={option as SerializedConnectInput}
-              value={field.value}
-              onChange={field.onChange}
-            />
-          )}
-        />
-      ))}
+      {props.options.map((option) => {
+        const serialized = option as SerializedConnectInput;
+        const defaultValue =
+          serialized.type === SidebarInputType.Permission
+            ? serialized.requiredScopes.join(' ')
+            : option.defaultValue;
+
+        return (
+          <Controller
+            key={option.id}
+            control={form.control}
+            name={option.id}
+            defaultValue={defaultValue}
+            render={({ field }) => (
+              <SerializedConnectInputPicker
+                key={option.id}
+                integration={props.integration}
+                field={option as SerializedConnectInput}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        );
+      })}
       <Button onClick={() => form.handleSubmit(props.onSubmit)()}>Next</Button>
     </div>
   );

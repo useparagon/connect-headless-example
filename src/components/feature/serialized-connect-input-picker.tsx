@@ -11,6 +11,7 @@ import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
+import { ScopesSelectField } from '../form/scopes-select-field';
 
 type Props = {
   integration: string;
@@ -202,6 +203,22 @@ export function SerializedConnectInputPicker(props: Props) {
         required={required}
         value={currentValue}
         onChange={(value) => props.onChange(value ?? undefined)}
+      />
+    );
+  }
+
+  if (field.type === SidebarInputType.Permission) {
+    const currentValue = (value as string)?.split(' ') ?? [];
+
+    return (
+      <ScopesSelectField
+        required={required}
+        id={field.id}
+        title={field.title}
+        tooltip={field.tooltip}
+        value={currentValue}
+        onChange={(value) => props.onChange(value.join(' '))}
+        field={field}
       />
     );
   }
