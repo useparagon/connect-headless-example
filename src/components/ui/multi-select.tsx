@@ -350,6 +350,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
     const [searchValue, setSearchValue] = React.useState('');
+    const [showRequiredOptions, setShowRequiredOptions] =
+      React.useState<boolean>(true);
 
     const [politeMessage, setPoliteMessage] = React.useState('');
     const [assertiveMessage, setAssertiveMessage] = React.useState('');
@@ -1148,47 +1150,66 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                   </CommandGroup>
                 )}
                 {requiredOptions.length > 0 && (
-                  <CommandGroup heading="Required">
+                  <CommandGroup
+                    heading={
+                      <div className="flex gap-2">
+                        <p>Required</p>
+                        <Button
+                          className="p-0 h-4 text-xs"
+                          variant="link"
+                          onClick={() =>
+                            setShowRequiredOptions(!showRequiredOptions)
+                          }
+                        >
+                          {showRequiredOptions ? 'Hide' : 'Show'}
+                        </Button>
+                      </div>
+                    }
+                  >
                     {requiredOptions.map((option) => {
                       const isSelected = selectedValues.includes(option.value);
                       const IconComponent = option.icon;
                       return (
-                        <CommandItem
-                          key={option.value}
-                          onSelect={() => {}} // Prevent selection/deselection
-                          role="option"
-                          aria-selected={isSelected}
-                          aria-disabled={true}
-                          aria-label={`${option.label}, required, selected`}
-                          className="opacity-50 cursor-not-allowed items-start"
-                          disabled={true}
-                        >
-                          <div className="h-[20px] flex flex-col justify-center">
-                            <div
-                              className={cn(
-                                'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                'bg-primary text-primary-foreground',
-                              )}
-                              aria-hidden="true"
-                            >
-                              <CheckIcon className="h-4 w-4" />
+                        showRequiredOptions && (
+                          <CommandItem
+                            key={option.value}
+                            onSelect={() => {}} // Prevent selection/deselection
+                            role="option"
+                            aria-selected={isSelected}
+                            aria-disabled={true}
+                            aria-label={`${option.label}, required, selected`}
+                            className="opacity-50 cursor-not-allowed items-start"
+                            disabled={true}
+                          >
+                            <div className="h-[20px] flex flex-col justify-center">
+                              <div
+                                className={cn(
+                                  'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                                  'bg-primary text-primary-foreground',
+                                )}
+                                aria-hidden="true"
+                              >
+                                <CheckIcon className="h-4 w-4" />
+                              </div>
                             </div>
-                          </div>
-                          {IconComponent && (
-                            <IconComponent
-                              className="m-0 h-4 w-4 text-muted-foreground"
-                              aria-hidden="true"
-                            />
-                          )}
-                          <div className="flex flex-col gap-px">
-                            <span className="font-medium">{option.label}</span>
-                            {option.description && (
-                              <span className="font-normal text-muted-foreground">
-                                {option.description}
-                              </span>
+                            {IconComponent && (
+                              <IconComponent
+                                className="m-0 h-4 w-4 text-muted-foreground"
+                                aria-hidden="true"
+                              />
                             )}
-                          </div>
-                        </CommandItem>
+                            <div className="flex flex-col gap-px">
+                              <span className="font-medium">
+                                {option.label}
+                              </span>
+                              {option.description && (
+                                <span className="font-normal text-muted-foreground">
+                                  {option.description}
+                                </span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        )
                       );
                     })}
                   </CommandGroup>
