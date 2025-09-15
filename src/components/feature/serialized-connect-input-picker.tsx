@@ -12,6 +12,7 @@ import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
 import { ScopesSelectField } from '../form/scopes-select-field';
+import { FileUploadField } from '../form/file-upload-field';
 
 type Props = {
   integration: string;
@@ -219,6 +220,29 @@ export function SerializedConnectInputPicker(props: Props) {
         value={currentValue}
         onChange={(value) => props.onChange(value.join(' '))}
         field={field}
+      />
+    );
+  }
+
+  // @ts-expect-error TODO: Add File to SidebarInputType
+  if (field.type === SidebarInputType.File) {
+    return (
+      <FileUploadField
+        // @ts-expect-error TODO: Add File to SidebarInputType
+        id={field.id}
+        // @ts-expect-error TODO: Add File to SidebarInputType
+        title={field.title}
+        value={(value as File) ?? null}
+        // @ts-expect-error TODO: Add File to SidebarInputType
+        tooltip={field.tooltip}
+        onChange={async (value) => {
+          if (value) {
+            props.onChange((await value.text()) ?? undefined);
+          } else {
+            props.onChange(undefined);
+          }
+        }}
+        required={required}
       />
     );
   }

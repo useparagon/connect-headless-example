@@ -65,8 +65,6 @@ function AccountTypePicker(props: {
             key={option.id}
             type="button"
             variant="outline"
-            // TODO: Enable once we support it
-            disabled={option.id === 'user-configured-oauth'}
             onClick={() => {
               props.onSelect(option.id);
             }}
