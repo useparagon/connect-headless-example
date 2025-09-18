@@ -224,16 +224,12 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  // @ts-expect-error TODO: Add File to SidebarInputType
   if (field.type === SidebarInputType.File) {
     return (
       <FileUploadField
-        // @ts-expect-error TODO: Add File to SidebarInputType
         id={field.id}
-        // @ts-expect-error TODO: Add File to SidebarInputType
         title={field.title}
         value={(value as File) ?? null}
-        // @ts-expect-error TODO: Add File to SidebarInputType
         tooltip={field.tooltip}
         onChange={async (value) => {
           if (value) {
