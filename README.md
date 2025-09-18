@@ -9,7 +9,7 @@ Headless mode still provides fully managed authentication, so you don’t need t
 To use the features of this demo, you will need a Paragon account. [Start for free](https://dashboard.useparagon.com/signup) today
 
 1. Duplicate or rename the `.env-example` to `.env`
-2. Paste in your Project ID and a JWT token into the values of `.env`, at the root of the repository. For quick token generation, you can use our [Paragon JWT Genereator](https://jwt.useparagon.com/).
+2. Paste in your Project ID and a JWT token into the values of `.env`, at the root of the repository. For quick token generation, you can use our [Paragon JWT Generator](https://jwt.useparagon.com/).
 
 ```
 VITE_PARAGON_PROJECT_ID=""
@@ -30,8 +30,8 @@ Start the application dev server:
 npm run dev
 ```
 
-After the demo has started, it will print the local URL you can visit:
+After the demo has started, you can visit:
 
 ```
-> Ready on http://localhost:3000
+http://localhost:5173
 ```
