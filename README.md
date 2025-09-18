@@ -4,6 +4,10 @@ The Headless Connect Portal can be used with your own UI components or design sy
 
 Headless mode still provides fully managed authentication, so you don’t need to worry about managing, storing, or refreshing your customers’ credentials.
 
+<p align="center">
+  <img src="screenshots/home@2x.png" style="max-width: 70%;" />
+</p>
+
 ## Configuration
 
 To use the features of this demo, you will need a Paragon account. [Start for free](https://dashboard.useparagon.com/signup) today
