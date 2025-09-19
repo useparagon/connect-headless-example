@@ -852,7 +852,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                 getAllOptions().length
               } options selected. ${placeholder}`}
               className={cn(
-                'dark:bg-input/30 border-input flex p-1 rounded-md border min-h-10 h-auto items-center justify-between hover:bg-inherit [&_svg]:pointer-events-auto',
+                'dark:bg-input/30 bg-white border-input flex p-1 rounded-md border min-h-10 h-auto items-center justify-between hover:bg-inherit [&_svg]:pointer-events-auto',
                 autoSize ? 'w-auto' : 'w-full',
                 responsiveSettings.compactMode && 'min-h-8 text-sm',
                 screenSize === 'mobile' && 'min-h-12 text-base',
@@ -1137,7 +1137,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         )}
                         aria-hidden="true"
                       >
-                        <CheckIcon className="h-4 w-4" />
+                        <CheckIcon className="h-4 w-4 text-white dark:text-primary-foreground" />
                       </div>
                       <span>
                         (Select All
@@ -1298,14 +1298,14 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                             <div
                               className={cn(
                                 'm-0 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                'bg-primary text-primary-foreground',
+                                'dark:bg-black bg-white text-primary-foreground',
                                 isSelected
-                                  ? 'bg-primary text-primary-foreground'
+                                  ? 'dark:bg-primary bg-primary text-primary-foreground'
                                   : 'opacity-50 [&_svg]:invisible',
                               )}
                               aria-hidden="true"
                             >
-                              <CheckIcon className="h-4 w-4" />
+                              <CheckIcon className="h-4 w-4 text-white dark:text-muted-foreground" />
                             </div>
                           </div>
 
