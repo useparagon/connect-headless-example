@@ -72,7 +72,7 @@ export function IntegrationModal(props: Props) {
     setInstallationError(null);
     setIsInstalling(true);
     paragon.installFlow.start(props.integration, {
-      oauthTimeout: 45_000,
+      oauthTimeout: 2 * 60 * 1000,
       onNext: (next) => {
         setShowFlowForm(!next.done);
         setInstallFlowStage(next);
