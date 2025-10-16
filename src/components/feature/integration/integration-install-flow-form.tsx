@@ -6,6 +6,7 @@ import {
   SerializedConnectInput,
   SidebarInputType,
 } from '@useparagon/connect';
+import { CopyIcon } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,54 @@ export function IntegrationInstallFlowForm(props: Props) {
           options={props.installFlowStage.options}
           onSelect={props.onSelectAccount}
         />
+      );
+    case 'instruction':
+      return (
+        <div className="flex flex-col gap-4">
+          {/* TODO: Replace with markdown renderer */}
+          <div>
+            <pre className="max-w-full text-wrap">
+              {props.installFlowStage.content}
+            </pre>
+          </div>
+          <div className="flex gap-4 items-center">
+            {props.installFlowStage.ctas.map((cta) => {
+              switch (cta.type) {
+                case 'link':
+                  return (
+                    <a href={cta.url} target="_blank" rel="noopener noreferrer">
+                      {cta.label}
+                    </a>
+                  );
+                case 'copyButton':
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(cta.copyText);
+                      }}
+                    >
+                      <CopyIcon className="size-3" />
+                      {cta.label}
+                    </Button>
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </div>
+          {props.installFlowStage.finish && (
+            <div>
+              <Button
+                variant="default"
+                onClick={props.installFlowStage.finish.onClick}
+              >
+                {props.installFlowStage.finish.label}
+              </Button>
+            </div>
+          )}
+        </div>
       );
     case 'preOptions':
       return (
