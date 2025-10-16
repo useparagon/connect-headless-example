@@ -23,6 +23,7 @@ import { ActionButton } from './components/action-button';
 import { WorkflowSection } from './components/workflows';
 import { IntegrationSettingsSection } from './components/integration-settings';
 import { ErrorMessage } from '../error-message';
+import { Button } from '@/components/ui/button';
 
 const globalInstallationErrors = new Set<InstallFlowError['name']>([
   'OAuthBlockedError',
@@ -71,7 +72,7 @@ export function IntegrationModal(props: Props) {
     setInstallationError(null);
     setIsInstalling(true);
     paragon.installFlow.start(props.integration, {
-      oauthTimeout: 45_000,
+      oauthTimeout: 2 * 60 * 1000,
       onNext: (next) => {
         setShowFlowForm(!next.done);
         setInstallFlowStage(next);
@@ -82,6 +83,10 @@ export function IntegrationModal(props: Props) {
         setInstallFlowStage(null);
       },
       onError: (error, errorContext) => {
+        console.error('InstallFlow error:', {
+          integration: props.integration,
+          error,
+        });
         setIsInstalling(false);
         setInstallationError({
           stage: errorContext?.stage,
@@ -106,6 +111,15 @@ export function IntegrationModal(props: Props) {
       });
   };
 
+  const doCancel = async () => {
+    await paragon.installFlow.cancel();
+    setShowFlowForm(false);
+    setIsInstalling(false);
+    setInstallFlowStage(null);
+    setInstallationError(null);
+    setTab('overview');
+  };
+
   if (isLoading) {
     return null;
   }
@@ -128,12 +142,24 @@ export function IntegrationModal(props: Props) {
                 </DialogDescription>
               </div>
             </div>
-            <ActionButton
-              status={props.status}
-              isInstalling={isInstalling}
-              onDisconnect={doDisable}
-              onConnect={doEnable}
-            />
+            <div className="flex gap-2">
+              <ActionButton
+                status={props.status}
+                isInstalling={isInstalling}
+                onDisconnect={doDisable}
+                onConnect={doEnable}
+              />
+              {isInstalling && (
+                <Button
+                  className="cursor-pointer"
+                  size="sm"
+                  variant="link"
+                  onClick={doCancel}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
         <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
