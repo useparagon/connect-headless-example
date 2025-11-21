@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   InstallFlowError,
   CredentialStatus,
@@ -68,6 +68,12 @@ export function IntegrationModal(props: Props) {
     installationError?.stage &&
     !globalInstallationErrors.has(installationError.error.name);
 
+  useEffect(() => {
+    if (installFlowStage?.stage === 'oauth') {
+      paragon.installFlow.startOAuth();
+    }
+  }, [installFlowStage]);
+
   const doEnable = async () => {
     setInstallationError(null);
     setIsInstalling(true);
@@ -132,7 +138,7 @@ export function IntegrationModal(props: Props) {
     <Dialog onOpenChange={props.onOpenChange} open>
       <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px] max-h-[90dvh]">
         <DialogHeader>
-          <div className="flex gap-2 justify-between items-center">
+          <div className="flex gap-2 justify-between items-center pb-4">
             <div className="flex gap-4 items-center">
               <img src={props.icon} width={45} />
               <div className="flex flex-col items-start gap-1">

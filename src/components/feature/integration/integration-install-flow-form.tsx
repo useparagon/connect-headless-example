@@ -51,6 +51,8 @@ export function IntegrationInstallFlowForm(props: Props) {
           onSubmit={props.onFinishPreOptions}
         />
       );
+    case 'oauth':
+      return <OAuthForm />;
     case 'postOptions':
       return (
         <PostOptionsForm
@@ -254,6 +256,20 @@ function MarkdownImage(props: React.ComponentProps<'img'>) {
       {isLoading && (
         <div className="h-96 w-xl rounded-lg animate-pulse bg-border"></div>
       )}
+    </div>
+  );
+}
+
+function OAuthForm() {
+  return (
+    <div className="flex flex-col gap-4 items-center justify-center py-8">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <div className="flex flex-col gap-2 text-center">
+        <h2 className="text-lg font-medium">Connecting Your Account</h2>
+        <p className="text-sm text-muted-foreground">
+          A popup window will open to authenticate your account...
+        </p>
+      </div>
     </div>
   );
 }
