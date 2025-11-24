@@ -68,6 +68,7 @@ export function IntegrationInstallFlowForm(props: Props) {
             content: props.installFlowStage.content,
             ctas: props.installFlowStage.ctas,
             finish: props.installFlowStage.finish,
+            packageInstallUrl: props.installFlowStage.packageInstallUrl,
           }}
           onSubmit={props.onFinishInstruction}
         />
@@ -175,7 +176,10 @@ function PostOptionsForm(props: {
 }
 
 function InstructionsForm(props: {
-  options: Pick<InstructionStage, 'content' | 'ctas' | 'finish'>;
+  options: Pick<
+    InstructionStage,
+    'content' | 'ctas' | 'finish' | 'packageInstallUrl'
+  >;
   onSubmit: () => void;
 }) {
   const { copyToClipboard, isCopied } = useCopyToClipboard();
@@ -202,7 +206,7 @@ function InstructionsForm(props: {
       <div className="flex gap-6">
         {copyButton && (
           <Button asChild>
-            <a href={props.options.ctas[0].url}>
+            <a href={props.options.packageInstallUrl}>
               {props.options.ctas[0].label}
             </a>
           </Button>
@@ -219,7 +223,7 @@ function InstructionsForm(props: {
                 title="Copy"
                 size="icon-xs"
                 onClick={() => {
-                  copyToClipboard(props.options.ctas[1].copyText);
+                  copyToClipboard(props.options.packageInstallUrl);
                 }}
               >
                 {isCopied ? <CheckIcon /> : <CopyIcon />}
