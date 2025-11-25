@@ -4,32 +4,48 @@ import {
   paragon,
   SerializedConnectInput,
 } from '@useparagon/connect';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { SerializedConnectInputPicker } from '@/components/feature/serialized-connect-input-picker';
 import { Button } from '@/components/ui/button';
 
-export function IntegrationSettingsSection(props: { integration: string }) {
+export function IntegrationSettingsSection(props: {
+  integration: string;
+  selectedCredentialId: string;
+}) {
   const settings =
     paragon.getIntegrationConfig(props.integration).availableUserSettings ?? [];
+  const sharedSettings = useMemo(() => {
+    const user = paragon.getUser();
+
+    if (!user.authenticated) {
+      throw new Error('User is not authenticated');
+    }
+
+    const integration = user.integrations[props.integration];
+
+    if (!integration) {
+      throw new Error('Integration not found');
+    }
+
+    if (!props.selectedCredentialId) {
+      return integration.sharedSettings ?? {};
+    }
+
+    const credential = integration.allCredentials.find(
+      (credential) => credential.id === props.selectedCredentialId,
+    );
+
+    if (!credential) {
+      throw new Error('Credential not found');
+    }
+
+    return credential.configurations.at(0)?.sharedSettings ?? {};
+  }, [props.integration, props.selectedCredentialId]);
 
   if (!settings || settings.length === 0) {
     return null;
   }
-
-  const user = paragon.getUser();
-
-  if (!user.authenticated) {
-    throw new Error('User is not authenticated');
-  }
-
-  const integration = user.integrations[props.integration];
-
-  if (!integration) {
-    throw new Error('Integration not found');
-  }
-
-  const sharedSettings = integration.sharedSettings ?? {};
 
   return (
     <div>
@@ -41,6 +57,7 @@ export function IntegrationSettingsSection(props: { integration: string }) {
           integration={props.integration}
           settings={settings}
           settingsState={sharedSettings}
+          selectedCredentialId={props.selectedCredentialId}
         />
       </fieldset>
     </div>
@@ -51,6 +68,7 @@ function IntegrationSettings(props: {
   integration: string;
   settings: SerializedConnectInput[];
   settingsState: IntegrationSharedInputStateMap;
+  selectedCredentialId: string;
 }) {
   const { settings, settingsState } = props;
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
@@ -69,9 +87,15 @@ function IntegrationSettings(props: {
   };
 
   const handleSave = () => {
+    console.log('will save integration settings', {
+      formState,
+      selectedCredentialId: props.selectedCredentialId,
+    });
     setIsSaving(true);
     paragon
-      .updateIntegrationUserSettings(props.integration, formState)
+      .updateIntegrationUserSettings(props.integration, formState, {
+        selectedCredentialId: props.selectedCredentialId,
+      })
       .catch((error) => {
         console.error('Failed to update integration user settings', error);
       })

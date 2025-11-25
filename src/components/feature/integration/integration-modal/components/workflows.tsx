@@ -10,27 +10,44 @@ import debounce from 'lodash/debounce';
 import { Switch } from '@/components/ui/switch';
 import { SerializedConnectInputPicker } from '@/components/feature/serialized-connect-input-picker';
 
-export function WorkflowSection(props: { integration: string }) {
+export function WorkflowSection(props: {
+  integration: string;
+  selectedCredentialId: string;
+}) {
   const workflows =
     paragon.getIntegrationConfig(props.integration).availableWorkflows ?? [];
+
+  const workflowSettings = useMemo(() => {
+    const user = paragon.getUser();
+
+    if (!user.authenticated) {
+      throw new Error('User is not authenticated');
+    }
+
+    const integration = user.integrations[props.integration];
+
+    if (!integration) {
+      throw new Error('Integration not found');
+    }
+
+    if (!props.selectedCredentialId) {
+      return integration.workflowSettings ?? {};
+    }
+
+    const credential = integration.allCredentials.find(
+      (credential) => credential.id === props.selectedCredentialId,
+    );
+
+    if (!credential) {
+      throw new Error('Credential not found');
+    }
+
+    return credential.configurations.at(0)?.workflowSettings ?? {};
+  }, [props.integration, props.selectedCredentialId]);
 
   if (!workflows || workflows.length === 0) {
     return null;
   }
-
-  const user = paragon.getUser();
-
-  if (!user.authenticated) {
-    throw new Error('User is not authenticated');
-  }
-
-  const integration = user.integrations[props.integration];
-
-  if (!integration) {
-    throw new Error('Integration not found');
-  }
-
-  const workflowSettings = integration.workflowSettings ?? {};
 
   return (
     <div>
@@ -42,6 +59,7 @@ export function WorkflowSection(props: { integration: string }) {
           integration={props.integration}
           workflows={workflows}
           workflowSettings={workflowSettings}
+          selectedCredentialId={props.selectedCredentialId}
         />
       </fieldset>
     </div>
@@ -52,6 +70,7 @@ function Workflows(props: {
   integration: string;
   workflows: Omit<IntegrationWorkflowMeta, 'order' | 'permissions'>[];
   workflowSettings: IntegrationWorkflowStateMap;
+  selectedCredentialId: string;
 }) {
   const { workflowSettings, workflows } = props;
   const [isSaving, setIsSaving] = useState(false);
@@ -76,9 +95,12 @@ function Workflows(props: {
     setIsSaving(true);
     localUpdateWorkflowState(workflowId, enabled);
     paragon
-      .updateWorkflowState({
-        [workflowId]: enabled,
-      })
+      .updateWorkflowState(
+        {
+          [workflowId]: enabled,
+        },
+        { selectedCredentialId: props.selectedCredentialId },
+      )
       .catch((error) => {
         console.error('Failed to update workflow', error);
       })
@@ -118,6 +140,7 @@ function Workflows(props: {
               workflow={workflow}
               workflowSettings={workflowSettings}
               isEnabled={isEnabled}
+              selectedCredentialId={props.selectedCredentialId}
             />
             {isNotLast && <hr className="my-4 border-dashed border-border" />}
           </div>
@@ -132,6 +155,7 @@ function WorkflowFields(props: {
   workflow: IntegrationWorkflowMeta;
   workflowSettings: IntegrationWorkflowStateMap;
   isEnabled: boolean;
+  selectedCredentialId: string;
 }) {
   const { workflow, isEnabled, workflowSettings } = props;
   const [formState, setFormState] = useState<Record<string, ConnectInputValue>>(
@@ -155,12 +179,13 @@ function WorkflowFields(props: {
             {
               [id]: value,
             },
+            { selectedCredentialId: props.selectedCredentialId },
           );
         } catch (error) {
           console.error('Failed to update workflow settings', error);
         }
       }, 500),
-    [props.integration, workflow.id],
+    [props.integration, workflow.id, props.selectedCredentialId],
   );
 
   useEffect(() => {

@@ -24,6 +24,7 @@ import { WorkflowSection } from './components/workflows';
 import { IntegrationSettingsSection } from './components/integration-settings';
 import { ErrorMessage } from '../error-message';
 import { Button } from '@/components/ui/button';
+import { Time } from '@/lib/time';
 
 const globalInstallationErrors = new Set<InstallFlowError['name']>([
   'OAuthBlockedError',
@@ -39,7 +40,10 @@ type Props = {
   name: string;
   icon: string;
   status: CredentialStatus | undefined;
+  selectedCredentialId?: string;
   onOpenChange: (open: boolean) => void;
+  onComplete: (credentialId: string) => void;
+  onDisconnect: (credentialId: string) => void;
 };
 
 export function IntegrationModal(props: Props) {
@@ -59,7 +63,9 @@ export function IntegrationModal(props: Props) {
   } | null>(null);
   const isConnected = props.status === CredentialStatus.VALID;
   const configurationTabDisabled =
-    !isConnected || props.status === CredentialStatus.INVALID;
+    !props.selectedCredentialId ||
+    !isConnected ||
+    props.status === CredentialStatus.INVALID;
   const showGlobalInstallationError =
     installationError &&
     (!installationError.stage ||
@@ -72,15 +78,22 @@ export function IntegrationModal(props: Props) {
     setInstallationError(null);
     setIsInstalling(true);
     paragon.installFlow.start(props.integration, {
-      oauthTimeout: 2 * 60 * 1000,
+      allowMultipleCredentials: true,
+      selectedCredentialId: props.selectedCredentialId,
+      oauthTimeout: Time.minutes(2),
       onNext: (next) => {
         setShowFlowForm(!next.done);
         setInstallFlowStage(next);
       },
-      onComplete: () => {
+      onComplete: (event) => {
+        if (!event.credentialId) {
+          throw new Error('Credential ID not found');
+        }
+
         setIsInstalling(false);
         setTab('configuration');
         setInstallFlowStage(null);
+        props.onComplete(event.credentialId);
       },
       onError: (error, errorContext) => {
         console.error('InstallFlow error:', {
@@ -97,10 +110,17 @@ export function IntegrationModal(props: Props) {
   };
 
   const doDisable = () => {
+    const credentialId = props.selectedCredentialId;
+    if (!credentialId) {
+      throw new Error('Credential ID not found');
+    }
+
     paragon
-      .uninstallIntegration(props.integration)
+      .uninstallIntegration(props.integration, {
+        selectedCredentialId: credentialId,
+      })
       .then(() => {
-        setTab('overview');
+        props.onDisconnect(credentialId);
       })
       .catch((error) => {
         console.error(
@@ -222,12 +242,20 @@ export function IntegrationModal(props: Props) {
                   </pre>
                 </div>
               </TabsContent>
-              <TabsContent value="configuration" className="w-full">
-                <div className="p-6 flex flex-col gap-6">
-                  <IntegrationSettingsSection integration={props.integration} />
-                  <WorkflowSection integration={props.integration} />
-                </div>
-              </TabsContent>
+              {props.selectedCredentialId ? (
+                <TabsContent value="configuration" className="w-full">
+                  <div className="p-6 flex flex-col gap-6">
+                    <IntegrationSettingsSection
+                      integration={props.integration}
+                      selectedCredentialId={props.selectedCredentialId}
+                    />
+                    <WorkflowSection
+                      integration={props.integration}
+                      selectedCredentialId={props.selectedCredentialId}
+                    />
+                  </div>
+                </TabsContent>
+              ) : null}
             </Tabs>
           )}
         </div>
