@@ -87,10 +87,6 @@ function IntegrationSettings(props: {
   };
 
   const handleSave = () => {
-    console.log('will save integration settings', {
-      formState,
-      selectedCredentialId: props.selectedCredentialId,
-    });
     setIsSaving(true);
     paragon
       .updateIntegrationUserSettings(props.integration, formState, {
