@@ -48,7 +48,7 @@ export function IntegrationCard(props: Props) {
     >
       <CardContent>
         <CardTitle>
-          <div className="flex gap-2 items-center justify-between">
+          <div className="flex gap-2 items-center justify-between flex-wrap">
             <div className="flex gap-2 items-center">
               <img src={props.icon} width={30} />
               {props.name}
