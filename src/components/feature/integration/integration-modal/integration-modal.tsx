@@ -68,12 +68,6 @@ export function IntegrationModal(props: Props) {
     installationError?.stage &&
     !globalInstallationErrors.has(installationError.error.name);
 
-  useEffect(() => {
-    if (installFlowStage?.stage === 'oauth') {
-      paragon.installFlow.startOAuth();
-    }
-  }, [installFlowStage]);
-
   const doEnable = async () => {
     setInstallationError(null);
     setIsInstalling(true);
