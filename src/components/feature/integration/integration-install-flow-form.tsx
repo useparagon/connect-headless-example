@@ -206,7 +206,7 @@ function InstructionsForm(props: {
       <div className="flex gap-6">
         {copyButton && (
           <Button asChild>
-            <a href={props.options.packageInstallUrl}>
+            <a href={props.options.packageInstallUrl} target="_blank">
               {props.options.ctas[0].label}
             </a>
           </Button>
