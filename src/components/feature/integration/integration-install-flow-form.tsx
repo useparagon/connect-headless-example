@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/input-group';
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
 import { CheckIcon, CopyIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
 
@@ -189,8 +189,8 @@ function InstructionsForm(props: {
     (cta: CTA) => cta.type === 'copyButton',
   );
 
-  return (
-    <div className="flex flex-col gap-4">
+  const markdownContent = useMemo(
+    () => (
       <Markdown
         components={{
           h2(props) {
@@ -203,6 +203,13 @@ function InstructionsForm(props: {
       >
         {props.options.content}
       </Markdown>
+    ),
+    [props.options.content],
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {markdownContent}
       <div className="flex gap-6">
         {copyButton && (
           <Button asChild>
