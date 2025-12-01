@@ -182,13 +182,6 @@ function InstructionsForm(props: {
   >;
   onSubmit: () => void;
 }) {
-  const { copyToClipboard, isCopied } = useCopyToClipboard();
-
-  const linkButton = props.options.ctas.find((cta: CTA) => cta.type === 'link');
-  const copyButton = props.options.ctas.find(
-    (cta: CTA) => cta.type === 'copyButton',
-  );
-
   const markdownContent = useMemo(
     () => (
       <Markdown
@@ -211,33 +204,7 @@ function InstructionsForm(props: {
     <div className="flex flex-col gap-4">
       {markdownContent}
       <div className="flex gap-6">
-        {copyButton && (
-          <Button asChild>
-            <a href={props.options.packageInstallUrl} target="_blank">
-              {props.options.ctas[0].label}
-            </a>
-          </Button>
-        )}
-        {linkButton && (
-          <InputGroup className="w-fit">
-            <InputGroupInput
-              placeholder={props.options.ctas[1].label}
-              readOnly
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                aria-label="Copy"
-                title="Copy"
-                size="icon-xs"
-                onClick={() => {
-                  copyToClipboard(props.options.packageInstallUrl);
-                }}
-              >
-                {isCopied ? <CheckIcon /> : <CopyIcon />}
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-        )}
+        <InstructionCTAs ctas={props.options.ctas} />
       </div>
       <Button
         variant="link"
@@ -250,6 +217,41 @@ function InstructionsForm(props: {
       </Button>
     </div>
   );
+}
+
+function InstructionCTAs(props: { ctas: CTA[] }) {
+  const { copyToClipboard, isCopied } = useCopyToClipboard();
+
+  return props.ctas.map((cta) => {
+    switch (cta.type) {
+      case 'link':
+        return (
+          <Button asChild>
+            <a href={cta.label} target="_blank">
+              {cta.label}
+            </a>
+          </Button>
+        );
+      case 'copyButton':
+        return (
+          <InputGroup className="w-fit">
+            <InputGroupInput placeholder={cta.label} readOnly />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                aria-label="Copy"
+                title="Copy"
+                size="icon-xs"
+                onClick={() => {
+                  copyToClipboard(cta.label);
+                }}
+              >
+                {isCopied ? <CheckIcon /> : <CopyIcon />}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        );
+    }
+  });
 }
 
 function MarkdownImage(props: React.ComponentProps<'img'>) {
