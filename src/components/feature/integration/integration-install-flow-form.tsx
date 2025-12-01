@@ -31,7 +31,6 @@ type Props = {
   onSelectAccount: (accountId: string) => void;
   onFinishPreOptions: (preOptions: Record<string, ConnectInputValue>) => void;
   onFinishPostOptions: (postOptions: Record<string, ConnectInputValue>) => void;
-  onFinishInstruction: () => void;
 };
 
 export function IntegrationInstallFlowForm(props: Props) {
@@ -62,17 +61,7 @@ export function IntegrationInstallFlowForm(props: Props) {
         />
       );
     case 'instruction':
-      return (
-        <InstructionsForm
-          options={{
-            content: props.installFlowStage.content,
-            ctas: props.installFlowStage.ctas,
-            finish: props.installFlowStage.finish,
-            packageInstallUrl: props.installFlowStage.packageInstallUrl,
-          }}
-          onSubmit={props.onFinishInstruction}
-        />
-      );
+      return <InstructionsForm options={props.installFlowStage} />;
     case 'done':
     default:
       return null;
@@ -175,13 +164,7 @@ function PostOptionsForm(props: {
   );
 }
 
-function InstructionsForm(props: {
-  options: Pick<
-    InstructionStage,
-    'content' | 'ctas' | 'finish' | 'packageInstallUrl'
-  >;
-  onSubmit: () => void;
-}) {
+function InstructionsForm(props: { options: InstructionStage }) {
   const markdownContent = useMemo(
     () => (
       <Markdown
@@ -209,9 +192,7 @@ function InstructionsForm(props: {
       <Button
         variant="link"
         className="w-min"
-        onClick={() => {
-          props.onSubmit();
-        }}
+        onClick={props.options.finish.onClick}
       >
         {props.options.finish.label}
       </Button>
@@ -227,7 +208,7 @@ function InstructionCTAs(props: { ctas: CTA[] }) {
       case 'link':
         return (
           <Button asChild>
-            <a href={cta.label} target="_blank">
+            <a href={cta.href} target="_blank">
               {cta.label}
             </a>
           </Button>
@@ -242,7 +223,7 @@ function InstructionCTAs(props: { ctas: CTA[] }) {
                 title="Copy"
                 size="icon-xs"
                 onClick={() => {
-                  copyToClipboard(cta.label);
+                  copyToClipboard(cta.copyText);
                 }}
               >
                 {isCopied ? <CheckIcon /> : <CopyIcon />}
@@ -260,7 +241,7 @@ function MarkdownImage(props: React.ComponentProps<'img'>) {
   return (
     <div className="w-full flex justify-center">
       <img
-        className="max-h-96"
+        className="max-w-1/2"
         {...props}
         onLoad={() => {
           setIsLoading(false);

@@ -193,9 +193,6 @@ export function IntegrationModal(props: Props) {
                 onFinishPostOptions={(postOptions) => {
                   paragon.installFlow.setPostOptions(postOptions);
                 }}
-                onFinishInstruction={() => {
-                  paragon.installFlow.setHasFinishedInstruction();
-                }}
               />
               {showStageError && (
                 <ErrorMessage error={installationError.error} />
