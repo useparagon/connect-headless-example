@@ -231,6 +231,8 @@ function InstructionCTAs(props: { ctas: CTA[] }) {
             </InputGroupAddon>
           </InputGroup>
         );
+      default:
+        return null;
     }
   });
 }
