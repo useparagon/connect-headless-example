@@ -2,6 +2,7 @@ import { CredentialStatus } from '@useparagon/connect';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { ButtonGroupRadioDropdown } from '@/components/ui/button-group-radio-dropdown';
 
 type ActionButtonProps = {
   status: CredentialStatus | undefined;
@@ -16,32 +17,38 @@ export function ActionButton(props: ActionButtonProps) {
       return 'Installing...';
     }
 
-    if (props.status === CredentialStatus.VALID) {
-      return 'Disconnect';
+    switch (props.status) {
+      case CredentialStatus.VALID:
+      case CredentialStatus.INVALID:
+      case CredentialStatus.PENDING:
+        return 'Reconnect';
+      default:
+        return 'Connect';
     }
-
-    if (props.status === CredentialStatus.INVALID) {
-      return 'Reconnect';
-    }
-
-    return 'Connect';
   }, [props.status, props.isInstalling]);
 
-  const variant =
-    props.status === CredentialStatus.VALID ? 'destructive' : 'default';
-  const onClick =
-    props.status === CredentialStatus.VALID
-      ? props.onDisconnect
-      : props.onConnect;
-
   return (
-    <Button
-      className="cursor-pointer"
-      variant={variant}
-      onClick={onClick}
-      disabled={props.isInstalling}
+    <ButtonGroupRadioDropdown
+      showDropdown={props.status !== undefined}
+      trigger={
+        <Button
+          className="cursor-pointer"
+          variant="outline"
+          onClick={props.onConnect}
+          disabled={props.isInstalling}
+        >
+          {text}
+        </Button>
+      }
     >
-      {text}
-    </Button>
+      <ButtonGroupRadioDropdown.Group>
+        <ButtonGroupRadioDropdown.Item
+          onClick={props.onDisconnect}
+          variant="destructive"
+        >
+          Disconnect
+        </ButtonGroupRadioDropdown.Item>
+      </ButtonGroupRadioDropdown.Group>
+    </ButtonGroupRadioDropdown>
   );
 }

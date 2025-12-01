@@ -53,10 +53,10 @@ export function IntegrationList() {
             return (
               <li key={integration.type}>
                 <IntegrationCard
-                  integration={integration.type}
+                  type={integration.type}
                   name={integration.name}
                   icon={integration.icon}
-                  status={integrationInfo.credentialStatus}
+                  integrationInfo={integrationInfo}
                 />
               </li>
             );
