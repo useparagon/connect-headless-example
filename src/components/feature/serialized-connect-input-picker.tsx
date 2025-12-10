@@ -1,4 +1,7 @@
 import {
+  CustomDropdownField,
+  CustomDropdownOptions,
+  paragon,
   SidebarInputType,
   type ConnectInputValue,
   type SerializedConnectInput,
@@ -13,6 +16,7 @@ import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
 import { ScopesSelectField } from '../form/scopes-select-field';
 import { FileUploadField } from '../form/file-upload-field';
+import { DynamicCustomDropdownField } from './dynamic-custom-dropdown';
 
 type Props = {
   integration: string;
@@ -122,24 +126,54 @@ export function SerializedConnectInputPicker(props: Props) {
   }
 
   if (field.type === SidebarInputType.CustomDropdown) {
-    const options = field.customDropdownOptions ?? [];
+    let customDropdownOptions:
+      | Record<string, CustomDropdownField[] | CustomDropdownOptions>
+      | CustomDropdownField[]
+      | CustomDropdownOptions;
+    try {
+      customDropdownOptions = paragon.getCustomDropdownOptions(
+        props.integration,
+        field.key,
+      );
+    } catch (error) {
+      console.warn(error);
+      customDropdownOptions = [];
+    }
 
-    return (
-      <SelectField
-        id={field.id}
-        title={field.title}
-        required={required}
-        value={(value as string) ?? null}
-        onChange={(value) => onChange(value ?? undefined)}
-        allowClear
-      >
-        {options.map((option) => (
-          <SelectField.Item key={option.value} value={option.value}>
-            {option.label}
-          </SelectField.Item>
-        ))}
-      </SelectField>
-    );
+    const type = Array.isArray(customDropdownOptions) ? 'static' : 'dynamic';
+
+    if (type === 'static') {
+      return (
+        <SelectField
+          id={field.id}
+          title={field.title}
+          required={required}
+          value={value as string}
+          onChange={(value) => onChange(value ?? undefined)}
+          allowClear
+        >
+          {(customDropdownOptions as CustomDropdownField[]).map((option) => (
+            <SelectField.Item key={option.value} value={option.value}>
+              {option.label}
+            </SelectField.Item>
+          ))}
+        </SelectField>
+      );
+    }
+
+    if (type === 'dynamic') {
+      return (
+        <DynamicCustomDropdownField
+          customDropdownLoader={
+            (customDropdownOptions as CustomDropdownOptions).loadOptions
+          }
+          field={field}
+          required={required}
+          value={value as string}
+          onChange={onChange}
+        />
+      );
+    }
   }
 
   if (field.type === SidebarInputType.DynamicEnum) {

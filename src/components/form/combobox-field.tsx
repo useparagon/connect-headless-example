@@ -43,7 +43,7 @@ type Props = {
   id: string;
   required: boolean;
   value: string | null;
-  placeholder: string | null;
+  placeholder?: string | undefined;
   children: ReactNode;
   isFetching: boolean;
   onSelect: (value: string | null) => void;
@@ -61,7 +61,12 @@ type ComboboxFieldContext = {
 
 const ComboboxFieldContext = createContext<null | ComboboxFieldContext>(null);
 
-export function ComboboxField({ size, className, ...props }: Props) {
+export function ComboboxField({
+  size,
+  className,
+  placeholder = 'Select an item',
+  ...props
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const clearSelection = (e: React.MouseEvent) => {
@@ -100,16 +105,21 @@ export function ComboboxField({ size, className, ...props }: Props) {
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-full justify-between group"
+              className="w-full justify-between group px-3"
               onClick={() => {
                 setOpen(true);
               }}
             >
               <span className="flex-1 text-left">
-                {props.isFetching && props.value ? (
-                  <Spinner withText />
+                {props.isFetching && !props.value && <Spinner withText />}
+                {props.value ? (
+                  <p>{props.value}</p>
                 ) : (
-                  props.placeholder
+                  !props.isFetching && (
+                    <p className="text-muted-foreground font-normal">
+                      {placeholder}
+                    </p>
+                  )
                 )}
               </span>
               <div className="flex items-center gap-1">

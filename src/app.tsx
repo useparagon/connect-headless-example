@@ -34,6 +34,9 @@ async function authenticate() {
   );
   paragon.setHeadless(true);
 
+  // Set your data sources here with
+  // paragon.setDataSources();
+
   return null;
 }
 
