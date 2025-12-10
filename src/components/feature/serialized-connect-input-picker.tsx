@@ -129,35 +129,39 @@ export function SerializedConnectInputPicker(props: Props) {
     let customDropdownOptions:
       | Record<string, CustomDropdownField[] | CustomDropdownOptions>
       | CustomDropdownField[]
-      | CustomDropdownOptions;
+      | CustomDropdownOptions = [];
+    let error: Error | null = null;
+
     try {
       customDropdownOptions = paragon.getCustomDropdownOptions(
         props.integration,
         field.key,
       );
-    } catch (error) {
-      console.warn(error);
-      customDropdownOptions = [];
+    } catch (e) {
+      error = e as Error;
     }
 
     const type = Array.isArray(customDropdownOptions) ? 'static' : 'dynamic';
 
     if (type === 'static') {
       return (
-        <SelectField
-          id={field.id}
-          title={field.title}
-          required={required}
-          value={value as string}
-          onChange={(value) => onChange(value ?? undefined)}
-          allowClear
-        >
-          {(customDropdownOptions as CustomDropdownField[]).map((option) => (
-            <SelectField.Item key={option.value} value={option.value}>
-              {option.label}
-            </SelectField.Item>
-          ))}
-        </SelectField>
+        <div className="flex flex-col gap-4">
+          <SelectField
+            id={field.id}
+            title={field.title}
+            required={required}
+            value={value as string}
+            onChange={(value) => onChange(value ?? undefined)}
+            warning={error?.message}
+            allowClear
+          >
+            {(customDropdownOptions as CustomDropdownField[]).map((option) => (
+              <SelectField.Item key={option.value} value={option.value}>
+                {option.label}
+              </SelectField.Item>
+            ))}
+          </SelectField>
+        </div>
       );
     }
 

@@ -20,12 +20,17 @@ type Props = {
   onChange: (value: string | null) => void;
   children: ReactNode;
   allowClear?: boolean;
+  warning?: ReactNode;
 };
 
 export function SelectField(props: Props) {
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel id={props.id} required={props.required}>
+      <FieldLabel
+        id={props.id}
+        required={props.required}
+        warning={props.warning}
+      >
         {props.title}
       </FieldLabel>
       <div className="flex gap-2">
