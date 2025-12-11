@@ -42,14 +42,14 @@ export function IntegrationCard(props: Props) {
   return (
     <Card
       className={cn(
-        'hover:shadow-xs transition-shadow',
+        'hover:shadow-xs transition-shadow h-full w-full',
         !selectedCredentialStatus && 'border-dashed shadow-none',
       )}
     >
-      <CardContent>
-        <CardTitle>
-          <div className="flex gap-2 items-center justify-between flex-wrap">
-            <div className="flex gap-2 items-center">
+      <CardContent className="flex flex-col items-center justify-center h-full">
+        <CardTitle className="w-full">
+          <div className="flex flex-col gap-5 items-center justify-center">
+            <div className="flex flex-col gap-2 items-center">
               <img src={props.icon} width={30} />
               {props.name}
             </div>
@@ -95,11 +95,11 @@ IntegrationCard.Skeleton = Skeleton;
 
 function Skeleton() {
   return (
-    <Card className="animate-pulse">
-      <CardContent>
-        <CardTitle>
-          <div className="flex gap-2 items-center justify-between">
-            <div className="flex gap-2 items-center">
+    <Card className="animate-pulse h-full w-full">
+      <CardContent className="flex flex-col items-center justify-center h-full">
+        <CardTitle className="w-full">
+          <div className="flex flex-col gap-3 items-center justify-center">
+            <div className="flex flex-col gap-2 items-center">
               <div className="w-[30px] h-[30px] bg-border rounded-full"></div>
               <div className="w-20 h-4 bg-border rounded"></div>
             </div>
