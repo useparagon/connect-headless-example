@@ -28,8 +28,7 @@ WHAT did you do? WHY did you do it?
 ### Required External Changes
 
 <!-- 
-What external changes need to be coordinated with this PR? 
-(update external configs, 1password secrets, CI environment vars, Paragon workflow projects, etc.)
+What external changes need to be coordinated with this PR?
 -->
 
 ### Future Work
