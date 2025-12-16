@@ -25,6 +25,7 @@ import { IntegrationSettingsSection } from './components/integration-settings';
 import { ErrorMessage } from '../error-message';
 import { Button } from '@/components/ui/button';
 import { Time } from '@/lib/time';
+import { CredentialProviderContext } from '@/providers/credential-provider';
 
 const globalInstallationErrors = new Set<InstallFlowError['name']>([
   'OAuthBlockedError',
@@ -149,117 +150,121 @@ export function IntegrationModal(props: Props) {
   }
 
   return (
-    <Dialog onOpenChange={props.onOpenChange} open>
-      <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px] max-h-[90dvh]">
-        <DialogHeader>
-          <div className="flex gap-2 justify-between items-center">
-            <div className="flex gap-4 items-center">
-              <img src={props.icon} width={45} />
-              <div className="flex flex-col items-start gap-1">
-                <DialogTitle>{props.name}</DialogTitle>
-                <DialogDescription className="text-left">
-                  {integrationConfig.shortDescription}
-                </DialogDescription>
+    <CredentialProviderContext.Provider
+      value={{ selectedCredentialId: props.selectedCredentialId }}
+    >
+      <Dialog onOpenChange={props.onOpenChange} open>
+        <DialogContent className="w-[90dvw] max-w-[800px] min-h-[500px] max-h-[90dvh]">
+          <DialogHeader>
+            <div className="flex gap-2 justify-between items-center">
+              <div className="flex gap-4 items-center">
+                <img src={props.icon} width={45} />
+                <div className="flex flex-col items-start gap-1">
+                  <DialogTitle>{props.name}</DialogTitle>
+                  <DialogDescription className="text-left">
+                    {integrationConfig.shortDescription}
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <ActionButton
+                  status={props.status}
+                  isInstalling={isInstalling}
+                  onDisconnect={doDisable}
+                  onConnect={doEnable}
+                />
+                {isInstalling && (
+                  <Button
+                    className="cursor-pointer"
+                    size="sm"
+                    variant="link"
+                    onClick={doCancel}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="flex gap-2">
-              <ActionButton
-                status={props.status}
-                isInstalling={isInstalling}
-                onDisconnect={doDisable}
-                onConnect={doEnable}
-              />
-              {isInstalling && (
-                <Button
-                  className="cursor-pointer"
-                  size="sm"
-                  variant="link"
-                  onClick={doCancel}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </div>
-        </DialogHeader>
-        <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
-          {showGlobalInstallationError && (
-            <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
-              <AlertTriangleIcon className="size-5" />
-              <p>{installationError.error.message}</p>
-            </div>
-          )}
-          {props.status === CredentialStatus.INVALID && !isInstalling && (
-            <div className="text-sm bg-amber-500/10 p-2 rounded-md border border-amber-500/20 text-amber-500 mb-6 flex gap-2 items-center">
-              <AlertTriangleIcon className="size-5" />
-              <p>
-                Your {props.name} account is currently unreachable, and your
-                integration may not work as expected. <br /> Please reconnect
-                your account above.
-              </p>
-            </div>
-          )}
-          {showFlowForm && installFlowStage ? (
-            <div className="flex flex-col gap-4">
-              <IntegrationInstallFlowForm
-                integration={props.integration}
-                installFlowStage={installFlowStage}
-                onSelectAccount={(accountId) => {
-                  paragon.installFlow.setAccountType(accountId);
-                }}
-                onFinishPreOptions={(preOptions) => {
-                  paragon.installFlow.setPreOptions(preOptions);
-                }}
-                onFinishPostOptions={(postOptions) => {
-                  paragon.installFlow.setPostOptions(postOptions);
-                }}
-              />
-              {showStageError && (
-                <ErrorMessage error={installationError.error} />
-              )}
-            </div>
-          ) : (
-            <Tabs value={tab} onValueChange={setTab} className="w-full">
-              <TabsList className="w-[250px] grid grid-cols-2">
-                <TabsTrigger className="cursor-pointer" value="overview">
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  className="cursor-pointer"
-                  value="configuration"
-                  disabled={configurationTabDisabled}
-                >
-                  Configuration
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="overview" className="w-full">
-                <div className="p-6">
-                  <pre className="text-sm text-wrap text-foreground/70 font-sans">
-                    {integrationConfig.longDescription?.replaceAll(
-                      '\n\n',
-                      '\n',
-                    )}
-                  </pre>
-                </div>
-              </TabsContent>
-              {props.selectedCredentialId ? (
-                <TabsContent value="configuration" className="w-full">
-                  <div className="p-6 flex flex-col gap-6">
-                    <IntegrationSettingsSection
-                      integration={props.integration}
-                      selectedCredentialId={props.selectedCredentialId}
-                    />
-                    <WorkflowSection
-                      integration={props.integration}
-                      selectedCredentialId={props.selectedCredentialId}
-                    />
+          </DialogHeader>
+          <div className="pt-6 px-1 overflow-y-auto max-h-[70dvh]">
+            {showGlobalInstallationError && (
+              <div className="text-sm bg-destructive/10 p-2 rounded-md border border-destructive/20 text-destructive mb-6 flex gap-2 items-center">
+                <AlertTriangleIcon className="size-5" />
+                <p>{installationError.error.message}</p>
+              </div>
+            )}
+            {props.status === CredentialStatus.INVALID && !isInstalling && (
+              <div className="text-sm bg-amber-500/10 p-2 rounded-md border border-amber-500/20 text-amber-500 mb-6 flex gap-2 items-center">
+                <AlertTriangleIcon className="size-5" />
+                <p>
+                  Your {props.name} account is currently unreachable, and your
+                  integration may not work as expected. <br /> Please reconnect
+                  your account above.
+                </p>
+              </div>
+            )}
+            {showFlowForm && installFlowStage ? (
+              <div className="flex flex-col gap-4">
+                <IntegrationInstallFlowForm
+                  integration={props.integration}
+                  installFlowStage={installFlowStage}
+                  onSelectAccount={(accountId) => {
+                    paragon.installFlow.setAccountType(accountId);
+                  }}
+                  onFinishPreOptions={(preOptions) => {
+                    paragon.installFlow.setPreOptions(preOptions);
+                  }}
+                  onFinishPostOptions={(postOptions) => {
+                    paragon.installFlow.setPostOptions(postOptions);
+                  }}
+                />
+                {showStageError && (
+                  <ErrorMessage error={installationError.error} />
+                )}
+              </div>
+            ) : (
+              <Tabs value={tab} onValueChange={setTab} className="w-full">
+                <TabsList className="w-[250px] grid grid-cols-2">
+                  <TabsTrigger className="cursor-pointer" value="overview">
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    className="cursor-pointer"
+                    value="configuration"
+                    disabled={configurationTabDisabled}
+                  >
+                    Configuration
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="overview" className="w-full">
+                  <div className="p-6">
+                    <pre className="text-sm text-wrap text-foreground/70 font-sans">
+                      {integrationConfig.longDescription?.replaceAll(
+                        '\n\n',
+                        '\n',
+                      )}
+                    </pre>
                   </div>
                 </TabsContent>
-              ) : null}
-            </Tabs>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                {props.selectedCredentialId ? (
+                  <TabsContent value="configuration" className="w-full">
+                    <div className="p-6 flex flex-col gap-6">
+                      <IntegrationSettingsSection
+                        integration={props.integration}
+                        selectedCredentialId={props.selectedCredentialId}
+                      />
+                      <WorkflowSection
+                        integration={props.integration}
+                        selectedCredentialId={props.selectedCredentialId}
+                      />
+                    </div>
+                  </TabsContent>
+                ) : null}
+              </Tabs>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </CredentialProviderContext.Provider>
   );
 }

@@ -10,6 +10,7 @@ import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 
 import { VariableInput } from './variable-input';
 import { omit } from 'lodash';
+import { useCredential } from '@/providers/credential-provider';
 
 type VariableInputValue = Record<string, string | string[] | undefined>;
 
@@ -31,6 +32,8 @@ export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
+  const { selectedCredentialId } = useCredential();
+
   const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
     props.integration,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -43,6 +46,7 @@ export function DynamicComboInputField(props: Props) {
       integration: props.integration,
       sourceType: options?.mainInputSource.cacheKey as string,
       search: mainInputSearch,
+      selectedCredentialId,
     });
 
   const selectedMainOption = useMemo(
@@ -65,6 +69,7 @@ export function DynamicComboInputField(props: Props) {
         },
       ],
       search: dependentInputSearch,
+      selectedCredentialId,
     });
 
   const selectedDependentInputOption = useMemo(

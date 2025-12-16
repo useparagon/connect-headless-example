@@ -48,6 +48,7 @@ export function useFieldOptions({
   cursor,
   parameters = [],
   enabled = true,
+  selectedCredentialId,
 }: {
   integration: string;
   sourceType: string;
@@ -55,10 +56,18 @@ export function useFieldOptions({
   cursor?: string | number | false;
   parameters?: { cacheKey: string; value: string | undefined }[];
   enabled?: boolean;
+  selectedCredentialId?: string;
 }) {
   return useQuery({
     enabled: enabled,
-    queryKey: ['fieldOptions', integration, sourceType, search, parameters],
+    queryKey: [
+      'fieldOptions',
+      integration,
+      sourceType,
+      search,
+      parameters,
+      selectedCredentialId,
+    ],
     queryFn: () => {
       if (sourceType) {
         return paragon.getFieldOptions({
@@ -75,6 +84,7 @@ export function useFieldOptions({
               },
             };
           }),
+          selectedCredentialId,
         });
       }
       return fieldOptionsInitialData;

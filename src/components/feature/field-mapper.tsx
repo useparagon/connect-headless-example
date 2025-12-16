@@ -11,6 +11,7 @@ import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
 import { Label } from '../ui/label';
 import { CommandGroup } from '../ui/command';
 import { FieldLabel } from '../form/field-label';
+import { useCredential } from '@/providers/credential-provider';
 
 export type FieldMappingsInputValue = {
   mainInput: string | undefined;
@@ -31,6 +32,8 @@ export function FieldMapperField(props: Props) {
   const [dependentInputSearch, setDependentInputSearch] = useState('');
   const [fieldInputSearch, setFieldInputSearch] = useState('');
 
+  const { selectedCredentialId } = useCredential();
+
   const { data: options } = useDataSourceOptions<FieldMapperDataSource>(
     props.integration,
     props.field.sourceType as string,
@@ -41,6 +44,7 @@ export function FieldMapperField(props: Props) {
       integration: props.integration,
       sourceType: options?.recordSource.cacheKey as string,
       search: mainInputSearch,
+      selectedCredentialId,
     });
 
   const selectedMainOption = useMemo(() => {
@@ -81,6 +85,7 @@ export function FieldMapperField(props: Props) {
         },
       ],
       search: dependentInputSearch,
+      selectedCredentialId,
     });
 
   const selectedDependentInputOption = useMemo(
@@ -119,6 +124,7 @@ export function FieldMapperField(props: Props) {
       sourceType: options?.fieldSource.cacheKey as string,
       parameters,
       search: fieldInputSearch,
+      selectedCredentialId,
     });
 
   const selectedFieldInputOptions = useMemo(() => {

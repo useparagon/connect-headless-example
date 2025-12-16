@@ -7,6 +7,7 @@ import { LoaderCircle, MinusCircleIcon } from 'lucide-react';
 import { DynamicDefaultInput } from '@useparagon/connect';
 import { Button } from '../ui/button';
 import { useState } from 'react';
+import { useCredential } from '@/providers/credential-provider';
 
 type VariableInputValue = string | string[] | undefined;
 
@@ -35,6 +36,8 @@ export const VariableInput = ({
   onVariableInputsValuesChange,
   onDeleteVariableInput,
 }: Props) => {
+  const { selectedCredentialId } = useCredential();
+
   const [variableInputSelectorSearch, setVariableInputSelectorSearch] =
     useState('');
 
@@ -52,6 +55,7 @@ export const VariableInput = ({
         value: dependantInputValue,
       },
     ],
+    selectedCredentialId,
   });
   const { required, nonRequired } = separateOptions(options.nestedData);
 

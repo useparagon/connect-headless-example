@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import { useCredential } from '@/providers/credential-provider';
 
 export type ComboInputValue = {
   mainInput: string | undefined;
@@ -25,6 +26,8 @@ export function ComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
+  const { selectedCredentialId } = useCredential();
+
   const { data: options } = useDataSourceOptions<ComboInputDataSource>(
     props.integration,
     props.field.sourceType as string,
@@ -35,6 +38,7 @@ export function ComboInputField(props: Props) {
       integration: props.integration,
       sourceType: options?.mainInputSource.cacheKey as string,
       search: mainInputSearch,
+      selectedCredentialId,
     });
 
   const selectedMainOption = useMemo(
@@ -57,6 +61,7 @@ export function ComboInputField(props: Props) {
         },
       ],
       search: dependentInputSearch,
+      selectedCredentialId,
     });
 
   const selectedDependentInputOption = useMemo(

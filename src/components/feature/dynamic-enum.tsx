@@ -7,6 +7,7 @@ import Fuse from 'fuse.js';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useFieldOptions, useDataSourceOptions } from '@/lib/hooks';
+import { useCredential } from '@/providers/credential-provider';
 
 type Props = {
   integration: string;
@@ -38,6 +39,8 @@ function filterOptions<T extends { label: string; value: string }>(
 export function DynamicEnumField(props: Props) {
   const [search, setSearch] = useState('');
 
+  const { selectedCredentialId } = useCredential();
+
   const sourceType = props.field.sourceType as string;
 
   // Get dataSourceOptions which contains supportPagination
@@ -53,6 +56,7 @@ export function DynamicEnumField(props: Props) {
     integration: props.integration,
     sourceType,
     search: supportPagination ? search || undefined : undefined,
+    selectedCredentialId,
   });
 
   // For non-paginated sources, filter locally instead of making API calls
