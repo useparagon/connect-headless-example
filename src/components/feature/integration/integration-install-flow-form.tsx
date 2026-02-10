@@ -35,6 +35,8 @@ type Props = {
 
 export function IntegrationInstallFlowForm(props: Props) {
   switch (props.installFlowStage.stage) {
+    case 'oauth':
+      return <OAuth />;
     case 'accountType':
       return (
         <AccountTypePicker
@@ -50,8 +52,6 @@ export function IntegrationInstallFlowForm(props: Props) {
           onSubmit={props.onFinishPreOptions}
         />
       );
-    case 'oauth':
-      return <OAuthForm />;
     case 'postOptions':
       return (
         <PostOptionsForm
@@ -256,7 +256,7 @@ function MarkdownImage(props: React.ComponentProps<'img'>) {
   );
 }
 
-function OAuthForm() {
+function OAuth() {
   return (
     <div className="flex flex-col gap-4 items-center justify-center py-8">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
