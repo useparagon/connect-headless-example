@@ -5,11 +5,23 @@ import {
   paragon,
   SerializedConnectInput,
   SidebarInputType,
+  InstructionStage,
+  CTA,
 } from '@useparagon/connect';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { SerializedConnectInputPicker } from '@/components/feature/serialized-connect-input-picker';
+import Markdown from 'react-markdown';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
+import { CheckIcon, CopyIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type InstallFlowStage = ReturnType<typeof paragon.installFlow.next>;
 
@@ -23,6 +35,8 @@ type Props = {
 
 export function IntegrationInstallFlowForm(props: Props) {
   switch (props.installFlowStage.stage) {
+    case 'oauth':
+      return <OAuth />;
     case 'accountType':
       return (
         <AccountTypePicker
@@ -46,6 +60,8 @@ export function IntegrationInstallFlowForm(props: Props) {
           onSubmit={props.onFinishPostOptions}
         />
       );
+    case 'instruction':
+      return <InstructionsForm options={props.installFlowStage} />;
     case 'done':
     default:
       return null;
@@ -144,6 +160,112 @@ function PostOptionsForm(props: {
       <Button onClick={() => form.handleSubmit(props.onSubmit)()}>
         Finish
       </Button>
+    </div>
+  );
+}
+
+function InstructionsForm(props: { options: InstructionStage }) {
+  const markdownContent = useMemo(
+    () => (
+      <Markdown
+        components={{
+          h2(props) {
+            return <h2 className="text-lg font-medium">{props.children}</h2>;
+          },
+          img(props) {
+            return <MarkdownImage {...props} />;
+          },
+        }}
+      >
+        {props.options.content}
+      </Markdown>
+    ),
+    [props.options.content],
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {markdownContent}
+      <div className="flex gap-6">
+        <InstructionCTAs ctas={props.options.ctas} />
+      </div>
+      <Button
+        variant="link"
+        className="w-min"
+        onClick={props.options.finish.onClick}
+      >
+        {props.options.finish.label}
+      </Button>
+    </div>
+  );
+}
+
+function InstructionCTAs(props: { ctas: CTA[] }) {
+  const { copyToClipboard, isCopied } = useCopyToClipboard();
+
+  return props.ctas.map((cta) => {
+    switch (cta.type) {
+      case 'link':
+        return (
+          <Button asChild>
+            <a href={cta.href} target="_blank">
+              {cta.label}
+            </a>
+          </Button>
+        );
+      case 'copyButton':
+        return (
+          <InputGroup className="w-fit">
+            <InputGroupInput placeholder={cta.label} readOnly />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                aria-label="Copy"
+                title="Copy"
+                size="icon-xs"
+                onClick={() => {
+                  copyToClipboard(cta.copyText);
+                }}
+              >
+                {isCopied ? <CheckIcon /> : <CopyIcon />}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        );
+      default:
+        return null;
+    }
+  });
+}
+
+function MarkdownImage(props: React.ComponentProps<'img'>) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div className="w-full flex justify-center">
+      <img
+        className="max-w-1/2"
+        {...props}
+        onLoad={() => {
+          setIsLoading(false);
+        }}
+      />
+      {isLoading && (
+        <div className="h-96 w-xl rounded-lg animate-pulse bg-border"></div>
+      )}
+    </div>
+  );
+}
+
+function OAuth() {
+  return (
+    <div className="flex flex-col gap-4 items-center justify-center py-8">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <div className="flex flex-col gap-2 text-center">
+        <h2 className="text-lg font-medium">Connecting Your Account</h2>
+        <p className="text-sm text-muted-foreground">
+          A popup window will open to authenticate your account...
+        </p>
+      </div>
     </div>
   );
 }
