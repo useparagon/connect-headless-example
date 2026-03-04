@@ -4,7 +4,7 @@ import { MultiSelectField } from '../form/multi-select-field';
 import { TextInputField } from '../form/text-input-field';
 import { ComboboxField } from '@/components/form/combobox-field';
 import { LoaderCircle, MinusCircleIcon } from 'lucide-react';
-import { DynamicDefaultInput } from '@useparagon/connect';
+import { DynamicDefaultInput, type DynamicDataSource } from '@useparagon/connect';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 
@@ -12,9 +12,9 @@ type VariableInputValue = string | string[] | undefined;
 
 type Props = {
   integration: string;
-  sourceType: string;
-  mainInputKey: string;
-  dependantInputKey: string;
+  variableInputSource: DynamicDataSource<any>;
+  mainInputSource: DynamicDataSource<any>;
+  dependantInputSource: DynamicDataSource<any>;
   mainInputValue: string;
   dependantInputValue: string;
   variableInputsValues: Record<string, VariableInputValue>;
@@ -26,11 +26,11 @@ type Props = {
 
 export const VariableInput = ({
   integration,
-  sourceType,
+  variableInputSource,
+  mainInputSource,
+  dependantInputSource,
   mainInputValue,
-  mainInputKey,
   dependantInputValue,
-  dependantInputKey,
   variableInputsValues,
   onVariableInputsValuesChange,
   onDeleteVariableInput,
@@ -40,15 +40,15 @@ export const VariableInput = ({
 
   const { data: options, isFetching } = useFieldOptions({
     integration: integration,
-    sourceType: sourceType,
+    source: variableInputSource,
     search: '',
     parameters: [
       {
-        cacheKey: mainInputKey,
+        cacheKey: mainInputSource.cacheKey as string,
         value: mainInputValue,
       },
       {
-        cacheKey: dependantInputKey,
+        cacheKey: dependantInputSource.cacheKey as string,
         value: dependantInputValue,
       },
     ],

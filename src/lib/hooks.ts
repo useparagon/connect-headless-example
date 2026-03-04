@@ -1,5 +1,10 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { paragon } from '@useparagon/connect';
+import {
+  paragon,
+  type DynamicDataSource,
+  type SerializedConnectInput,
+} from '@useparagon/connect';
 
 export function useIntegrationMetadata() {
   return useQuery({
@@ -41,8 +46,21 @@ const fieldOptionsInitialData: FieldOptionsResponse = {
   nextPageCursor: null,
 };
 
+export function useSourcesForInput(
+  integration: string,
+  action: string | undefined,
+  input: SerializedConnectInput,
+) {
+  return useMemo(
+    () =>
+      action ? paragon.getSourcesForInput(integration, action, input) : null,
+    [integration, action, input],
+  );
+}
+
 export function useFieldOptions({
   integration,
+  source,
   sourceType,
   search,
   cursor,
@@ -50,33 +68,47 @@ export function useFieldOptions({
   enabled = true,
 }: {
   integration: string;
-  sourceType: string;
+  source?: DynamicDataSource<any>;
+  sourceType?: string;
   search?: string;
   cursor?: string | number | false;
   parameters?: { cacheKey: string; value: string | undefined }[];
   enabled?: boolean;
 }) {
+  const queryKey = source?.cacheKey ?? sourceType;
+
   return useQuery({
-    enabled: enabled,
-    queryKey: ['fieldOptions', integration, sourceType, search, parameters],
+    enabled: enabled && !!queryKey,
+    queryKey: ['fieldOptions', integration, queryKey, search, parameters],
     queryFn: () => {
+      const mappedParameters = parameters.map((parameter) => ({
+        key: parameter.cacheKey,
+        source: {
+          type: 'VALUE' as const,
+          value: parameter.value,
+        },
+      }));
+
+      if (source) {
+        return paragon.getFieldOptions({
+          integration,
+          source,
+          search,
+          cursor,
+          parameters: mappedParameters,
+        });
+      }
+
       if (sourceType) {
         return paragon.getFieldOptions({
           integration,
           action: sourceType,
           search,
           cursor,
-          parameters: parameters.map((parameter) => {
-            return {
-              key: parameter.cacheKey,
-              source: {
-                type: 'VALUE',
-                value: parameter.value,
-              },
-            };
-          }),
+          parameters: mappedParameters,
         });
       }
+
       return fieldOptionsInitialData;
     },
     initialData: fieldOptionsInitialData,

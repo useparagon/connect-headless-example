@@ -1,12 +1,12 @@
 import {
-  ComboInputDataSource,
   SidebarInputType,
+  type DefaultFieldValueSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
 import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
-import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
 
 export type ComboInputValue = {
   mainInput: string | undefined;
@@ -25,15 +25,21 @@ export function ComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions<ComboInputDataSource>(
+  const sources = useSourcesForInput(
     props.integration,
     props.field.sourceType as string,
+    props.field,
   );
+
+  const comboSources =
+    sources?.kind === 'defaultFieldValue'
+      ? (sources as DefaultFieldValueSources)
+      : null;
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
       integration: props.integration,
-      sourceType: options?.mainInputSource.cacheKey as string,
+      source: comboSources?.mainInputSource,
       search: mainInputSearch,
     });
 
@@ -49,10 +55,10 @@ export function ComboInputField(props: Props) {
     useFieldOptions({
       enabled: Boolean(props.value.mainInput),
       integration: props.integration,
-      sourceType: options?.dependentInputSource.cacheKey as string,
+      source: comboSources?.dependentInputSource,
       parameters: [
         {
-          cacheKey: options?.mainInputSource.cacheKey as string,
+          cacheKey: comboSources?.mainInputSource.cacheKey as string,
           value: props.value.mainInput,
         },
       ],
@@ -67,8 +73,8 @@ export function ComboInputField(props: Props) {
     [dependentInputOptions.data, props.value],
   );
 
-  const mainInputMeta = options?.mainInputSource;
-  const dependentInputMeta = options?.dependentInputSource;
+  const mainInputMeta = comboSources?.mainInputSource;
+  const dependentInputMeta = comboSources?.dependentInputSource;
 
   if (!mainInputMeta || !dependentInputMeta) {
     return null;

@@ -1,12 +1,12 @@
 import {
-  DynamicComboInputDataSource,
   SidebarInputType,
+  type DefaultFieldValueSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
 import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
-import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
 
 import { VariableInput } from './variable-input';
 import { omit } from 'lodash';
@@ -31,17 +31,23 @@ export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
+  const sources = useSourcesForInput(
     props.integration,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     props.field.sourceType as string,
+    props.field,
   );
+
+  const comboSources =
+    sources?.kind === 'defaultFieldValue'
+      ? (sources as DefaultFieldValueSources)
+      : null;
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
       integration: props.integration,
-      sourceType: options?.mainInputSource.cacheKey as string,
+      source: comboSources?.mainInputSource,
       search: mainInputSearch,
     });
 
@@ -57,10 +63,10 @@ export function DynamicComboInputField(props: Props) {
     useFieldOptions({
       enabled: Boolean(props.value.mainInput),
       integration: props.integration,
-      sourceType: options?.dependentInputSource.cacheKey as string,
+      source: comboSources?.dependentInputSource,
       parameters: [
         {
-          cacheKey: options?.mainInputSource.cacheKey as string,
+          cacheKey: comboSources?.mainInputSource.cacheKey as string,
           value: props.value.mainInput,
         },
       ],
@@ -75,8 +81,8 @@ export function DynamicComboInputField(props: Props) {
     [dependentInputOptions.data, props.value],
   );
 
-  const mainInputMeta = options?.mainInputSource;
-  const dependentInputMeta = options?.dependentInputSource;
+  const mainInputMeta = comboSources?.mainInputSource;
+  const dependentInputMeta = comboSources?.dependentInputSource;
 
   if (!mainInputMeta || !dependentInputMeta) {
     return null;
@@ -139,14 +145,14 @@ export function DynamicComboInputField(props: Props) {
       </div>
       {props.value.mainInput &&
         props.value.dependentInput &&
-        options?.variableInputSource?.cacheKey &&
-        options?.mainInputSource?.cacheKey &&
-        options?.dependentInputSource?.cacheKey && (
+        comboSources?.variableInputSource &&
+        comboSources?.mainInputSource &&
+        comboSources?.dependentInputSource && (
           <VariableInput
             integration={props.integration}
-            sourceType={options?.variableInputSource?.cacheKey}
-            mainInputKey={options?.mainInputSource.cacheKey}
-            dependantInputKey={options?.dependentInputSource.cacheKey}
+            variableInputSource={comboSources.variableInputSource}
+            mainInputSource={comboSources.mainInputSource}
+            dependantInputSource={comboSources.dependentInputSource}
             mainInputValue={props.value.mainInput}
             dependantInputValue={props.value.dependentInput}
             variableInputsValues={props.value.variableInput || {}}

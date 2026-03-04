@@ -1,13 +1,13 @@
 import { MoveHorizontal } from 'lucide-react';
 import {
-  FieldMapperDataSource,
   SidebarInputType,
+  type FieldMapperSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
 import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
-import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
 import { Label } from '../ui/label';
 import { CommandGroup } from '../ui/command';
 import { FieldLabel } from '../form/field-label';
@@ -31,52 +31,52 @@ export function FieldMapperField(props: Props) {
   const [dependentInputSearch, setDependentInputSearch] = useState('');
   const [fieldInputSearch, setFieldInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions<FieldMapperDataSource>(
+  const sources = useSourcesForInput(
     props.integration,
     props.field.sourceType as string,
+    props.field,
   );
+
+  const fieldMapperSources =
+    sources?.kind === 'fieldMapper' ? (sources as FieldMapperSources) : null;
 
   const { data: mainInputOptions, isFetching: isFetchingMainInput } =
     useFieldOptions({
       integration: props.integration,
-      sourceType: options?.recordSource.cacheKey as string,
+      source: fieldMapperSources?.recordSource,
       search: mainInputSearch,
     });
 
   const selectedMainOption = useMemo(() => {
-    let result;
-
-    result = mainInputOptions.data.find(
+    const flatResult = mainInputOptions.data.find(
       (option) => option.value === props.value.mainInput,
     );
 
-    if (result) {
-      return result;
+    if (flatResult) {
+      return flatResult;
     }
 
-    for (let index = 0; index < mainInputOptions.nestedData?.length; index++) {
-      const group = mainInputOptions.nestedData[index];
-
-      result = group.items.find(
+    for (const group of mainInputOptions.nestedData ?? []) {
+      const nestedResult = group.items.find(
         (option) => option.value === props.value.mainInput,
       );
 
-      if (result) {
-        break;
+      if (nestedResult) {
+        return nestedResult;
       }
     }
 
-    return result;
+    return undefined;
   }, [mainInputOptions, props.value]);
 
   const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
     useFieldOptions({
       enabled: Boolean(props.value.mainInput),
       integration: props.integration,
-      sourceType: options?.dependentInputSource?.cacheKey as string,
+      source: fieldMapperSources?.dependentInputSource,
       parameters: [
         {
-          cacheKey: options?.recordSource.cacheKey as string,
+          cacheKey: fieldMapperSources?.recordSource.cacheKey as string,
           value: props.value.mainInput,
         },
       ],
@@ -91,56 +91,92 @@ export function FieldMapperField(props: Props) {
     [dependentInputOptions?.data, props.value],
   );
 
-  const parameters = useMemo(() => {
+  const fieldParameters = useMemo(() => {
     const params = [
       {
-        cacheKey: options?.recordSource.cacheKey as string,
+        cacheKey: fieldMapperSources?.recordSource.cacheKey as string,
         value: props.value.mainInput,
       },
     ];
 
-    if (options?.dependentInputSource) {
+    if (fieldMapperSources?.dependentInputSource) {
       params.push({
-        cacheKey: options?.dependentInputSource.cacheKey as string,
+        cacheKey: fieldMapperSources.dependentInputSource.cacheKey as string,
         value: props.value.dependentInput,
       });
     }
 
     return params;
-  }, [options, props.value]);
+  }, [fieldMapperSources, props.value]);
 
   const { data: fieldInputOptions, isFetching: isFetchingFieldInput } =
     useFieldOptions({
       enabled: Boolean(
         props.value.mainInput &&
-          (!options?.dependentInputSource || props.value.dependentInput),
+          (!fieldMapperSources?.dependentInputSource ||
+            props.value.dependentInput),
       ),
       integration: props.integration,
-      sourceType: options?.fieldSource.cacheKey as string,
-      parameters,
+      source: fieldMapperSources?.fieldSource,
+      parameters: fieldParameters,
       search: fieldInputSearch,
     });
 
   const selectedFieldInputOptions = useMemo(() => {
     const result: Record<string, { label: string; value: string }> = {};
-    if (props.value.fieldMappings) {
-      for (const [key, value] of Object.entries(props.value.fieldMappings)) {
-        const option = fieldInputOptions.data.find(
-          (option) => option.value === value,
-        );
+    if (!props.value.fieldMappings) {
+      return result;
+    }
 
-        if (!option) {
-          continue;
-        }
+    for (const [key, value] of Object.entries(props.value.fieldMappings)) {
+      const option = fieldInputOptions.data.find(
+        (option) => option.value === value,
+      );
 
-        result[key] = option;
+      if (!option) {
+        continue;
       }
+
+      result[key] = option;
     }
     return result;
   }, [fieldInputOptions?.data, props.value.fieldMappings]);
 
-  const mainInputMeta = options?.recordSource;
-  const dependentInputMeta = options?.dependentInputSource;
+  const fieldMappingEntries = useMemo(() => {
+    if (!fieldMapperSources?.mapObjectFieldOptions) {
+      return props.field.savedFieldMappings;
+    }
+
+    const options = fieldMapperSources.mapObjectFieldOptions;
+    if (Array.isArray(options)) {
+      return options;
+    }
+
+    return options.fields;
+  }, [fieldMapperSources?.mapObjectFieldOptions, props.field.savedFieldMappings]);
+
+  const mainInputMeta = fieldMapperSources?.recordSource;
+  const dependentInputMeta = fieldMapperSources?.dependentInputSource;
+
+  function renderMainInputOptions() {
+    if (mainInputOptions.nestedData.length) {
+      return mainInputOptions.nestedData.map((category) => (
+        <CommandGroup key={category.title} heading={category.title}>
+          {category.items.map((option) => (
+            <ComboboxField.Item key={option.value} value={option.value}>
+              {option.label}
+            </ComboboxField.Item>
+          ))}
+        </CommandGroup>
+      ));
+    }
+
+    return mainInputOptions.data.map((option) => (
+      <ComboboxField.Item key={option.value} value={option.value}>
+        {option.label}
+      </ComboboxField.Item>
+    ));
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -149,7 +185,7 @@ export function FieldMapperField(props: Props) {
           {props.field.title}
         </FieldLabel>
       )}
-      <div className="w-full flex gap-4">
+      <div className="flex w-full gap-4">
         <ComboboxField
           id={props.field.id}
           title={mainInputMeta?.title}
@@ -167,55 +203,7 @@ export function FieldMapperField(props: Props) {
           onDebouncedChange={setMainInputSearch}
           allowClear
         >
-          {mainInputOptions.nestedData &&
-            mainInputOptions.nestedData.map((category) => {
-              return (
-                <CommandGroup key={category.title} heading={category.title}>
-                  {category.items.map((option) => {
-                    return (
-                      <ComboboxField.Item
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </ComboboxField.Item>
-                    );
-                  })}
-                </CommandGroup>
-              );
-            })}
-          {mainInputOptions.data &&
-            mainInputOptions.data.map((option) => {
-              return (
-                <ComboboxField.Item key={option.value} value={option.value}>
-                  {option.label}
-                </ComboboxField.Item>
-              );
-            })}
-          {mainInputOptions.nestedData
-            ? mainInputOptions.nestedData.map((category) => {
-                return (
-                  <CommandGroup key={category.title} heading={category.title}>
-                    {category.items.map((option) => {
-                      return (
-                        <ComboboxField.Item
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </ComboboxField.Item>
-                      );
-                    })}
-                  </CommandGroup>
-                );
-              })
-            : mainInputOptions.data.map((option) => {
-                return (
-                  <ComboboxField.Item key={option.value} value={option.value}>
-                    {option.label}
-                  </ComboboxField.Item>
-                );
-              })}
+          {renderMainInputOptions()}
         </ComboboxField>
         {dependentInputMeta && (
           <ComboboxField
@@ -248,11 +236,11 @@ export function FieldMapperField(props: Props) {
           </ComboboxField>
         )}
       </div>
-      {props.field.savedFieldMappings.map((fieldMap) => {
+      {fieldMappingEntries.map((fieldMap) => {
         const placeholder = selectedFieldInputOptions[fieldMap.label];
 
         return (
-          <div key={fieldMap.label} className="flex gap-3 items-center">
+          <div key={fieldMap.label} className="flex items-center gap-3">
             <ComboboxField
               id={props.field.id}
               required={props.required}
@@ -273,7 +261,7 @@ export function FieldMapperField(props: Props) {
               size="sm"
               disabled={Boolean(
                 !props.value.mainInput ||
-                  (options?.dependentInputSource &&
+                  (fieldMapperSources?.dependentInputSource &&
                     !props.value.dependentInput),
               )}
               allowClear
