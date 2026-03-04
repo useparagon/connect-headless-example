@@ -68,7 +68,7 @@ export function useFieldOptions({
   enabled = true,
 }: {
   integration: string;
-  source?: DynamicDataSource<any>;
+  source?: DynamicDataSource<unknown>;
   sourceType?: string;
   search?: string;
   cursor?: string | number | false;

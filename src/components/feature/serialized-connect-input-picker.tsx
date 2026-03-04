@@ -273,20 +273,32 @@ function CustomDropdownInput(props: {
   const isDynamic =
     singleSource?.source.type === DataSourceType.DYNAMIC;
 
-  const staticOptions = isStatic
-    ? (singleSource!.source as StaticEnumDataSource).values
-    : [];
+  const staticOptions = useMemo(
+    () =>
+      isStatic ? (singleSource!.source as StaticEnumDataSource).values : [],
+    [isStatic, singleSource],
+  );
+
+  const dynamicSource = useMemo(
+    () =>
+      isDynamic
+        ? (singleSource!.source as DynamicDataSource<unknown>)
+        : undefined,
+    [isDynamic, singleSource],
+  );
 
   const { data: dynamicOptions, isFetching } = useFieldOptions({
     enabled: isDynamic,
     integration: props.integration,
-    source: isDynamic
-      ? (singleSource!.source as DynamicDataSource<any>)
-      : undefined,
+    source: dynamicSource,
     search: search || undefined,
   });
 
-  const dynamicItems = dynamicOptions?.data ?? [];
+  const dynamicItems = useMemo(
+    () => dynamicOptions?.data ?? [],
+    [dynamicOptions?.data],
+  );
+
   const selectedDynamicOption = useMemo(
     () => dynamicItems.find((option) => option.value === props.value),
     [dynamicItems, props.value],

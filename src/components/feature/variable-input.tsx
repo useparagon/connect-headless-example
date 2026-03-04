@@ -4,7 +4,10 @@ import { MultiSelectField } from '../form/multi-select-field';
 import { TextInputField } from '../form/text-input-field';
 import { ComboboxField } from '@/components/form/combobox-field';
 import { LoaderCircle, MinusCircleIcon } from 'lucide-react';
-import { DynamicDefaultInput, type DynamicDataSource } from '@useparagon/connect';
+import {
+  DynamicDefaultInput,
+  type DynamicDataSource,
+} from '@useparagon/connect';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 
@@ -12,9 +15,9 @@ type VariableInputValue = string | string[] | undefined;
 
 type Props = {
   integration: string;
-  variableInputSource: DynamicDataSource<any>;
-  mainInputSource: DynamicDataSource<any>;
-  dependantInputSource: DynamicDataSource<any>;
+  variableInputSource: DynamicDataSource<unknown>;
+  mainInputSource: DynamicDataSource<unknown>;
+  dependantInputSource: DynamicDataSource<unknown>;
   mainInputValue: string;
   dependantInputValue: string;
   variableInputsValues: Record<string, VariableInputValue>;

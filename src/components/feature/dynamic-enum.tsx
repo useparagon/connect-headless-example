@@ -42,11 +42,11 @@ export function DynamicEnumField(props: Props) {
 
   const dynamicSource =
     sources?.kind === 'single'
-      ? (sources as SingleSource).source as DynamicDataSource<any>
+      ? ((sources as SingleSource).source as DynamicDataSource<unknown>)
       : undefined;
 
   const supportPagination =
-    (dynamicSource as DynamicDataSource<any> & { supportPagination?: boolean })
+    (dynamicSource as DynamicDataSource<unknown> & { supportPagination?: boolean })
       ?.supportPagination ?? false;
 
   const { data: options, isFetching } = useFieldOptions({
@@ -55,9 +55,13 @@ export function DynamicEnumField(props: Props) {
     search: supportPagination ? search || undefined : undefined,
   });
 
-  const filteredOptions = supportPagination
-    ? (options?.data ?? [])
-    : filterOptions(options?.data ?? [], search);
+  const filteredOptions = useMemo(
+    () =>
+      supportPagination
+        ? (options?.data ?? [])
+        : filterOptions(options?.data ?? [], search),
+    [supportPagination, options?.data, search],
+  );
 
   const selectedOption = useMemo(
     () => filteredOptions.find((option) => option.value === props.value),
