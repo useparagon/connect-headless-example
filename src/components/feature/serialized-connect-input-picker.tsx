@@ -268,10 +268,8 @@ function CustomDropdownInput(props: {
 
   const singleSource =
     sources?.kind === 'single' ? (sources as SingleSource) : null;
-  const isStatic =
-    singleSource?.source.type === DataSourceType.STATIC_ENUM;
-  const isDynamic =
-    singleSource?.source.type === DataSourceType.DYNAMIC;
+  const isStatic = singleSource?.source.type === DataSourceType.STATIC_ENUM;
+  const isDynamic = singleSource?.source.type === DataSourceType.DYNAMIC;
 
   const staticOptions = useMemo(
     () =>

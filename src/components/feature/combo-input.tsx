@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
 import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
+import { FieldLabel } from '../form/field-label';
 
 export type ComboInputValue = {
   mainInput: string | undefined;
@@ -82,6 +83,9 @@ export function ComboInputField(props: Props) {
 
   return (
     <>
+      <FieldLabel id={props.field.id} required={props.required}>
+        {props.field.title}
+      </FieldLabel>
       <div className="w-full flex gap-4">
         <ComboboxField
           id={props.field.id}
