@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   paragon,
   type DynamicDataSource,
@@ -113,6 +113,47 @@ export function useFieldOptions({
     },
     initialData: fieldOptionsInitialData,
   });
+}
+
+export function useInfiniteFieldOptions({
+  integration,
+  source,
+  search,
+  enabled = true,
+}: {
+  integration: string;
+  source?: DynamicDataSource<unknown>;
+  search?: string;
+  enabled?: boolean;
+}) {
+  const queryKey = source?.cacheKey;
+
+  const query = useInfiniteQuery({
+    enabled: enabled && !!queryKey,
+    queryKey: ['infiniteFieldOptions', integration, queryKey, search],
+    queryFn: ({ pageParam }) => {
+      return paragon.getFieldOptions({
+        integration,
+        source: source!,
+        search,
+        cursor: pageParam,
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPageCursor ?? undefined,
+  });
+
+  const flatData = useMemo(
+    () => query.data?.pages.flatMap((page) => page.data) ?? [],
+    [query.data?.pages],
+  );
+
+  return {
+    data: flatData,
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: query.hasNextPage ?? false,
+    isFetchingNextPage: query.isFetchingNextPage,
+    isFetching: query.isFetching,
+  };
 }
 
 export function useDataSourceOptions<T>(

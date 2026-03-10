@@ -51,6 +51,7 @@ type Props = {
   title?: string;
   disabled?: boolean;
   allowClear?: boolean;
+  listFooter?: ReactNode;
   className?: string;
 } & VariantProps<typeof comboboxVariants>;
 
@@ -138,6 +139,7 @@ export function ComboboxField({ size, className, ...props }: Props) {
                   {props.isFetching ? null : 'No option found.'}
                 </CommandEmpty>
                 <CommandGroup>{props.children}</CommandGroup>
+                {props.listFooter}
               </CommandList>
             </Command>
           </PopoverContent>
