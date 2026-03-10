@@ -3,13 +3,16 @@ import {
   type DefaultFieldValueSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { omit } from 'lodash';
 
-import { ComboboxField } from '@/components/form/combobox-field';
-import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
+import {
+  PaginatedCombobox,
+  StaticComboDropdown,
+} from '@/components/form/paginated-combobox';
+import { hasSourcePagination, useSourcesForInput } from '@/lib/hooks';
 
 import { VariableInput } from './variable-input';
-import { omit } from 'lodash';
 
 type VariableInputValue = Record<string, string | string[] | undefined>;
 
@@ -33,8 +36,6 @@ export function DynamicComboInputField(props: Props) {
 
   const sources = useSourcesForInput(
     props.integration,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     props.field.sourceType as string,
     props.field,
   );
@@ -44,43 +45,6 @@ export function DynamicComboInputField(props: Props) {
       ? (sources as DefaultFieldValueSources)
       : null;
 
-  const { data: mainInputOptions, isFetching: isFetchingMainInput } =
-    useFieldOptions({
-      integration: props.integration,
-      source: comboSources?.mainInputSource,
-      search: mainInputSearch,
-    });
-
-  const selectedMainOption = useMemo(
-    () =>
-      mainInputOptions.data.find(
-        (option) => option.value === props.value.mainInput,
-      ),
-    [mainInputOptions.data, props.value],
-  );
-
-  const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
-    useFieldOptions({
-      enabled: Boolean(props.value.mainInput),
-      integration: props.integration,
-      source: comboSources?.dependentInputSource,
-      parameters: [
-        {
-          cacheKey: comboSources?.mainInputSource.cacheKey as string,
-          value: props.value.mainInput,
-        },
-      ],
-      search: dependentInputSearch,
-    });
-
-  const selectedDependentInputOption = useMemo(
-    () =>
-      dependentInputOptions.data.find(
-        (option) => option.value === props.value.dependentInput,
-      ),
-    [dependentInputOptions.data, props.value],
-  );
-
   const mainInputMeta = comboSources?.mainInputSource;
   const dependentInputMeta = comboSources?.dependentInputSource;
 
@@ -88,60 +52,59 @@ export function DynamicComboInputField(props: Props) {
     return null;
   }
 
+  const MainDropdown = hasSourcePagination(mainInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
+  const DependentDropdown = hasSourcePagination(dependentInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
   return (
     <>
       <div className="w-full flex gap-4">
-        <ComboboxField
+        <MainDropdown
           id={props.field.id}
           title={mainInputMeta.title}
           required={props.required}
           value={props.value.mainInput ?? null}
-          placeholder={selectedMainOption?.label ?? 'Select an option...'}
           onSelect={(value) =>
             props.onChange({
               mainInput: value ?? undefined,
               dependentInput: value ? props.value.dependentInput : undefined,
             })
           }
-          isFetching={isFetchingMainInput}
-          onDebouncedChange={setMainInputSearch}
+          search={mainInputSearch}
+          onSearchChange={setMainInputSearch}
+          integration={props.integration}
+          source={mainInputMeta}
           allowClear
-        >
-          {mainInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
-        <ComboboxField
+        />
+        <DependentDropdown
           id={props.field.id}
           title={dependentInputMeta.title}
           required={props.required}
           value={props.value.dependentInput ?? null}
-          placeholder={
-            selectedDependentInputOption?.label ?? 'Select an option...'
-          }
           onSelect={(value) =>
             props.onChange({
               mainInput: props.value.mainInput,
               dependentInput: value ?? undefined,
             })
           }
-          isFetching={isFetchingDependentInput}
-          onDebouncedChange={setDependentInputSearch}
+          search={dependentInputSearch}
+          onSearchChange={setDependentInputSearch}
+          integration={props.integration}
+          source={dependentInputMeta}
+          parameters={[
+            {
+              cacheKey: mainInputMeta.cacheKey as string,
+              value: props.value.mainInput,
+            },
+          ]}
+          enabled={Boolean(props.value.mainInput)}
           disabled={!props.value.mainInput}
           allowClear
-        >
-          {dependentInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
+        />
       </div>
       {props.value.mainInput &&
         props.value.dependentInput &&
