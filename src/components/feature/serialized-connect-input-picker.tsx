@@ -18,8 +18,11 @@ import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
 import { ScopesSelectField } from '../form/scopes-select-field';
 import { FileUploadField } from '../form/file-upload-field';
-import { ComboboxField } from '../form/combobox-field';
-import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
+import {
+  PaginatedCombobox,
+  StaticComboDropdown,
+} from '../form/paginated-combobox';
+import { useSourcesForInput } from '@/lib/hooks';
 
 type Props = {
   integration: string;
@@ -285,23 +288,6 @@ function CustomDropdownInput(props: {
     [isDynamic, singleSource],
   );
 
-  const { data: dynamicOptions, isFetching } = useFieldOptions({
-    enabled: isDynamic,
-    integration: props.integration,
-    source: dynamicSource,
-    search: search || undefined,
-  });
-
-  const dynamicItems = useMemo(
-    () => dynamicOptions?.data ?? [],
-    [dynamicOptions?.data],
-  );
-
-  const selectedDynamicOption = useMemo(
-    () => dynamicItems.find((option) => option.value === props.value),
-    [dynamicItems, props.value],
-  );
-
   const flatOptions = useMemo(() => {
     if (!Array.isArray(staticOptions)) {
       return [];
@@ -313,24 +299,21 @@ function CustomDropdownInput(props: {
   }, [staticOptions]);
 
   if (isDynamic) {
+    const Dropdown = dynamicSource ? PaginatedCombobox : StaticComboDropdown;
+
     return (
-      <ComboboxField
+      <Dropdown
         id={props.field.id}
         title={props.field.title}
         required={props.required}
         value={props.value}
-        placeholder={selectedDynamicOption?.label ?? 'Select an option...'}
         onSelect={props.onChange}
-        isFetching={isFetching}
-        onDebouncedChange={setSearch}
+        onSearchChange={setSearch}
+        integration={props.integration}
+        source={dynamicSource}
+        search={search}
         allowClear
-      >
-        {dynamicItems.map((option) => (
-          <ComboboxField.Item key={option.value} value={option.value}>
-            {option.label}
-          </ComboboxField.Item>
-        ))}
-      </ComboboxField>
+      />
     );
   }
 
