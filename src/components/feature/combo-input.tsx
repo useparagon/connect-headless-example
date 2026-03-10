@@ -6,7 +6,15 @@ import {
 import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
-import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
+import {
+  PaginatedCombobox,
+  type ComboDropdownProps,
+} from '@/components/form/paginated-combobox';
+import {
+  hasSourcePagination,
+  useFieldOptions,
+  useSourcesForInput,
+} from '@/lib/hooks';
 import { FieldLabel } from '../form/field-label';
 
 export type ComboInputValue = {
@@ -37,43 +45,6 @@ export function ComboInputField(props: Props) {
       ? (sources as DefaultFieldValueSources)
       : null;
 
-  const { data: mainInputOptions, isFetching: isFetchingMainInput } =
-    useFieldOptions({
-      integration: props.integration,
-      source: comboSources?.mainInputSource,
-      search: mainInputSearch,
-    });
-
-  const selectedMainOption = useMemo(
-    () =>
-      mainInputOptions.data.find(
-        (option) => option.value === props.value.mainInput,
-      ),
-    [mainInputOptions.data, props.value],
-  );
-
-  const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
-    useFieldOptions({
-      enabled: Boolean(props.value.mainInput),
-      integration: props.integration,
-      source: comboSources?.dependentInputSource,
-      parameters: [
-        {
-          cacheKey: comboSources?.mainInputSource.cacheKey as string,
-          value: props.value.mainInput,
-        },
-      ],
-      search: dependentInputSearch,
-    });
-
-  const selectedDependentInputOption = useMemo(
-    () =>
-      dependentInputOptions.data.find(
-        (option) => option.value === props.value.dependentInput,
-      ),
-    [dependentInputOptions.data, props.value],
-  );
-
   const mainInputMeta = comboSources?.mainInputSource;
   const dependentInputMeta = comboSources?.dependentInputSource;
 
@@ -81,64 +52,99 @@ export function ComboInputField(props: Props) {
     return null;
   }
 
+  const MainDropdown = hasSourcePagination(mainInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
+  const DependentDropdown = hasSourcePagination(dependentInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
   return (
     <>
       <FieldLabel id={props.field.id} required={props.required}>
         {props.field.title}
       </FieldLabel>
       <div className="w-full flex gap-4">
-        <ComboboxField
+        <MainDropdown
           id={props.field.id}
           title={mainInputMeta.title}
           required={props.required}
           value={props.value.mainInput ?? null}
-          placeholder={selectedMainOption?.label ?? 'Select an option...'}
           onSelect={(value) =>
             props.onChange({
               mainInput: value ?? undefined,
               dependentInput: undefined,
             })
           }
-          isFetching={isFetchingMainInput}
-          onDebouncedChange={setMainInputSearch}
+          search={mainInputSearch}
+          onSearchChange={setMainInputSearch}
+          integration={props.integration}
+          source={mainInputMeta}
           allowClear
-        >
-          {mainInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
-        <ComboboxField
+        />
+        <DependentDropdown
           id={props.field.id}
           title={dependentInputMeta.title}
           required={props.required}
           value={props.value.dependentInput ?? null}
-          placeholder={
-            selectedDependentInputOption?.label ?? 'Select an option...'
-          }
           onSelect={(value) =>
             props.onChange({
               mainInput: props.value.mainInput,
               dependentInput: value ?? undefined,
             })
           }
-          isFetching={isFetchingDependentInput}
-          onDebouncedChange={setDependentInputSearch}
+          search={dependentInputSearch}
+          onSearchChange={setDependentInputSearch}
+          integration={props.integration}
+          source={dependentInputMeta}
+          parameters={[
+            {
+              cacheKey: mainInputMeta.cacheKey as string,
+              value: props.value.mainInput,
+            },
+          ]}
+          enabled={Boolean(props.value.mainInput)}
           disabled={!props.value.mainInput}
           allowClear
-        >
-          {dependentInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
+        />
       </div>
     </>
+  );
+}
+
+function StaticComboDropdown(props: ComboDropdownProps) {
+  const { data: options, isFetching } = useFieldOptions({
+    integration: props.integration,
+    source: props.source,
+    parameters: props.parameters,
+    enabled: props.enabled,
+    search: props.search,
+  });
+
+  const selectedOption = useMemo(
+    () => options.data.find((option) => option.value === props.value),
+    [options.data, props.value],
+  );
+
+  return (
+    <ComboboxField
+      id={props.id}
+      title={props.title}
+      required={props.required}
+      value={props.value}
+      placeholder={selectedOption?.label ?? 'Select an option...'}
+      onSelect={props.onSelect}
+      isFetching={isFetching}
+      onDebouncedChange={props.onSearchChange}
+      disabled={props.disabled}
+      allowClear={props.allowClear}
+    >
+      {options.data.map((option) => (
+        <ComboboxField.Item key={option.value} value={option.value}>
+          {option.label}
+        </ComboboxField.Item>
+      ))}
+    </ComboboxField>
   );
 }
