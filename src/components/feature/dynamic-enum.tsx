@@ -4,15 +4,14 @@ import {
   type SingleSource,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { LoaderCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { useInView } from 'react-intersection-observer';
+import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 
 import { ComboboxField } from '@/components/form/combobox-field';
+import { PaginatedCombobox } from '@/components/form/paginated-combobox';
 import {
+  hasSourcePagination,
   useFieldOptions,
-  useInfiniteFieldOptions,
   useSourcesForInput,
 } from '@/lib/hooks';
 
@@ -55,20 +54,23 @@ export function DynamicEnumField(props: Props) {
       ? ((sources as SingleSource).source as DynamicDataSource<unknown>)
       : undefined;
 
-  const supportPagination =
-    (
-      dynamicSource as DynamicDataSource<unknown> & {
-        supportPagination?: boolean;
-      }
-    )?.supportPagination ?? false;
+  const supportPagination = dynamicSource
+    ? hasSourcePagination(dynamicSource)
+    : false;
 
   if (supportPagination) {
     return (
-      <PaginatedDynamicEnum
-        {...props}
-        search={search}
+      <PaginatedCombobox
+        id={props.field.id}
+        title={props.field.title}
+        required={props.required}
+        value={props.value ?? null}
+        onSelect={props.onChange}
         onSearchChange={setSearch}
-        dynamicSource={dynamicSource}
+        integration={props.integration}
+        source={dynamicSource}
+        search={search}
+        allowClear
       />
     );
   }
@@ -118,75 +120,6 @@ function StaticDynamicEnum(
       allowClear
     >
       {filteredOptions.map((option) => (
-        <ComboboxField.Item key={option.value} value={option.value}>
-          {option.label}
-        </ComboboxField.Item>
-      ))}
-    </ComboboxField>
-  );
-}
-
-function PaginatedDynamicEnum(
-  props: Props & {
-    search: string;
-    onSearchChange: (value: string) => void;
-    dynamicSource?: DynamicDataSource<unknown>;
-  },
-) {
-  const { ref, inView } = useInView();
-
-  const {
-    data: allOptions,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isFetching,
-  } = useInfiniteFieldOptions({
-    integration: props.integration,
-    source: props.dynamicSource,
-    search: props.search || undefined,
-  });
-
-  useEffect(() => {
-    if (!inView || !hasNextPage || isFetchingNextPage) {
-      return;
-    }
-    fetchNextPage();
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const selectedOption = useMemo(
-    () => allOptions.find((option) => option.value === props.value),
-    [allOptions, props.value],
-  );
-
-  return (
-    <ComboboxField
-      id={props.field.id}
-      title={props.field.title}
-      required={props.required}
-      value={props.value ?? null}
-      placeholder={selectedOption?.label ?? 'Select an option...'}
-      onSelect={props.onChange}
-      isFetching={isFetching && !isFetchingNextPage}
-      onDebouncedChange={props.onSearchChange}
-      allowClear
-      listFooter={
-        hasNextPage ? (
-          <div
-            ref={ref}
-            className="flex items-center justify-center py-2 text-sm text-muted-foreground"
-          >
-            {isFetchingNextPage && (
-              <div className="flex items-center gap-2">
-                <LoaderCircle className="size-4 animate-spin" />
-                Loading more...
-              </div>
-            )}
-          </div>
-        ) : undefined
-      }
-    >
-      {allOptions.map((option) => (
         <ComboboxField.Item key={option.value} value={option.value}>
           {option.label}
         </ComboboxField.Item>

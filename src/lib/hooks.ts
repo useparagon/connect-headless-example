@@ -46,6 +46,15 @@ const fieldOptionsInitialData: FieldOptionsResponse = {
   nextPageCursor: null,
 };
 
+export function hasSourcePagination(
+  source: DynamicDataSource<unknown>,
+): boolean {
+  return (
+    (source as DynamicDataSource<unknown> & { supportPagination?: boolean })
+      .supportPagination ?? false
+  );
+}
+
 export function useSourcesForInput(
   integration: string,
   action: string | undefined,
@@ -119,24 +128,41 @@ export function useInfiniteFieldOptions({
   integration,
   source,
   search,
+  parameters = [],
   enabled = true,
 }: {
   integration: string;
   source?: DynamicDataSource<unknown>;
   search?: string;
+  parameters?: { cacheKey: string; value: string | undefined }[];
   enabled?: boolean;
 }) {
   const queryKey = source?.cacheKey;
 
   const query = useInfiniteQuery({
     enabled: enabled && !!queryKey,
-    queryKey: ['infiniteFieldOptions', integration, queryKey, search],
+    queryKey: [
+      'infiniteFieldOptions',
+      integration,
+      queryKey,
+      search,
+      parameters,
+    ],
     queryFn: ({ pageParam }) => {
+      const mappedParameters = parameters.map((parameter) => ({
+        key: parameter.cacheKey,
+        source: {
+          type: 'VALUE' as const,
+          value: parameter.value,
+        },
+      }));
+
       return paragon.getFieldOptions({
         integration,
         source: source!,
         search,
         cursor: pageParam,
+        parameters: mappedParameters,
       });
     },
     getNextPageParam: (lastPage) => lastPage.nextPageCursor ?? undefined,
