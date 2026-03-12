@@ -23,6 +23,8 @@ import {
   StaticComboDropdown,
 } from '../form/paginated-combobox';
 import { useSourcesForInput } from '@/lib/hooks';
+type OptionItem = { label: string; value: string };
+type OptionGroup = { title: string; items: OptionItem[] };
 
 type Props = {
   integration: string;
@@ -254,6 +256,12 @@ export function SerializedConnectInputPicker(props: Props) {
   );
 }
 
+function isGroupedOptions(
+  options: unknown[],
+): options is OptionGroup[] {
+  return options.length > 0 && 'items' in (options[0] as object);
+}
+
 function CustomDropdownInput(props: {
   integration: string;
   field: SerializedConnectInput<SidebarInputType.CustomDropdown>;
@@ -312,6 +320,20 @@ function CustomDropdownInput(props: {
         integration={props.integration}
         source={dynamicSource}
         search={search}
+        allowClear
+      />
+    );
+  }
+
+  if (Array.isArray(staticOptions) && isGroupedOptions(staticOptions)) {
+    return (
+      <SelectField
+        id={props.field.id}
+        title={props.field.title}
+        required={props.required}
+        value={props.value}
+        onChange={(value) => props.onChange(value ?? undefined)}
+        groups={staticOptions}
         allowClear
       />
     );
