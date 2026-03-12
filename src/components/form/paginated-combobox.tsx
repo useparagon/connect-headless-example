@@ -40,11 +40,11 @@ export function PaginatedCombobox(props: ComboDropdownProps) {
   });
 
   useEffect(() => {
-    if (!inView || !hasNextPage || isFetchingNextPage) {
+    if (!inView || !hasNextPage || isFetchingNextPage || isFetching) {
       return;
     }
     fetchNextPage();
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, isFetching, fetchNextPage]);
 
   const selectedOption = useMemo(
     () => allOptions.find((option) => option.value === props.value),
