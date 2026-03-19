@@ -256,9 +256,7 @@ export function SerializedConnectInputPicker(props: Props) {
   );
 }
 
-function isGroupedOptions(
-  options: unknown[],
-): options is OptionGroup[] {
+function isGroupedOptions(options: unknown[]): options is OptionGroup[] {
   return options.length > 0 && 'items' in (options[0] as object);
 }
 

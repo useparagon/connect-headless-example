@@ -3,6 +3,7 @@ import { paragon } from '@useparagon/connect';
 import { useQuery } from '@tanstack/react-query';
 
 import { getAppConfig } from '@/lib/config';
+import { setupMockDataSources } from '@/lib/mock-data-sources';
 import { ThemeProvider } from '@/lib/themes/theme-provider';
 import { IntegrationList } from '@/components/feature/integration/integration-list';
 import { IntegrationCard } from '@/components/feature/integration/integration-card';
@@ -28,129 +29,26 @@ async function authenticate() {
     throw config.error;
   }
 
+  paragon.configureGlobal(
+    { host: 'https://staging.paragonsandbox.com' },
+    {
+      CONNECT_PUBLIC_URL: 'https://staging-connect.paragonsandbox.com',
+      DASHBOARD_PUBLIC_URL: 'https://staging.paragonsandbox.com',
+      WORKER_PROXY_PUBLIC_URL: 'https://staging-proxy.paragonsandbox.com',
+      ZEUS_PUBLIC_URL: 'https://staging-zeus.paragonsandbox.com',
+      CDN_PUBLIC_URL:
+        'https://staging-cdn.paragonsandbox.com/2024.1113.1547-5202e3b3/dashboard/public',
+      HERMES_PUBLIC_URL: 'https://staging-hermes.paragonsandbox.com',
+    },
+  );
+
   await paragon.authenticate(
     config.data.VITE_PARAGON_PROJECT_ID,
     config.data.VITE_PARAGON_JWT_TOKEN,
   );
   paragon.setHeadless(true);
 
-  // paragon.setDataSources({
-  //   // Static dropdown options (available to all integrations)
-  //   dropdowns: {
-  //     'priority-level': [
-  //       { label: 'Low', value: 'low' },
-  //       { label: 'Medium', value: 'medium' },
-  //       { label: 'High', value: 'high' },
-  //     ],
-  //     'pokemon-picker': {
-  //       loadOptions: async (cursor, search) => {
-  //         const offset = cursor ? parseInt(cursor, 10) : 0;
-  //         const limit = 20;
-  //         const res = await fetch(
-  //           `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`,
-  //         );
-  //         const data: PokeApiListResponse = await res.json();
-  //         const options = data.results.map((p) => ({
-  //           label: p.name.charAt(0).toUpperCase() + p.name.slice(1),
-  //           value: p.name,
-  //         }));
-  //         const filtered = search
-  //           ? options.filter((o) =>
-  //               o.label.toLowerCase().includes(search.toLowerCase()),
-  //             )
-  //           : options;
-  //         const nextPageCursor = data.next ? String(offset + limit) : null;
-  //         return { options: filtered, nextPageCursor };
-  //       },
-  //     },
-  //   },
-  //
-  //   // Field mapping sources (available to all integrations)
-  //   mapObjectFields: {
-  //     // Static field mapping
-  //     Test: {
-  //       fields: [
-  //         { label: 'Title', value: 'title' },
-  //         { label: 'Description', value: 'description' },
-  //         { label: 'Completed?', value: 'isCompleted' },
-  //       ],
-  //     },
-  //
-  //     // Dynamic field mapping (PokeAPI)
-  //     Task: {
-  //       objectTypes: {
-  //         get: async (cursor, search) => {
-  //           const offset = cursor ? parseInt(cursor, 10) : 0;
-  //           const limit = 10;
-  //           const res = await fetch(
-  //             `https://pokeapi.co/api/v2/type?limit=${limit}&offset=${offset}`,
-  //           );
-  //           const data: PokeApiListResponse = await res.json();
-  //           const options = data.results.map((t) => ({
-  //             label: t.name.charAt(0).toUpperCase() + t.name.slice(1),
-  //             value: t.url.split('/').filter(Boolean).pop() as string,
-  //           }));
-  //           const filtered = search
-  //             ? options.filter((o) =>
-  //                 o.label.toLowerCase().includes(search.toLowerCase()),
-  //               )
-  //             : options;
-  //           const nextPageCursor = data.next ? String(offset + limit) : null;
-  //           return { options: filtered, nextPageCursor };
-  //         },
-  //       },
-  //       integrationFields: {
-  //         get: async ({ objectType }, cursor, search) => {
-  //           const offset = cursor ? parseInt(cursor, 10) : 0;
-  //           const limit = 20;
-  //           const res = await fetch(
-  //             `https://pokeapi.co/api/v2/type/${objectType}`,
-  //           );
-  //           const data: PokeApiTypeResponse = await res.json();
-  //           const all = data.pokemon.map((p) => ({
-  //             label:
-  //               p.pokemon.name.charAt(0).toUpperCase() +
-  //               p.pokemon.name.slice(1),
-  //             value: p.pokemon.name,
-  //           }));
-  //           const filtered = search
-  //             ? all.filter((o) =>
-  //                 o.label.toLowerCase().includes(search.toLowerCase()),
-  //               )
-  //             : all;
-  //           const page = filtered.slice(offset, offset + limit);
-  //           const nextPageCursor =
-  //             offset + limit < filtered.length ? String(offset + limit) : null;
-  //           return { options: page, nextPageCursor };
-  //         },
-  //       },
-  //       applicationFields: {
-  //         fields: [
-  //           { label: 'Name', value: 'name' },
-  //           { label: 'Type', value: 'type' },
-  //           { label: 'Base Experience', value: 'base_experience' },
-  //         ],
-  //         defaultFields: [],
-  //         userCanRemoveMappings: true,
-  //       },
-  //     },
-  //   },
-  //
-  //   // Integration-specific sources (override global sources for a given integration)
-  //   integrationSpecificSources: {
-  //     jira: {
-  //       dropdowns: {
-  //         'priority-level': [
-  //           { label: 'Lowest', value: 'lowest' },
-  //           { label: 'Low', value: 'low' },
-  //           { label: 'Medium', value: 'medium' },
-  //           { label: 'High', value: 'high' },
-  //           { label: 'Highest', value: 'highest' },
-  //         ],
-  //       },
-  //     },
-  //   },
-  // });
+  setupMockDataSources();
 
   return null;
 }
