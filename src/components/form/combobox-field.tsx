@@ -31,7 +31,7 @@ const comboboxVariants = cva('flex flex-col gap-1.5', {
   variants: {
     size: {
       default: 'w-full',
-      sm: 'w-3xs',
+      sm: 'min-w-3xs',
     },
   },
   defaultVariants: {
