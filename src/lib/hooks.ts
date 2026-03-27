@@ -61,8 +61,7 @@ export function useSourcesForInput(
   input: SerializedConnectInput,
 ) {
   return useMemo(
-    () =>
-      action ? paragon.getSourcesForInput(integration, action, input) : null,
+    () => (action ? paragon.getSourcesForInput(integration, input) : null),
     [integration, action, input],
   );
 }

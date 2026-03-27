@@ -77,7 +77,7 @@ export function setupMockDataSources() {
           },
         },
         integrationFields: {
-          get: async ({ objectType }, cursor, _search) => {
+          get: async ({ objectType }, cursor) => {
             const offset = parseOffset(cursor);
             const res = await fetch(
               `https://dummyjson.com/products/category/${objectType}?limit=${DEFAULT_PAGE_SIZE}&skip=${offset}`,
