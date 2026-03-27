@@ -1,6 +1,6 @@
 import {
+  ComboSources,
   SidebarInputType,
-  type DefaultFieldValueSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
 import { useState } from 'react';
@@ -32,9 +32,7 @@ export function ComboInputField(props: Props) {
   const sources = useSourcesForInput(props.integration, props.field);
 
   const comboSources =
-    sources?.kind === 'defaultFieldValue'
-      ? (sources as DefaultFieldValueSources)
-      : null;
+    sources?.kind === 'combo' ? (sources as ComboSources) : null;
 
   const mainInputMeta = comboSources?.mainInputSource;
   const dependentInputMeta = comboSources?.dependentInputSource;
