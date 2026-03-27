@@ -1,12 +1,19 @@
 import {
   SidebarInputType,
+  type DynamicDataSource,
+  type SingleSource,
   type SerializedConnectInput,
 } from '@useparagon/connect';
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 
 import { ComboboxField } from '@/components/form/combobox-field';
-import { useFieldOptions, useDataSourceOptions } from '@/lib/hooks';
+import { PaginatedCombobox } from '@/components/form/paginated-combobox';
+import {
+  hasSourcePagination,
+  useFieldOptions,
+  useSourcesForInput,
+} from '@/lib/hooks';
 
 type Props = {
   integration: string;
@@ -16,9 +23,6 @@ type Props = {
   onChange: (value: string | null) => void;
 };
 
-/**
- * Local filtering function for non-paginated sources
- */
 function filterOptions<T extends { label: string; value: string }>(
   items: T[],
   searchString: string,
@@ -38,27 +42,60 @@ function filterOptions<T extends { label: string; value: string }>(
 export function DynamicEnumField(props: Props) {
   const [search, setSearch] = useState('');
 
-  const sourceType = props.field.sourceType as string;
+  const sources = useSourcesForInput(props.integration, props.field);
 
-  // Get dataSourceOptions which contains supportPagination
-  const { data: dataSourceOptions } = useDataSourceOptions<{
-    supportPagination?: boolean;
-  }>(props.integration, sourceType);
+  const dynamicSource =
+    sources?.kind === 'single'
+      ? ((sources as SingleSource).source as DynamicDataSource<unknown>)
+      : undefined;
 
-  // Get supportPagination from dataSourceOptions
-  const supportPagination = dataSourceOptions?.supportPagination ?? false;
+  const supportPagination = dynamicSource
+    ? hasSourcePagination(dynamicSource)
+    : false;
 
-  // Only pass search to API if pagination is supported, otherwise filter locally
+  if (supportPagination) {
+    return (
+      <PaginatedCombobox
+        id={props.field.id}
+        title={props.field.title}
+        required={props.required}
+        value={props.value ?? null}
+        onSelect={props.onChange}
+        onSearchChange={setSearch}
+        integration={props.integration}
+        source={dynamicSource}
+        search={search}
+        allowClear
+      />
+    );
+  }
+
+  return (
+    <StaticDynamicEnum
+      {...props}
+      search={search}
+      onSearchChange={setSearch}
+      dynamicSource={dynamicSource}
+    />
+  );
+}
+
+function StaticDynamicEnum(
+  props: Props & {
+    search: string;
+    onSearchChange: (value: string) => void;
+    dynamicSource?: DynamicDataSource<unknown>;
+  },
+) {
   const { data: options, isFetching } = useFieldOptions({
     integration: props.integration,
-    sourceType,
-    search: supportPagination ? search || undefined : undefined,
+    source: props.dynamicSource,
   });
 
-  // For non-paginated sources, filter locally instead of making API calls
-  const filteredOptions = supportPagination
-    ? (options?.data ?? [])
-    : filterOptions(options?.data ?? [], search);
+  const filteredOptions = useMemo(
+    () => filterOptions(options?.data ?? [], props.search),
+    [options?.data, props.search],
+  );
 
   const selectedOption = useMemo(
     () => filteredOptions.find((option) => option.value === props.value),
@@ -74,16 +111,14 @@ export function DynamicEnumField(props: Props) {
       placeholder={selectedOption?.label ?? 'Select an option...'}
       onSelect={props.onChange}
       isFetching={isFetching}
-      onDebouncedChange={setSearch}
+      onDebouncedChange={props.onSearchChange}
       allowClear
     >
-      {filteredOptions.map((option) => {
-        return (
-          <ComboboxField.Item key={option.value} value={option.value}>
-            {option.label}
-          </ComboboxField.Item>
-        );
-      })}
+      {filteredOptions.map((option) => (
+        <ComboboxField.Item key={option.value} value={option.value}>
+          {option.label}
+        </ComboboxField.Item>
+      ))}
     </ComboboxField>
   );
 }

@@ -5,6 +5,7 @@ import {
   SelectItem,
   SelectValue,
   SelectGroup,
+  SelectLabel,
   SelectContent,
   Select,
   SelectTrigger,
@@ -12,15 +13,31 @@ import {
 
 import { FieldLabel } from './field-label';
 
-type Props = {
+type OptionGroup = {
+  title: string;
+  items: { label: string; value: string }[];
+};
+
+type BaseProps = {
   id: string;
   title: string;
   required: boolean;
   value: string | null;
   onChange: (value: string | null) => void;
-  children: ReactNode;
   allowClear?: boolean;
 };
+
+type FlatProps = BaseProps & {
+  children: ReactNode;
+  groups?: never;
+};
+
+type GroupedProps = BaseProps & {
+  children?: never;
+  groups: OptionGroup[];
+};
+
+type Props = FlatProps | GroupedProps;
 
 export function SelectField(props: Props) {
   return (
@@ -34,7 +51,20 @@ export function SelectField(props: Props) {
             <SelectValue placeholder="Select an item" />
           </SelectTrigger>
           <SelectContent>
-            <SelectGroup>{props.children}</SelectGroup>
+            {props.groups ? (
+              props.groups.map((group) => (
+                <SelectGroup key={group.title}>
+                  <SelectLabel>{group.title}</SelectLabel>
+                  {group.items.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))
+            ) : (
+              <SelectGroup>{props.children}</SelectGroup>
+            )}
           </SelectContent>
         </Select>
         {props.allowClear && props.value ? (

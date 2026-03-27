@@ -1,15 +1,18 @@
 import {
-  DynamicComboInputDataSource,
   SidebarInputType,
+  type DefaultFieldValueSources,
   type SerializedConnectInput,
 } from '@useparagon/connect';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { omit } from 'lodash';
 
-import { ComboboxField } from '@/components/form/combobox-field';
-import { useDataSourceOptions, useFieldOptions } from '@/lib/hooks';
+import {
+  PaginatedCombobox,
+  StaticComboDropdown,
+} from '@/components/form/paginated-combobox';
+import { hasSourcePagination, useSourcesForInput } from '@/lib/hooks';
 
 import { VariableInput } from './variable-input';
-import { omit } from 'lodash';
 
 type VariableInputValue = Record<string, string | string[] | undefined>;
 
@@ -31,122 +34,84 @@ export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const { data: options } = useDataSourceOptions<DynamicComboInputDataSource>(
-    props.integration,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    props.field.sourceType as string,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
-  const { data: mainInputOptions, isFetching: isFetchingMainInput } =
-    useFieldOptions({
-      integration: props.integration,
-      sourceType: options?.mainInputSource.cacheKey as string,
-      search: mainInputSearch,
-    });
+  const comboSources =
+    sources?.kind === 'defaultFieldValue'
+      ? (sources as DefaultFieldValueSources)
+      : null;
 
-  const selectedMainOption = useMemo(
-    () =>
-      mainInputOptions.data.find(
-        (option) => option.value === props.value.mainInput,
-      ),
-    [mainInputOptions.data, props.value],
-  );
-
-  const { data: dependentInputOptions, isFetching: isFetchingDependentInput } =
-    useFieldOptions({
-      enabled: Boolean(props.value.mainInput),
-      integration: props.integration,
-      sourceType: options?.dependentInputSource.cacheKey as string,
-      parameters: [
-        {
-          cacheKey: options?.mainInputSource.cacheKey as string,
-          value: props.value.mainInput,
-        },
-      ],
-      search: dependentInputSearch,
-    });
-
-  const selectedDependentInputOption = useMemo(
-    () =>
-      dependentInputOptions.data.find(
-        (option) => option.value === props.value.dependentInput,
-      ),
-    [dependentInputOptions.data, props.value],
-  );
-
-  const mainInputMeta = options?.mainInputSource;
-  const dependentInputMeta = options?.dependentInputSource;
+  const mainInputMeta = comboSources?.mainInputSource;
+  const dependentInputMeta = comboSources?.dependentInputSource;
 
   if (!mainInputMeta || !dependentInputMeta) {
     return null;
   }
 
+  const MainDropdown = hasSourcePagination(mainInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
+  const DependentDropdown = hasSourcePagination(dependentInputMeta)
+    ? PaginatedCombobox
+    : StaticComboDropdown;
+
   return (
     <>
       <div className="w-full flex gap-4">
-        <ComboboxField
+        <MainDropdown
           id={props.field.id}
           title={mainInputMeta.title}
           required={props.required}
           value={props.value.mainInput ?? null}
-          placeholder={selectedMainOption?.label ?? 'Select an option...'}
           onSelect={(value) =>
             props.onChange({
               mainInput: value ?? undefined,
               dependentInput: value ? props.value.dependentInput : undefined,
             })
           }
-          isFetching={isFetchingMainInput}
-          onDebouncedChange={setMainInputSearch}
+          search={mainInputSearch}
+          onSearchChange={setMainInputSearch}
+          integration={props.integration}
+          source={mainInputMeta}
           allowClear
-        >
-          {mainInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
-        <ComboboxField
+        />
+        <DependentDropdown
           id={props.field.id}
           title={dependentInputMeta.title}
           required={props.required}
           value={props.value.dependentInput ?? null}
-          placeholder={
-            selectedDependentInputOption?.label ?? 'Select an option...'
-          }
           onSelect={(value) =>
             props.onChange({
               mainInput: props.value.mainInput,
               dependentInput: value ?? undefined,
             })
           }
-          isFetching={isFetchingDependentInput}
-          onDebouncedChange={setDependentInputSearch}
+          search={dependentInputSearch}
+          onSearchChange={setDependentInputSearch}
+          integration={props.integration}
+          source={dependentInputMeta}
+          parameters={[
+            {
+              cacheKey: mainInputMeta.cacheKey as string,
+              value: props.value.mainInput,
+            },
+          ]}
+          enabled={Boolean(props.value.mainInput)}
           disabled={!props.value.mainInput}
           allowClear
-        >
-          {dependentInputOptions.data.map((option) => {
-            return (
-              <ComboboxField.Item key={option.value} value={option.value}>
-                {option.label}
-              </ComboboxField.Item>
-            );
-          })}
-        </ComboboxField>
+        />
       </div>
       {props.value.mainInput &&
         props.value.dependentInput &&
-        options?.variableInputSource?.cacheKey &&
-        options?.mainInputSource?.cacheKey &&
-        options?.dependentInputSource?.cacheKey && (
+        comboSources?.variableInputSource &&
+        comboSources?.mainInputSource &&
+        comboSources?.dependentInputSource && (
           <VariableInput
             integration={props.integration}
-            sourceType={options?.variableInputSource?.cacheKey}
-            mainInputKey={options?.mainInputSource.cacheKey}
-            dependantInputKey={options?.dependentInputSource.cacheKey}
+            variableInputSource={comboSources.variableInputSource}
+            mainInputSource={comboSources.mainInputSource}
+            dependantInputSource={comboSources.dependentInputSource}
             mainInputValue={props.value.mainInput}
             dependantInputValue={props.value.dependentInput}
             variableInputsValues={props.value.variableInput || {}}

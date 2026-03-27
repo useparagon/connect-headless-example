@@ -1,8 +1,13 @@
 import {
   SidebarInputType,
+  DataSourceType,
   type ConnectInputValue,
   type SerializedConnectInput,
+  type SingleSource,
+  type StaticEnumDataSource,
+  type DynamicDataSource,
 } from '@useparagon/connect';
+import { useMemo, useState } from 'react';
 import { TextInputField } from '../form/text-input-field';
 import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
@@ -13,6 +18,13 @@ import { CopyableInput } from '../form/copyable-input';
 import { DynamicComboInputField } from './dynamic-combo-input';
 import { ScopesSelectField } from '../form/scopes-select-field';
 import { FileUploadField } from '../form/file-upload-field';
+import {
+  PaginatedCombobox,
+  StaticComboDropdown,
+} from '../form/paginated-combobox';
+import { useSourcesForInput } from '@/lib/hooks';
+type OptionItem = { label: string; value: string };
+type OptionGroup = { title: string; items: OptionItem[] };
 
 type Props = {
   integration: string;
@@ -122,23 +134,14 @@ export function SerializedConnectInputPicker(props: Props) {
   }
 
   if (field.type === SidebarInputType.CustomDropdown) {
-    const options = field.customDropdownOptions ?? [];
-
     return (
-      <SelectField
-        id={field.id}
-        title={field.title}
+      <CustomDropdownInput
+        integration={props.integration}
+        field={field}
         required={required}
         value={(value as string) ?? null}
         onChange={(value) => onChange(value ?? undefined)}
-        allowClear
-      >
-        {options.map((option) => (
-          <SelectField.Item key={option.value} value={option.value}>
-            {option.label}
-          </SelectField.Item>
-        ))}
-      </SelectField>
+      />
     );
   }
 
@@ -250,5 +253,100 @@ export function SerializedConnectInputPicker(props: Props) {
         {JSON.stringify(field, null, 2)}
       </pre>
     </div>
+  );
+}
+
+function isGroupedOptions(options: unknown[]): options is OptionGroup[] {
+  return options.length > 0 && 'items' in (options[0] as object);
+}
+
+function CustomDropdownInput(props: {
+  integration: string;
+  field: SerializedConnectInput<SidebarInputType.CustomDropdown>;
+  required: boolean;
+  value: string | null;
+  onChange: (value: string | null | undefined) => void;
+}) {
+  const [search, setSearch] = useState('');
+
+  const sources = useSourcesForInput(props.integration, props.field);
+
+  const singleSource =
+    sources?.kind === 'single' ? (sources as SingleSource) : null;
+  const isStatic = singleSource?.source.type === DataSourceType.STATIC_ENUM;
+  const isDynamic = singleSource?.source.type === DataSourceType.DYNAMIC;
+
+  const staticOptions = useMemo(
+    () =>
+      isStatic ? (singleSource!.source as StaticEnumDataSource).values : [],
+    [isStatic, singleSource],
+  );
+
+  const dynamicSource = useMemo(
+    () =>
+      isDynamic
+        ? (singleSource!.source as DynamicDataSource<unknown>)
+        : undefined,
+    [isDynamic, singleSource],
+  );
+
+  const flatOptions = useMemo(() => {
+    if (!Array.isArray(staticOptions)) {
+      return [];
+    }
+
+    return staticOptions.flatMap((item) =>
+      'items' in item ? item.items : [item],
+    );
+  }, [staticOptions]);
+
+  if (isDynamic) {
+    const Dropdown = dynamicSource ? PaginatedCombobox : StaticComboDropdown;
+
+    return (
+      <Dropdown
+        id={props.field.id}
+        title={props.field.title}
+        required={props.required}
+        value={props.value}
+        onSelect={props.onChange}
+        onSearchChange={setSearch}
+        integration={props.integration}
+        source={dynamicSource}
+        search={search}
+        allowClear
+      />
+    );
+  }
+
+  if (Array.isArray(staticOptions) && isGroupedOptions(staticOptions)) {
+    return (
+      <SelectField
+        id={props.field.id}
+        title={props.field.title}
+        required={props.required}
+        value={props.value}
+        onChange={(value) => props.onChange(value ?? undefined)}
+        groups={staticOptions}
+        allowClear
+      />
+    );
+  }
+
+  return (
+    <SelectField
+      id={props.field.id}
+      title={props.field.title}
+      required={props.required}
+      value={props.value}
+      onChange={(value) => props.onChange(value ?? undefined)}
+      allowClear
+    >
+      {flatOptions.map((option) => (
+        <SelectField.Item key={option.value} value={option.value}>
+          {option.label}
+        </SelectField.Item>
+      ))}
+    </SelectField>
   );
 }

@@ -1,5 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { paragon } from '@useparagon/connect';
+import { useMemo } from 'react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  paragon,
+  type DynamicDataSource,
+  type SerializedConnectInput,
+} from '@useparagon/connect';
 
 export function useIntegrationMetadata() {
   return useQuery({
@@ -41,8 +46,31 @@ const fieldOptionsInitialData: FieldOptionsResponse = {
   nextPageCursor: null,
 };
 
+export function hasSourcePagination(
+  source: DynamicDataSource<unknown>,
+): boolean {
+  return (
+    (source as DynamicDataSource<unknown> & { supportPagination?: boolean })
+      .supportPagination ?? false
+  );
+}
+
+export function useSourcesForInput(
+  integration: string,
+  input: SerializedConnectInput,
+) {
+  return useMemo(
+    () =>
+      'sourceType' in input
+        ? paragon.getSourcesForInput(integration, input)
+        : null,
+    [integration, input],
+  );
+}
+
 export function useFieldOptions({
   integration,
+  source,
   sourceType,
   search,
   cursor,
@@ -50,37 +78,109 @@ export function useFieldOptions({
   enabled = true,
 }: {
   integration: string;
-  sourceType: string;
+  source?: DynamicDataSource<unknown>;
+  sourceType?: string;
   search?: string;
   cursor?: string | number | false;
   parameters?: { cacheKey: string; value: string | undefined }[];
   enabled?: boolean;
 }) {
+  const queryKey = source?.cacheKey ?? sourceType;
+
   return useQuery({
-    enabled: enabled,
-    queryKey: ['fieldOptions', integration, sourceType, search, parameters],
+    enabled: enabled && !!queryKey,
+    queryKey: ['fieldOptions', integration, queryKey, search, parameters],
     queryFn: () => {
+      const mappedParameters = parameters.map((parameter) => ({
+        key: parameter.cacheKey,
+        source: {
+          type: 'VALUE' as const,
+          value: parameter.value,
+        },
+      }));
+
+      if (source) {
+        return paragon.getFieldOptions({
+          integration,
+          source,
+          search,
+          cursor,
+          parameters: mappedParameters,
+        });
+      }
+
       if (sourceType) {
         return paragon.getFieldOptions({
           integration,
           action: sourceType,
           search,
           cursor,
-          parameters: parameters.map((parameter) => {
-            return {
-              key: parameter.cacheKey,
-              source: {
-                type: 'VALUE',
-                value: parameter.value,
-              },
-            };
-          }),
+          parameters: mappedParameters,
         });
       }
+
       return fieldOptionsInitialData;
     },
     initialData: fieldOptionsInitialData,
   });
+}
+
+export function useInfiniteFieldOptions({
+  integration,
+  source,
+  search,
+  parameters = [],
+  enabled = true,
+}: {
+  integration: string;
+  source?: DynamicDataSource<unknown>;
+  search?: string;
+  parameters?: { cacheKey: string; value: string | undefined }[];
+  enabled?: boolean;
+}) {
+  const queryKey = source?.cacheKey;
+
+  const query = useInfiniteQuery({
+    enabled: enabled && !!queryKey,
+    queryKey: [
+      'infiniteFieldOptions',
+      integration,
+      queryKey,
+      search,
+      parameters,
+    ],
+    queryFn: ({ pageParam }) => {
+      const mappedParameters = parameters.map((parameter) => ({
+        key: parameter.cacheKey,
+        source: {
+          type: 'VALUE' as const,
+          value: parameter.value,
+        },
+      }));
+
+      return paragon.getFieldOptions({
+        integration,
+        source: source!,
+        search,
+        cursor: pageParam,
+        parameters: mappedParameters,
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPageCursor ?? undefined,
+  });
+
+  const flatData = useMemo(
+    () => query.data?.pages.flatMap((page) => page.data) ?? [],
+    [query.data?.pages],
+  );
+
+  return {
+    data: flatData,
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: query.hasNextPage ?? false,
+    isFetchingNextPage: query.isFetchingNextPage,
+    isFetching: query.isFetching,
+  };
 }
 
 export function useDataSourceOptions<T>(
