@@ -9,10 +9,7 @@ import {
   PaginatedCombobox,
   StaticComboDropdown,
 } from '@/components/form/paginated-combobox';
-import {
-  hasSourcePagination,
-  useSourcesForInput,
-} from '@/lib/hooks';
+import { hasSourcePagination, useSourcesForInput } from '@/lib/hooks';
 import { FieldLabel } from '../form/field-label';
 
 export type ComboInputValue = {
@@ -32,11 +29,7 @@ export function ComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const sources = useSourcesForInput(
-    props.integration,
-    props.field.sourceType as string,
-    props.field,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
   const comboSources =
     sources?.kind === 'defaultFieldValue'

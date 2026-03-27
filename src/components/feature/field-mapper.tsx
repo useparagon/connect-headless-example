@@ -31,11 +31,7 @@ export function FieldMapperField(props: Props) {
   const [dependentInputSearch, setDependentInputSearch] = useState('');
   const [fieldInputSearch, setFieldInputSearch] = useState('');
 
-  const sources = useSourcesForInput(
-    props.integration,
-    props.field.sourceType as string,
-    props.field,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
   const fieldMapperSources =
     sources?.kind === 'fieldMapper' ? (sources as FieldMapperSources) : null;
@@ -153,7 +149,10 @@ export function FieldMapperField(props: Props) {
     }
 
     return options.fields;
-  }, [fieldMapperSources?.mapObjectFieldOptions, props.field.savedFieldMappings]);
+  }, [
+    fieldMapperSources?.mapObjectFieldOptions,
+    props.field.savedFieldMappings,
+  ]);
 
   const mainInputMeta = fieldMapperSources?.recordSource;
   const dependentInputMeta = fieldMapperSources?.dependentInputSource;

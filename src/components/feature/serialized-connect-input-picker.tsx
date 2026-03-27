@@ -269,11 +269,7 @@ function CustomDropdownInput(props: {
 }) {
   const [search, setSearch] = useState('');
 
-  const sources = useSourcesForInput(
-    props.integration,
-    props.field.key ?? props.field.id,
-    props.field,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
   const singleSource =
     sources?.kind === 'single' ? (sources as SingleSource) : null;

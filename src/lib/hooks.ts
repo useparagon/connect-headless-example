@@ -57,12 +57,14 @@ export function hasSourcePagination(
 
 export function useSourcesForInput(
   integration: string,
-  action: string | undefined,
   input: SerializedConnectInput,
 ) {
   return useMemo(
-    () => (action ? paragon.getSourcesForInput(integration, input) : null),
-    [integration, action, input],
+    () =>
+      'sourceType' in input
+        ? paragon.getSourcesForInput(integration, input)
+        : null,
+    [integration, input],
   );
 }
 

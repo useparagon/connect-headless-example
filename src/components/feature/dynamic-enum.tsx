@@ -42,12 +42,7 @@ function filterOptions<T extends { label: string; value: string }>(
 export function DynamicEnumField(props: Props) {
   const [search, setSearch] = useState('');
 
-  const sourceType = props.field.sourceType as string;
-  const sources = useSourcesForInput(
-    props.integration,
-    sourceType,
-    props.field,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
   const dynamicSource =
     sources?.kind === 'single'

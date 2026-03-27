@@ -34,11 +34,7 @@ export function DynamicComboInputField(props: Props) {
   const [mainInputSearch, setMainInputSearch] = useState('');
   const [dependentInputSearch, setDependentInputSearch] = useState('');
 
-  const sources = useSourcesForInput(
-    props.integration,
-    props.field.sourceType as string,
-    props.field,
-  );
+  const sources = useSourcesForInput(props.integration, props.field);
 
   const comboSources =
     sources?.kind === 'defaultFieldValue'
