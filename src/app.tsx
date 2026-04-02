@@ -3,7 +3,6 @@ import { paragon } from '@useparagon/connect';
 import { useQuery } from '@tanstack/react-query';
 
 import { getAppConfig } from '@/lib/config';
-import { setupMockDataSources } from '@/lib/mock-data-sources';
 import { ThemeProvider } from '@/lib/themes/theme-provider';
 import { IntegrationList } from '@/components/feature/integration/integration-list';
 import { IntegrationCard } from '@/components/feature/integration/integration-card';
@@ -29,26 +28,11 @@ async function authenticate() {
     throw config.error;
   }
 
-  paragon.configureGlobal(
-    { host: 'https://staging.paragonsandbox.com' },
-    {
-      CONNECT_PUBLIC_URL: 'https://staging-connect.paragonsandbox.com',
-      DASHBOARD_PUBLIC_URL: 'https://staging.paragonsandbox.com',
-      WORKER_PROXY_PUBLIC_URL: 'https://staging-proxy.paragonsandbox.com',
-      ZEUS_PUBLIC_URL: 'https://staging-zeus.paragonsandbox.com',
-      CDN_PUBLIC_URL:
-        'https://staging-cdn.paragonsandbox.com/2024.1113.1547-5202e3b3/dashboard/public',
-      HERMES_PUBLIC_URL: 'https://staging-hermes.paragonsandbox.com',
-    },
-  );
-
   await paragon.authenticate(
     config.data.VITE_PARAGON_PROJECT_ID,
     config.data.VITE_PARAGON_JWT_TOKEN,
   );
   paragon.setHeadless(true);
-
-  setupMockDataSources();
 
   return null;
 }
