@@ -4,6 +4,8 @@ import { useEffect, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 import { ComboboxField } from '@/components/form/combobox-field';
+import { ComboboxOptions } from '@/components/form/combobox-options';
+import { findFieldOption } from '@/lib/field-options';
 import { useFieldOptions, useInfiniteFieldOptions } from '@/lib/hooks';
 
 export type ComboDropdownProps = {
@@ -98,7 +100,7 @@ export function StaticComboDropdown(props: ComboDropdownProps) {
   });
 
   const selectedOption = useMemo(
-    () => options.data.find((option) => option.value === props.value),
+    () => findFieldOption(options.data, props.value),
     [options.data, props.value],
   );
 
@@ -115,11 +117,7 @@ export function StaticComboDropdown(props: ComboDropdownProps) {
       disabled={props.disabled}
       allowClear={props.allowClear}
     >
-      {options.data.map((option) => (
-        <ComboboxField.Item key={option.value} value={option.value}>
-          {option.label}
-        </ComboboxField.Item>
-      ))}
+      <ComboboxOptions data={options.data} />
     </ComboboxField>
   );
 }
