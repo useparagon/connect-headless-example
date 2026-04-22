@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
+  IntentInputKeyConfig,
   paragon,
   type DynamicDataSource,
   type SerializedConnectInput,
 } from '@useparagon/connect';
+
+import { flattenFieldOptions } from './field-options';
 
 export function useIntegrationMetadata() {
   return useQuery({
@@ -66,6 +69,10 @@ export function useSourcesForInput(
         : null,
     [integration, input],
   );
+}
+
+export function useSourcesForTriggerInput(input: IntentInputKeyConfig) {
+  return useMemo(() => paragon.getSourcesForActionInput(input), [input]);
 }
 
 export function useFieldOptions({
@@ -170,17 +177,29 @@ export function useInfiniteFieldOptions({
   });
 
   const flatData = useMemo(
-    () => query.data?.pages.flatMap((page) => page.data) ?? [],
+    () =>
+      query.data?.pages.flatMap((page) => flattenFieldOptions(page.data)) ?? [],
     [query.data?.pages],
   );
 
   return {
     data: flatData,
+    pages: query.data?.pages ?? [],
     fetchNextPage: query.fetchNextPage,
     hasNextPage: query.hasNextPage ?? false,
     isFetchingNextPage: query.isFetchingNextPage,
     isFetching: query.isFetching,
   };
+}
+
+export function useTriggerTypes(
+  integration: string,
+  selectedCredentialId: string,
+) {
+  return useQuery({
+    queryKey: ['triggerTypes', integration, { selectedCredentialId }],
+    queryFn: () => paragon.getTriggers(integration, { selectedCredentialId }),
+  });
 }
 
 export function useDataSourceOptions<T>(
