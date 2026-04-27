@@ -190,7 +190,14 @@ function SourcedTriggerParameterField(props: FieldProps) {
   }, [dependencyKey, props.value, registerParameter, unregisterParameter]);
 
   if (!triggerInputSource || triggerInputSource.kind !== 'single') {
-    return null;
+    return (
+      <TriggerParameterInput
+        integration={props.integration}
+        config={props.param}
+        value={props.value}
+        onChange={props.onChange}
+      />
+    );
   }
 
   const { source } = triggerInputSource as SingleSource;
