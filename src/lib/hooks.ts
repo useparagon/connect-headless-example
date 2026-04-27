@@ -194,7 +194,7 @@ export function useInfiniteFieldOptions({
 
 export function useTriggerTypes(
   integration: string,
-  selectedCredentialId: string,
+  selectedCredentialId?: string,
 ) {
   return useQuery({
     queryKey: ['triggerTypes', integration, { selectedCredentialId }],

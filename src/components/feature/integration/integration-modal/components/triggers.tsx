@@ -1,19 +1,12 @@
 import { BellIcon, PlusIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import {
-  TriggerSubscriptionModal,
-  type TriggerFormState,
-} from '@/components/feature/trigger/trigger-subscription-modal';
+import { TriggerSubscriptionModal } from '@/components/feature/trigger/trigger-subscription-modal';
 
 export function TriggerSection(props: {
   integration: string;
   selectedCredentialId?: string;
 }) {
-  const handleSubmit = async (data: TriggerFormState) => {
-    console.log('Trigger subscription created:', data);
-  };
-
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
@@ -29,7 +22,6 @@ export function TriggerSection(props: {
       <TriggerSubscriptionModal
         integration={props.integration}
         selectedCredentialId={props.selectedCredentialId}
-        onSubmit={handleSubmit}
         trigger={
           <Button variant="outline" size="sm">
             <PlusIcon />

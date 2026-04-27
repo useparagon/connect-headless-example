@@ -46,8 +46,6 @@ export function TriggerFormProvider({ children }: { children: ReactNode }) {
     [parametersByKey, registerParameter, unregisterParameter],
   );
 
-  console.log('trigger form context', parametersByKey);
-
   return (
     <TriggerFormContext.Provider value={value}>
       {children}

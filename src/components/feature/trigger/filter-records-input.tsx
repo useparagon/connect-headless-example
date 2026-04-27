@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { PlusIcon, XIcon } from 'lucide-react';
 import type { EnumInputValue } from '@useparagon/connect';
 
@@ -350,6 +350,7 @@ function FieldComboBox({
   isFetching: boolean;
   onSelect: (next: string | null) => void;
 }) {
+  const id = useId();
   const [search, setSearch] = useState('');
 
   const flatOptions = useMemo(() => flattenFieldOptions(options), [options]);
@@ -374,7 +375,7 @@ function FieldComboBox({
 
   return (
     <ComboboxField
-      id="filter-field"
+      id={id}
       required={false}
       value={value || null}
       placeholder={selectedLabel ?? placeholder}

@@ -56,7 +56,6 @@ function formReducer(
 type Props = {
   integration: string;
   selectedCredentialId?: string;
-  onSubmit: (data: TriggerFormState) => Promise<void>;
   trigger: ReactNode;
   initialData?: TriggerFormState;
 };
@@ -73,7 +72,7 @@ export function TriggerSubscriptionModal({
 
   const { data: triggerTypes, isLoading } = useTriggerTypes(
     integration,
-    selectedCredentialId ?? '',
+    selectedCredentialId,
   );
 
   const triggerDefinitions = useMemo<TriggerDefinition[]>(() => {
@@ -85,6 +84,9 @@ export function TriggerSubscriptionModal({
     () => triggerDefinitions.find((t) => t.type === state.triggerType),
     [triggerDefinitions, state.triggerType],
   );
+
+  /**
+   * NOTE: Can be used when implementing the submit functionality.
 
   const canSubmit = useMemo(() => {
     if (!state.triggerType || !selectedTrigger) return false;
@@ -98,6 +100,8 @@ export function TriggerSubscriptionModal({
     if (!canSubmit) return;
     console.log('state', state);
   }, [canSubmit, state]);
+
+  */
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -166,9 +170,6 @@ export function TriggerSubscriptionModal({
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleSubmit} disabled={!canSubmit}>
-            Save
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
