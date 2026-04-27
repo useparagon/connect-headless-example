@@ -22,6 +22,7 @@ import { IntegrationInstallFlowForm } from '@/components/feature/integration/int
 import { ActionButton } from './components/action-button';
 import { WorkflowSection } from './components/workflows';
 import { IntegrationSettingsSection } from './components/integration-settings';
+import { TriggerSection } from './components/triggers';
 import { ErrorMessage } from '../error-message';
 import { Button } from '@/components/ui/button';
 import { Time } from '@/lib/time';
@@ -220,7 +221,7 @@ export function IntegrationModal(props: Props) {
             </div>
           ) : (
             <Tabs value={tab} onValueChange={setTab} className="w-full">
-              <TabsList className="w-[250px] grid grid-cols-2">
+              <TabsList className="w-[375px] grid grid-cols-3">
                 <TabsTrigger className="cursor-pointer" value="overview">
                   Overview
                 </TabsTrigger>
@@ -230,6 +231,13 @@ export function IntegrationModal(props: Props) {
                   disabled={configurationTabDisabled}
                 >
                   Configuration
+                </TabsTrigger>
+                <TabsTrigger
+                  className="cursor-pointer"
+                  value="triggers"
+                  disabled={configurationTabDisabled}
+                >
+                  Triggers
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="overview" className="w-full">
@@ -243,18 +251,28 @@ export function IntegrationModal(props: Props) {
                 </div>
               </TabsContent>
               {props.selectedCredentialId ? (
-                <TabsContent value="configuration" className="w-full">
-                  <div className="p-6 flex flex-col gap-6">
-                    <IntegrationSettingsSection
-                      integration={props.integration}
-                      selectedCredentialId={props.selectedCredentialId}
-                    />
-                    <WorkflowSection
-                      integration={props.integration}
-                      selectedCredentialId={props.selectedCredentialId}
-                    />
-                  </div>
-                </TabsContent>
+                <>
+                  <TabsContent value="configuration" className="w-full">
+                    <div className="p-6 flex flex-col gap-6">
+                      <IntegrationSettingsSection
+                        integration={props.integration}
+                        selectedCredentialId={props.selectedCredentialId}
+                      />
+                      <WorkflowSection
+                        integration={props.integration}
+                        selectedCredentialId={props.selectedCredentialId}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="triggers" className="w-full">
+                    <div className="p-6">
+                      <TriggerSection
+                        integration={props.integration}
+                        selectedCredentialId={props.selectedCredentialId}
+                      />
+                    </div>
+                  </TabsContent>
+                </>
               ) : null}
             </Tabs>
           )}

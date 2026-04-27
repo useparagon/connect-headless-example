@@ -25,6 +25,7 @@ type BaseProps = {
   value: string | null;
   onChange: (value: string | null) => void;
   allowClear?: boolean;
+  disabled?: boolean;
 };
 
 type FlatProps = BaseProps & {
@@ -46,7 +47,7 @@ export function SelectField(props: Props) {
         {props.title}
       </FieldLabel>
       <div className="flex gap-2">
-        <Select value={props.value ?? ''} onValueChange={props.onChange}>
+        <Select value={props.value ?? ''} onValueChange={props.onChange} disabled={props.disabled}>
           <SelectTrigger className="w-[180px]" id={props.id}>
             <SelectValue placeholder="Select an item" />
           </SelectTrigger>
