@@ -7,6 +7,8 @@ import {
 import { useMemo, useState } from 'react';
 
 import { ComboboxField } from '@/components/form/combobox-field';
+import { ComboboxOptions } from '@/components/form/combobox-options';
+import { findFieldOption } from '@/lib/field-options';
 import { useFieldOptions, useSourcesForInput } from '@/lib/hooks';
 import { Label } from '../ui/label';
 import { CommandGroup } from '../ui/command';
@@ -44,12 +46,13 @@ export function FieldMapperField(props: Props) {
     });
 
   const selectedMainOption = useMemo(() => {
-    const flatResult = mainInputOptions.data.find(
-      (option) => option.value === props.value.mainInput,
+    const dataMatch = findFieldOption(
+      mainInputOptions.data,
+      props.value.mainInput,
     );
 
-    if (flatResult) {
-      return flatResult;
+    if (dataMatch) {
+      return dataMatch;
     }
 
     for (const group of mainInputOptions.nestedData ?? []) {
@@ -81,9 +84,7 @@ export function FieldMapperField(props: Props) {
 
   const selectedDependentInputOption = useMemo(
     () =>
-      dependentInputOptions?.data.find(
-        (option) => option.value === props.value.dependentInput,
-      ),
+      findFieldOption(dependentInputOptions?.data ?? [], props.value.dependentInput),
     [dependentInputOptions?.data, props.value],
   );
 
@@ -125,9 +126,7 @@ export function FieldMapperField(props: Props) {
     }
 
     for (const [key, value] of Object.entries(props.value.fieldMappings)) {
-      const option = fieldInputOptions.data.find(
-        (option) => option.value === value,
-      );
+      const option = findFieldOption(fieldInputOptions.data, value);
 
       if (!option) {
         continue;
@@ -170,11 +169,7 @@ export function FieldMapperField(props: Props) {
       ));
     }
 
-    return mainInputOptions.data.map((option) => (
-      <ComboboxField.Item key={option.value} value={option.value}>
-        {option.label}
-      </ComboboxField.Item>
-    ));
+    return <ComboboxOptions data={mainInputOptions.data} />;
   }
 
   return (
@@ -225,13 +220,7 @@ export function FieldMapperField(props: Props) {
             disabled={!props.value.mainInput}
             allowClear
           >
-            {dependentInputOptions.data.map((option) => {
-              return (
-                <ComboboxField.Item key={option.value} value={option.value}>
-                  {option.label}
-                </ComboboxField.Item>
-              );
-            })}
+            <ComboboxOptions data={dependentInputOptions.data} />
           </ComboboxField>
         )}
       </div>
@@ -265,13 +254,7 @@ export function FieldMapperField(props: Props) {
               )}
               allowClear
             >
-              {fieldInputOptions.data.map((option) => {
-                return (
-                  <ComboboxField.Item key={option.value} value={option.value}>
-                    {option.label}
-                  </ComboboxField.Item>
-                );
-              })}
+              <ComboboxOptions data={fieldInputOptions.data} />
             </ComboboxField>
             <MoveHorizontal className="h-4 w-4 shrink-0 opacity-50" />
             <Label>{fieldMap.label}</Label>

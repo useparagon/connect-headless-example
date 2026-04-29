@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { FieldLabel } from './field-label';
+import { cn } from '@/lib/utils';
 
 type Props = {
   id: string;
@@ -15,7 +16,37 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
+  placeholder?: string;
 };
+
+const LINK_PATTERN = /^(.*?)\((https?:\/\/[^)]+)\)(.*)$/;
+
+function Subtitle({ children }: { children: ReactNode }) {
+  if (typeof children !== 'string') {
+    return <p className="text-sm text-muted-foreground">{children}</p>;
+  }
+
+  const match = children.match(LINK_PATTERN);
+  if (!match) {
+    return <p className="text-sm text-muted-foreground">{children}</p>;
+  }
+
+  const [, before, url, after] = match;
+  return (
+    <p className="text-sm text-muted-foreground">
+      {before}
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary underline underline-offset-2"
+      >
+        🔗
+      </a>
+      {after}
+    </p>
+  );
+}
 
 export function TextInputField(props: Props) {
   return (
@@ -27,9 +58,7 @@ export function TextInputField(props: Props) {
       >
         {props.title}
       </FieldLabel>
-      {props.subtitle ? (
-        <p className="text-sm text-gray-500">{props.subtitle}</p>
-      ) : null}
+      {props.subtitle ? <Subtitle>{props.subtitle}</Subtitle> : null}
       <Input
         id={props.id}
         type={props.type}
@@ -37,6 +66,8 @@ export function TextInputField(props: Props) {
         onChange={(e) => props.onChange(e.target.value)}
         disabled={props.disabled}
         readOnly={props.readOnly}
+        className={cn(props.className, 'placeholder:text-muted-foreground/30')}
+        placeholder={props.placeholder}
       />
     </div>
   );

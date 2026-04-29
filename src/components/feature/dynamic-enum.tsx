@@ -8,7 +8,12 @@ import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 
 import { ComboboxField } from '@/components/form/combobox-field';
+import { ComboboxOptions } from '@/components/form/combobox-options';
 import { PaginatedCombobox } from '@/components/form/paginated-combobox';
+import {
+  findFieldOption,
+  flattenFieldOptions,
+} from '@/lib/field-options';
 import {
   hasSourcePagination,
   useFieldOptions,
@@ -92,14 +97,20 @@ function StaticDynamicEnum(
     source: props.dynamicSource,
   });
 
+  const rawData = useMemo(() => options?.data ?? [], [options?.data]);
+  const flatOptions = useMemo(() => flattenFieldOptions(rawData), [rawData]);
+
+  // Preserve section grouping at rest, but collapse to a flat fuse-filtered
+  // result list while the user is actively searching.
+  const isSearching = Boolean(props.search.trim());
   const filteredOptions = useMemo(
-    () => filterOptions(options?.data ?? [], props.search),
-    [options?.data, props.search],
+    () => (isSearching ? filterOptions(flatOptions, props.search) : []),
+    [isSearching, flatOptions, props.search],
   );
 
   const selectedOption = useMemo(
-    () => filteredOptions.find((option) => option.value === props.value),
-    [filteredOptions, props.value],
+    () => findFieldOption(rawData, props.value),
+    [rawData, props.value],
   );
 
   return (
@@ -114,11 +125,11 @@ function StaticDynamicEnum(
       onDebouncedChange={props.onSearchChange}
       allowClear
     >
-      {filteredOptions.map((option) => (
-        <ComboboxField.Item key={option.value} value={option.value}>
-          {option.label}
-        </ComboboxField.Item>
-      ))}
+      {isSearching ? (
+        <ComboboxOptions data={filteredOptions} />
+      ) : (
+        <ComboboxOptions data={rawData} />
+      )}
     </ComboboxField>
   );
 }
