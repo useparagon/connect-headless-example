@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 
 import { FieldLabel } from './field-label';
+import { cn } from '@/lib/utils';
 
 type OptionGroup = {
   title: string;
@@ -26,6 +27,8 @@ type BaseProps = {
   onChange: (value: string | null) => void;
   allowClear?: boolean;
   disabled?: boolean;
+  tooltip?: ReactNode;
+  fullWidth?: boolean;
 };
 
 type FlatProps = BaseProps & {
@@ -42,14 +45,17 @@ type Props = FlatProps | GroupedProps;
 
 export function SelectField(props: Props) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel id={props.id} required={props.required}>
+    <div className={cn('flex flex-col gap-1.5', props.fullWidth && 'w-full')}>
+      <FieldLabel id={props.id} required={props.required} tooltip={props.tooltip}>
         {props.title}
       </FieldLabel>
       <div className="flex gap-2">
         <Select value={props.value ?? ''} onValueChange={props.onChange} disabled={props.disabled}>
-          <SelectTrigger className="w-[180px]" id={props.id}>
-            <SelectValue placeholder="Select an item" />
+          <SelectTrigger
+            className={props.fullWidth ? 'w-full' : 'w-[180px]'}
+            id={props.id}
+          >
+            <SelectValue placeholder="Select an option..." />
           </SelectTrigger>
           <SelectContent>
             {props.groups ? (

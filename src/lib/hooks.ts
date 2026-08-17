@@ -202,8 +202,10 @@ export function useTriggerTypes(
 export function useDataSourceOptions<T>(
   integration: string,
   sourceType: string,
+  enabled = true,
 ) {
   return useQuery({
+    enabled: enabled && !!sourceType,
     queryKey: ['comboInputOptions', integration, sourceType],
     queryFn: () => {
       return paragon.getDataSourceOptions(integration, sourceType) as T;
