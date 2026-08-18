@@ -149,7 +149,7 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if (field.type === (SidebarInputType.Enum as SidebarInputType)) {
+  if (field.type === (SidebarInputType.Enum)) {
     return (
       <EnumField
         integration={props.integration}
