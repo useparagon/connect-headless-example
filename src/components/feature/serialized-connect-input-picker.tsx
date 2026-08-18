@@ -12,7 +12,7 @@ import { TextInputField } from '../form/text-input-field';
 import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
-import { EnumField, type SerializedEnumInput } from './enum-field';
+import { EnumField } from './enum-field';
 import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
@@ -149,11 +149,11 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  if (field.type === (SidebarInputType.Enum)) {
+  if (field.type === SidebarInputType.Enum) {
     return (
       <EnumField
         integration={props.integration}
-        field={field as unknown as SerializedEnumInput}
+        field={field}
         required={required}
         value={(value as string) ?? null}
         onChange={(value) => onChange(value ?? undefined)}
