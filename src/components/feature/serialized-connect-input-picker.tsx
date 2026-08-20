@@ -12,6 +12,7 @@ import { TextInputField } from '../form/text-input-field';
 import { BooleanField } from '../form/boolean-field';
 import { SelectField } from '../form/select-field';
 import { DynamicEnumField } from './dynamic-enum';
+import { EnumField } from './enum-field';
 import { ComboInputField, ComboInputValue } from './combo-input';
 import { FieldMapperField, FieldMappingsInputValue } from './field-mapper';
 import { CopyableInput } from '../form/copyable-input';
@@ -23,8 +24,11 @@ import {
   StaticComboDropdown,
 } from '../form/paginated-combobox';
 import { useSourcesForInput } from '@/lib/hooks';
-type OptionItem = { label: string; value: string };
-type OptionGroup = { title: string; items: OptionItem[] };
+import {
+  flattenFieldOptions,
+  getFieldOptionSections,
+} from '@/lib/field-options';
+import { UnsupportedField } from './unsupported-field';
 
 type Props = {
   integration: string;
@@ -145,6 +149,18 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
+  if (field.type === SidebarInputType.Enum) {
+    return (
+      <EnumField
+        integration={props.integration}
+        field={field}
+        required={required}
+        value={(value as string) ?? null}
+        onChange={(value) => onChange(value ?? undefined)}
+      />
+    );
+  }
+
   if (field.type === SidebarInputType.DynamicEnum) {
     return (
       <DynamicEnumField
@@ -246,18 +262,7 @@ export function SerializedConnectInputPicker(props: Props) {
     );
   }
 
-  return (
-    <div>
-      <p>Field not supported:</p>
-      <pre className="max-w-full max-h-[150px] text-sm overflow-auto bg-card p-2 rounded-md border border-border">
-        {JSON.stringify(field, null, 2)}
-      </pre>
-    </div>
-  );
-}
-
-function isGroupedOptions(options: unknown[]): options is OptionGroup[] {
-  return options.length > 0 && 'items' in (options[0] as object);
+  return <UnsupportedField field={field} />;
 }
 
 function CustomDropdownInput(props: {
@@ -290,15 +295,15 @@ function CustomDropdownInput(props: {
     [isDynamic, singleSource],
   );
 
-  const flatOptions = useMemo(() => {
-    if (!Array.isArray(staticOptions)) {
-      return [];
-    }
+  const flatOptions = useMemo(
+    () => flattenFieldOptions(staticOptions),
+    [staticOptions],
+  );
 
-    return staticOptions.flatMap((item) =>
-      'items' in item ? item.items : [item],
-    );
-  }, [staticOptions]);
+  const sections = useMemo(
+    () => getFieldOptionSections(staticOptions),
+    [staticOptions],
+  );
 
   if (isDynamic) {
     const Dropdown = dynamicSource ? PaginatedCombobox : StaticComboDropdown;
@@ -319,7 +324,7 @@ function CustomDropdownInput(props: {
     );
   }
 
-  if (Array.isArray(staticOptions) && isGroupedOptions(staticOptions)) {
+  if (sections) {
     return (
       <SelectField
         id={props.field.id}
@@ -327,7 +332,7 @@ function CustomDropdownInput(props: {
         required={props.required}
         value={props.value}
         onChange={(value) => props.onChange(value ?? undefined)}
-        groups={staticOptions}
+        groups={sections}
         allowClear
       />
     );
