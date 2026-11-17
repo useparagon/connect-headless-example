@@ -202,19 +202,23 @@ export function IntegrationModal(props: Props) {
           )}
           {showFlowForm && installFlowStage ? (
             <div className="flex flex-col gap-4">
-              <IntegrationInstallFlowForm
-                integration={props.integration}
-                installFlowStage={installFlowStage}
-                onSelectAccount={(accountId) => {
-                  paragon.installFlow.setAccountType(accountId);
-                }}
-                onFinishPreOptions={(preOptions) => {
-                  paragon.installFlow.setPreOptions(preOptions);
-                }}
-                onFinishPostOptions={(postOptions) => {
-                  paragon.installFlow.setPostOptions(postOptions);
-                }}
-              />
+              {/* On a terminal OAuth error the spinner has no recovery path —
+                  replace the stage view instead of appending the error below it */}
+              {!(showStageError && installationError?.stage === 'oauth') && (
+                <IntegrationInstallFlowForm
+                  integration={props.integration}
+                  installFlowStage={installFlowStage}
+                  onSelectAccount={(accountId) => {
+                    paragon.installFlow.setAccountType(accountId);
+                  }}
+                  onFinishPreOptions={(preOptions) => {
+                    paragon.installFlow.setPreOptions(preOptions);
+                  }}
+                  onFinishPostOptions={(postOptions) => {
+                    paragon.installFlow.setPostOptions(postOptions);
+                  }}
+                />
+              )}
               {showStageError && (
                 <ErrorMessage error={installationError.error} />
               )}
